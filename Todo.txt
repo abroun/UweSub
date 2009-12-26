@@ -1,0 +1,7 @@
+Make a program for specifying the ground truth for buoy location (centre and radius)
+    - Display frame and frame number
+    - go forwards and backwards
+    - Click to set buoy centre
+    - Use text box to set radius
+    - Save and load ground truth to and from XML file
+    - Lerp between key-frames
