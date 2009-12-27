@@ -63,7 +63,7 @@ class MainWindow:
         layoutBox_B_0 = gtk.VBox()
 
         # Load video and get information about the video file
-        self.videoCapture = cv.CaptureFromFile( "/home/abroun/Downloads/SAUC-E Videos/buoy.avi" )
+        self.videoCapture = cv.CaptureFromFile( "../../data/buoy.avi" )
         self.numFrames = int( cv.GetCaptureProperty( self.videoCapture, cv.CV_CAP_PROP_FRAME_COUNT ) )
         
         # Create a textbox to show the current frame number
