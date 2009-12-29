@@ -1,7 +1,20 @@
 Make a program for specifying the ground truth for buoy location (centre and radius)
-    - Display frame and frame number
-    - go forwards and backwards
+    - Display frame and frame number - Done
+    - go forwards and backwards - Done
+    - Draw a circle and centre point to show the position and radius of the buoy
+        - Create a drawing area to display the image
+        - Create and update a pixel buffer for the current frame image
+        - On configure and resize events we draw the pixel buffer to the drawable area
+        - We also draw the circle and dot into the drawable area
+        
     - Click to set buoy centre
     - Use text box to set radius
-    - Save and load ground truth to and from XML file
-    - Lerp between key-frames
+    - Save and load ground truth to and from YAML file - Done
+    - Lerp between key-frames - Done
+    - Redo the GUI for the program using Glade
+    
+Write a script to evaluate the performance of a tracker algorithm against the ground truth
+    - Give error per frame
+        - Square of position error. If the tracker gets visible/invisible wrong then give a fixed penalty of half the screen diagonal squared
+    - Total and average error over a number of frames
+    - Allow the error to be tracked over just a subset of the frames
