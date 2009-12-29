@@ -1,3 +1,5 @@
+import copy
+import os
 import yaml
 
 KEYFRAME_TYPE_NONE = "None"

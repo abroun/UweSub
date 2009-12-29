@@ -4,15 +4,12 @@
 # Simple program entering the ground truth information about buoy position
 #-------------------------------------------------------------------------------
 
-import copy
-import os
 import cv
 import pygtk
 pygtk.require('2.0')
 import gtk
 
 import BuoyGroundTruth
-
 
 #-------------------------------------------------------------------------------
 def tryParseFloat( strFloat, alternative ):
@@ -82,7 +79,7 @@ class MainWindow:
         layoutBox_C_0 = gtk.VBox()
 
         # Load video and get information about the video file
-        self.videoCapture = cv.CaptureFromFile( "../../data/buoy.avi" )
+        self.videoCapture = cv.CaptureFromFile( "../data/buoy.avi" )
         self.numFrames = int( cv.GetCaptureProperty( self.videoCapture, cv.CV_CAP_PROP_FRAME_COUNT ) )
         self.frameWidth = int( cv.GetCaptureProperty( self.videoCapture, cv.CV_CAP_PROP_FRAME_WIDTH ) )
         self.frameHeight = int( cv.GetCaptureProperty( self.videoCapture, cv.CV_CAP_PROP_FRAME_HEIGHT ) )
