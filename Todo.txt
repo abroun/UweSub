@@ -13,6 +13,13 @@ Make a program for specifying the ground truth for buoy location (centre and rad
     - Lerp between key-frames - Done
     - Redo the GUI for the program using Glade
     
+Create a simple tracker that just takes the centre of mass of orangish pixels.
+    - Create variations that work with HSV, RGB and YUV colour spaces
+    
+    - Produce a debug window for the the tracker that highlights the tracked pixels
+    
+    - Optimise the tracker (look at producing an implementation in C)
+
 Write a script to evaluate the performance of a tracker algorithm against the ground truth
     - Give error per frame
         - Square of position error. If the tracker gets visible/invisible wrong then give a fixed penalty of half the screen diagonal squared

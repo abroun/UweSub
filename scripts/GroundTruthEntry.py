@@ -10,6 +10,21 @@ pygtk.require('2.0')
 import gtk
 
 import BuoyGroundTruth
+from ColourTracker import ColourTracker
+
+import time
+
+def print_timing(func):
+    def wrapper(*arg):
+    
+        t1 = time.time()
+        res = func(*arg)
+        t2 = time.time()
+        
+        print '%s took %0.3f ms' % (func.func_name, (t2-t1)*1000.0)
+        return res
+
+    return wrapper
 
 #-------------------------------------------------------------------------------
 def tryParseFloat( strFloat, alternative ):
@@ -41,6 +56,7 @@ class MainWindow:
         self.loadKeyFrameDataFromFile()
         self.curFramePixBuf = None
         self.settingFrame = False
+        self.tracker = ColourTracker()
 
         # Create a new window
         self.window = gtk.Window( gtk.WINDOW_TOPLEVEL)
@@ -176,6 +192,16 @@ class MainWindow:
         layoutBox_D_2.show()
         layoutBox_C_1.pack_start( layoutBox_D_3, fill=False )
         layoutBox_D_3.show()
+        
+        self.chkEnableTracker = gtk.CheckButton( "Enable Tracker" )
+        self.chkEnableTracker.connect( "toggled", self.onChkEnableTrackerToggled )
+        layoutBox_C_1.pack_start( self.chkEnableTracker )
+        self.chkEnableTracker.show()
+        
+        self.btnResetTracker = gtk.Button( "Reset Tracker" )
+        self.btnResetTracker.connect( "clicked", self.resetTracker )
+        layoutBox_C_1.pack_start( self.btnResetTracker )
+        self.btnResetTracker.show()
 
         layoutBox_B_0.pack_start( layoutBox_C_0 )
         layoutBox_C_0.show()
@@ -213,6 +239,13 @@ class MainWindow:
         cv.SetCaptureProperty( self.videoCapture, cv.CV_CAP_PROP_POS_FRAMES, frameIdx )
 
         baseFrame = cv.QueryFrame( self.videoCapture )
+        if self.chkEnableTracker.get_active():
+            # We may process the same frame multiple times (i.e. if the screen is redrawn)
+            # This shouldn't be a problem as this program is only for debug purposes so such
+            # issues should be noticable
+            self.processFrame( baseFrame )
+            #self.tracker.processFrame( baseFrame )  
+        
         pythonFrame = cv.CloneImage( baseFrame )
 
         cv.CvtColor( pythonFrame, pythonFrame, cv.CV_BGR2RGB )
@@ -341,11 +374,31 @@ class MainWindow:
                 arcWidth = arcHeight = int( buoyData.radius * 2 )
             
                 drawFilledArc = False
-                widget.window.draw_arc( widget.get_style().fg_gc[ gtk.STATE_NORMAL ], 
+                graphicsContext = widget.window.new_gc()
+
+                widget.window.draw_arc( graphicsContext, 
                     drawFilledArc, arcX, arcY, arcWidth, arcHeight, 0, 360 * 64 )
                 
-                widget.window.draw_points( widget.get_style().fg_gc[ gtk.STATE_NORMAL ],
+                widget.window.draw_points( graphicsContext,
                     [ ( int( imgOffsetX + buoyData.centreX ), int( imgOffsetY + buoyData.centreY ) ) ] )
+                    
+            if self.chkEnableTracker.get_active():
+                buoyData = self.tracker.getBuoyData()
+                if buoyData.visible:
+                
+                    arcX = int( imgOffsetX + buoyData.centreX - buoyData.radius )
+                    arcY = int( imgOffsetY + buoyData.centreY - buoyData.radius )
+                    arcWidth = arcHeight = int( buoyData.radius * 2 )
+                
+                    drawFilledArc = False
+                    graphicsContext = widget.window.new_gc()
+                    graphicsContext.set_rgb_fg_color( gtk.gdk.Color( 65535, 65535, 65535 ) )
+                
+                    widget.window.draw_arc( graphicsContext, 
+                        drawFilledArc, arcX, arcY, arcWidth, arcHeight, 0, 360 * 64 )
+                    
+                    widget.window.draw_points( graphicsContext,
+                        [ ( int( imgOffsetX + buoyData.centreX ), int( imgOffsetY + buoyData.centreY ) ) ] )
                 
 
     #---------------------------------------------------------------------------
@@ -398,6 +451,24 @@ class MainWindow:
     def clearKeyFrames( self, data = None ):
         self.groundTruthData.clearKeyFrames()
         self.setCurFrameIdx( int( self.tbxFrameNumber.get_text() ) - 1 )
+    
+    #---------------------------------------------------------------------------
+    def resetTracker( self, widget ):
+        self.tracker.reset()
+        
+    #---------------------------------------------------------------------------
+    def onChkEnableTrackerToggled( self, widget ):
+        if widget.get_active():
+            self.tracker.reset()
+            
+            # Lets the tracker process the frame
+            self.setCurFrameIdx( int( self.tbxFrameNumber.get_text() ) - 1 )
+        else:
+            self.dwgCurFrame.queue_draw()
+            
+    @print_timing
+    def processFrame( self, frame ):
+        self.tracker.processFrame( frame )
 
 #-------------------------------------------------------------------------------
 if __name__ == "__main__":
