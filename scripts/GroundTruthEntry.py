@@ -10,7 +10,8 @@ pygtk.require('2.0')
 import gtk
 
 import BuoyGroundTruth
-from ColourTracker import ColourTracker
+#from ColourTracker import ColourTracker
+from RoBoardControl import ColourTracker
 
 import time
 
@@ -383,12 +384,12 @@ class MainWindow:
                     [ ( int( imgOffsetX + buoyData.centreX ), int( imgOffsetY + buoyData.centreY ) ) ] )
                     
             if self.chkEnableTracker.get_active():
-                buoyData = self.tracker.getBuoyData()
-                if buoyData.visible:
+                blobData = self.tracker.getBlobData()
+                if blobData.visible:
                 
-                    arcX = int( imgOffsetX + buoyData.centreX - buoyData.radius )
-                    arcY = int( imgOffsetY + buoyData.centreY - buoyData.radius )
-                    arcWidth = arcHeight = int( buoyData.radius * 2 )
+                    arcX = int( imgOffsetX + blobData.centreX - blobData.radius )
+                    arcY = int( imgOffsetY + blobData.centreY - blobData.radius )
+                    arcWidth = arcHeight = int( blobData.radius * 2 )
                 
                     drawFilledArc = False
                     graphicsContext = widget.window.new_gc()
@@ -398,7 +399,7 @@ class MainWindow:
                         drawFilledArc, arcX, arcY, arcWidth, arcHeight, 0, 360 * 64 )
                     
                     widget.window.draw_points( graphicsContext,
-                        [ ( int( imgOffsetX + buoyData.centreX ), int( imgOffsetY + buoyData.centreY ) ) ] )
+                        [ ( int( imgOffsetX + blobData.centreX ), int( imgOffsetY + blobData.centreY ) ) ] )
                 
 
     #---------------------------------------------------------------------------

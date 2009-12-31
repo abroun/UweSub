@@ -6,6 +6,7 @@ PROJECT( RoBoardControl )
 
 INCLUDE( FindPkgConfig )
 INCLUDE( ${PROJECT_SOURCE_DIR}/cmake/utils.cmake )
+INCLUDE( ${PROJECT_SOURCE_DIR}/cmake/python.cmake )
 
 INIT_LISTS()
 RESET_LISTS()

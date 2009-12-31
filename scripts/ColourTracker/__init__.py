@@ -4,7 +4,7 @@ import cv
 import math
 
 #-------------------------------------------------------------------------------
-class BuoyData:
+class BlobData:
 
     def __init__( self, visible, centreX, centreY, radius ):
         self.visible = visible
@@ -17,12 +17,12 @@ class ColourTracker:
 
     def __init__( self ):
         self.reset()
-        self.trackedHue = (15.0 / 360.0)*255.0
-        self.maxAbsHueDiff = (5.0 / 360.0)*255.0
+        self.trackedHue = (15.0 / 360.0)*180.0
+        self.maxAbsHueDiff = (5.0 / 360.0)*180.0
         self.calculateRadius = False
 
     def reset( self ):
-        self.buoyData = BuoyData( False, 0.0, 0.0, 0.0 )
+        self.blobData = BlobData( False, 0.0, 0.0, 0.0 )
         
     def processFrame( self, frame ):
         
@@ -38,14 +38,21 @@ class ColourTracker:
         numMatchingPixels = 0
         matchingPixelList = []
         
-        for y in [i*2 for i in range( hsvFrame.height/2 ) ]:
-            for x in [i*2 for i in range( hsvFrame.width/2 ) ]:
+        #for y in [i*2 for i in range( hsvFrame.height/2 ) ]:
+        for y in range( hsvFrame.height ):
+            #for x in [i*2 for i in range( hsvFrame.width/2 ) ]:
+            for x in range( hsvFrame.width ):
             
                 pixel = hsvFrame[ y, x ]
                 pixelHue = pixel[ 0 ]
                 
-                absHueDiff = abs( self.trackedHue - pixelHue )
-                if absHueDiff <= self.maxAbsHueDiff:
+                hueDiff = self.trackedHue - pixelHue
+                if hueDiff < -90:
+                    hueDiff += 180;
+                elif hueDiff >= 90:
+                    hueDiff -= 180;
+                
+                if hueDiff >= -self.maxAbsHueDiff and hueDiff <= self.maxAbsHueDiff:
                     centreX = centreX + x
                     centreY = centreY + y
                     numMatchingPixels = numMatchingPixels + 1
@@ -54,11 +61,11 @@ class ColourTracker:
                         matchingPixelList.append( ( x, y ) )
         
         # Return the centre of mass of all the 'orangish' pixels
-        #print "Num Matching Pixels = " + str( numMatchingPixels )
+        print "Num Matching Pixels = " + str( numMatchingPixels )
         if numMatchingPixels > 0:
             centreX /= numMatchingPixels
             centreY /= numMatchingPixels
-            self.buoyData = BuoyData( True, centreX, centreY, 10.0 )
+            self.blobData = BlobData( True, centreX, centreY, 10.0 )
             
             # Set the radius as the standard deviation of the blob
             if self.calculateRadius:
@@ -68,18 +75,18 @@ class ColourTracker:
                         + ( pixelCoords[ 0 ] - centreX )**2 + ( pixelCoords[ 1 ] - centreY )**2
                 
                 variance = squaredDistanceSum / numMatchingPixels
-                self.buoyData.radius = math.sqrt( variance )
+                self.blobData.radius = math.sqrt( variance )
         else:
-            self.buoyData.visible = False
+            self.blobData.visible = False
 
-    def getBuoyData( self ):
-        return self.buoyData
+    def getBlobData( self ):
+        return self.blobData
 
-    def isBuoyVisible( self ):
-        return self.buoyData.visible
+    def isBlobVisible( self ):
+        return self.blobData.visible
 
-    def getBuoyPos( self ):
-        return ( self.buoyData.centreX, self.buoyData.centreY )
+    def getBlobPos( self ):
+        return ( self.blobData.centreX, self.blobData.centreY )
         
-    def getBuoyRadius( self ):
-        return self.buoyData.radius
+    def getBlobRadius( self ):
+        return self.blobData.radius
