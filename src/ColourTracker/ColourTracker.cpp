@@ -27,7 +27,7 @@ BlobData::BlobData( bool bVisible, float centreX, float centreY, float radius )
 // ColourTracker
 //------------------------------------------------------------------------------
 const float ColourTracker::DEFAULT_TRACKED_HUE = (15.0f / 360.0f)*180.0f;
-const float ColourTracker::DEFAULT_MAX_ABS_HUE_DIFF = (10.0f / 360.0f)*180.0f;
+const float ColourTracker::DEFAULT_MAX_ABS_HUE_DIFF = (5.0f / 360.0f)*180.0f;
 const bool ColourTracker::DEFAULT_CALCULATE_RADIUS = true;
 
 //------------------------------------------------------------------------------
@@ -52,13 +52,15 @@ typedef struct
 } COORD;
 
 //------------------------------------------------------------------------------
-void ColourTracker::ProcessFrame( const IplImage* pFrame )
+IplImage* ColourTracker::ProcessFrame( const IplImage* pFrame )
 {
     // This routine expects BGR frames...
         
     // Convert the frame to HSV
+    IplImage* pProcessedFrame = cvCreateImage( cvSize( pFrame->width, pFrame->height ), pFrame->depth, pFrame->nChannels );
     IplImage* pHSVFrame = cvCreateImage( cvSize( pFrame->width, pFrame->height ), pFrame->depth, pFrame->nChannels );
-    cvCvtColor( pFrame, pHSVFrame, CV_BGR2HSV );
+    cvCvtColor( pFrame, pHSVFrame, CV_RGB2HSV );
+    pProcessedFrame = cvCloneImage( pFrame );
         
     // Loop through each pixel in the frame looking for orange pixels
     int centreX = 0;
@@ -74,7 +76,12 @@ void ColourTracker::ProcessFrame( const IplImage* pFrame )
         unsigned char* pCurPixel = (unsigned char*)&pHSVFrame->imageData[ y*pHSVFrame->width*pHSVFrame->nChannels ];
         for ( int x = 0; x < pHSVFrame->width; x++ )
         {
+            const float DEFAULT_TRACKED_SATURATION = (91.0f / 100.0f)*255.0f;
+            const float DEFAULT_TRACKED_VALUE = (91.0f / 100.0f)*255.0f;
+            
             float pixelHue = (float)pCurPixel[ 0 ];
+            float pixelSaturation = (float)pCurPixel[ 2 ];
+            float pixelValue = (float)pCurPixel[ 2 ];
             
             // Determine the difference from the target hue in the range [-90..90)
             float hueDiff = mTrackedHue - pixelHue;
@@ -89,7 +96,9 @@ void ColourTracker::ProcessFrame( const IplImage* pFrame )
 
             // Check to see if the hue difference is small enough
             if ( hueDiff >= -mMaxAbsHueDiff 
-                && hueDiff <= mMaxAbsHueDiff )
+                && hueDiff <= mMaxAbsHueDiff 
+                && fabsf( pixelSaturation - DEFAULT_TRACKED_SATURATION ) < 5.0f
+                && fabsf( pixelValue - DEFAULT_TRACKED_VALUE ) < 5.0f )
             {
                 centreX += x;
                 centreY += y;
@@ -101,6 +110,11 @@ void ColourTracker::ProcessFrame( const IplImage* pFrame )
                 }
 
                 numMatchingPixels++;
+                
+                unsigned char* pPixelToModify = (unsigned char*)&pProcessedFrame->imageData[ y*pProcessedFrame->width*pProcessedFrame->nChannels + x*pProcessedFrame->nChannels ];
+                pPixelToModify[ 0 ] = 255;
+                pPixelToModify[ 1 ] = 255;
+                pPixelToModify[ 2 ] = 255;     
             }
                    
             
@@ -138,6 +152,9 @@ void ColourTracker::ProcessFrame( const IplImage* pFrame )
     {
         mBlobData.mbVisible = false;
     }
+    
+    cvReleaseImage( &pHSVFrame );
+    return pProcessedFrame;
 }
 
 

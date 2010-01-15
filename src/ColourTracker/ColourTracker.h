@@ -30,7 +30,7 @@ class ColourTracker
         float maxAbsHueDiff = DEFAULT_MAX_ABS_HUE_DIFF, bool bCalculateRadius = DEFAULT_CALCULATE_RADIUS );
 
     public: void Reset();
-    public: void ProcessFrame( const _IplImage* pFrame );
+    public: _IplImage* ProcessFrame( const _IplImage* pFrame );
 
     public: const BlobData& GetBlobData() const { return mBlobData; }
 

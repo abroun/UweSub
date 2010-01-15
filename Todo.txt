@@ -27,3 +27,12 @@ Write a script to evaluate the performance of a tracker algorithm against the gr
     
 Create the control script for the submarine
     - Allow it to be started for both the real submarine and the simulation
+
+To Intall Player/OpenCV we need
+
+libdc1394
+libunicap
+libucil
+libavformat
+libswscale
+libxine
