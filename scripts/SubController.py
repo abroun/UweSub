@@ -214,37 +214,7 @@ class MainWindow:
     
         while 1:
             if self.playerClient.peek( 0 ):
-                frame = self.getImage()
-                
-                #cv.CvtColor( frame, frame, cv.CV_RGB2BGR )
-                processedFrameData = self.tracker.processFrame( frame )
-                
-                #processedFrame = cv.CreateImageHeader( ( self.playerCamera.width, self.playerCamera.height ), cv.IPL_DEPTH_8U, 3 )       
-                #cv.SetData( cvImage, processedFrameData, self.playerCamera.width*3 )
-
-                
-                #cv.CvtColor( processedFrame, processedFrame, cv.CV_BGR2RGB )
-                self.curFramePixBuf = gtk.gdk.pixbuf_new_from_data( 
-                    frame.tostring(), 
-                    gtk.gdk.COLORSPACE_RGB,
-                    False,
-                    frame.depth,
-                    frame.width,
-                    frame.height,
-                    frame.width*frame.nChannels )
-                    
-                self.processedFramePixBuf = gtk.gdk.pixbuf_new_from_data( 
-                    processedFrameData, 
-                    gtk.gdk.COLORSPACE_RGB,
-                    False,
-                    frame.depth,
-                    frame.width,
-                    frame.height,
-                    frame.width*frame.nChannels )
-                    
-                # Redraw the frames
-                self.dwgCurFrame.queue_draw()
-                self.dwgProcessedFrame.queue_draw()
+                self.getAndProcessFrame()
                      
             blobData = self.tracker.getBlobData()
             #if blobData.visible:
@@ -256,6 +226,39 @@ class MainWindow:
             
         yield False
 
+    @Profiling.printTiming
+    def getAndProcessFrame( self ):
+        frame = self.getImage()
+                
+        #cv.CvtColor( frame, frame, cv.CV_RGB2BGR )
+        processedFrameData = self.tracker.processFrame( frame )
+        
+        #processedFrame = cv.CreateImageHeader( ( self.playerCamera.width, self.playerCamera.height ), cv.IPL_DEPTH_8U, 3 )       
+        #cv.SetData( cvImage, processedFrameData, self.playerCamera.width*3 )
+
+        
+        #cv.CvtColor( processedFrame, processedFrame, cv.CV_BGR2RGB )
+        self.curFramePixBuf = gtk.gdk.pixbuf_new_from_data( 
+            frame.tostring(), 
+            gtk.gdk.COLORSPACE_RGB,
+            False,
+            frame.depth,
+            frame.width,
+            frame.height,
+            frame.width*frame.nChannels )
+            
+        self.processedFramePixBuf = gtk.gdk.pixbuf_new_from_data( 
+            processedFrameData, 
+            gtk.gdk.COLORSPACE_RGB,
+            False,
+            frame.depth,
+            frame.width,
+            frame.height,
+            frame.width*frame.nChannels )
+            
+        # Redraw the frames
+        self.dwgCurFrame.queue_draw()
+        self.dwgProcessedFrame.queue_draw()
 
 
 
