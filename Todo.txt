@@ -24,3 +24,6 @@ Write a script to evaluate the performance of a tracker algorithm against the gr
         - Square of position error. If the tracker gets visible/invisible wrong then give a fixed penalty of half the screen diagonal squared
     - Total and average error over a number of frames
     - Allow the error to be tracked over just a subset of the frames
+    
+Create the control script for the submarine
+    - Allow it to be started for both the real submarine and the simulation

@@ -32,6 +32,7 @@ STRING( TOUPPER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE )
 #-------------------------------------------------------------------------------
 # Look for libraries we depend on
 SET( OPENCV_VERSION 2.0.0 CACHE INTERNAL "OpenCV version requirement" FORCE )
+SET( PLAYERC_VERSION 3.0.0 CACHE INTERNAL "PlayerC version requirement" FORCE )
 
 IF ( PKG_CONFIG_FOUND )
 
@@ -47,6 +48,19 @@ IF ( PKG_CONFIG_FOUND )
                                 ${OPENCV_LIBRARIES}
                                 ${OPENCV_LDFLAGS} )
     ENDIF ( NOT OPENCV_FOUND )
+    
+    pkg_check_modules( PLAYERC playerc>=${PLAYERC_VERSION} )
+    IF ( NOT PLAYERC_FOUND )
+        MESSAGE (SEND_ERROR "\nError: PlayerC version >=${PLAYERC_VERSION} and development files not found.")
+    ELSE ( NOT PLAYERC_FOUND )
+
+        SET( PLAYERC_LIBRARY_PATH ${PLAYERC_LIBRARY_DIRS} CACHE INTERNAL "PlayerC library path" )
+        APPEND_LIBRARY_VARS_TO_CACHED_LISTS( ${PLAYERC_INCLUDE_DIRS}
+                                ${PLAYERC_LIBRARY_DIRS}
+                                ${PLAYERC_LINK_LIBS}
+                                ${PLAYERC_LIBRARIES}
+                                ${PLAYERC_LDFLAGS} )
+    ENDIF ( NOT PLAYERC_FOUND )
 
 ELSE ( PKG_CONFIG_FOUND )
 
