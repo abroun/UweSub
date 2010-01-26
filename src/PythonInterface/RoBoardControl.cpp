@@ -188,7 +188,8 @@ static int RBC_ColourTracker_init( RBC_ColourTrackerObject* pSelf, PyObject* pAr
         (char*)"trackedHue", 
         (char*)"maxAbsHueDiff", 
         (char*)"calculateRadius", 
-        NULL };
+        NULL 
+    };
 
     if ( !PyArg_ParseTupleAndKeywords( pArgs, pKwds, "|ffi", keyWorldList,
                                       &trackedHue, &maxAbsHueDiff, &calculateRadius ) )
@@ -229,8 +230,6 @@ static PyObject* RBC_ColourTracker_ProcessFrame( RBC_ColourTrackerObject* pSelf,
     PyObject* pResult = PyString_FromStringAndSize(pProcessedFrame->imageData, pProcessedFrame->imageSize);
     cvReleaseImage( &pProcessedFrame );
     return pResult;
-
-    //return Py_BuildValue( "" );
 }
 
 //------------------------------------------------------------------------------
@@ -243,11 +242,87 @@ static PyObject* RBC_ColourTracker_GetBlobData( RBC_ColourTrackerObject* pSelf )
 }
 
 //------------------------------------------------------------------------------
+static PyObject* RBC_ColourTracker_SetTrackedHue( RBC_ColourTrackerObject* pSelf, PyObject* pArgs, PyObject* pKwds )
+{
+    float trackedHue;
+    float maxAbsHueDiff = ColourTracker::DEFAULT_MAX_ABS_HUE_DIFF;
+    
+    static char* keyWorldList[] = 
+    { 
+        (char*)"trackedHue", 
+        (char*)"maxAbsHueDiff",
+        NULL 
+    };
+        
+    if ( !PyArg_ParseTupleAndKeywords( pArgs, pKwds, "f|f", keyWorldList,
+        &trackedHue, &maxAbsHueDiff ) )
+    {
+        return NULL;
+    }
+    
+    pSelf->mTracker.SetTrackedHue( trackedHue, maxAbsHueDiff );
+    
+    return Py_BuildValue( "" );
+}
+
+//------------------------------------------------------------------------------
+static PyObject* RBC_ColourTracker_SetTrackedSaturation( RBC_ColourTrackerObject* pSelf, PyObject* pArgs, PyObject* pKwds )
+{
+    float trackedSaturation;
+    float maxAbsSaturationDiff = ColourTracker::DEFAULT_MAX_ABS_SATURATION_DIFF;
+    
+    static char* keyWorldList[] = 
+    { 
+        (char*)"trackedSaturation", 
+        (char*)"maxAbsSaturationDiff",
+        NULL 
+    };
+    
+    if ( !PyArg_ParseTupleAndKeywords( pArgs, pKwds, "f|f", keyWorldList,
+        &trackedSaturation, &maxAbsSaturationDiff ) )
+    {
+        return NULL;
+    }
+    
+    pSelf->mTracker.SetTrackedSaturation( trackedSaturation, maxAbsSaturationDiff );
+    
+    return Py_BuildValue( "" );
+}
+
+//------------------------------------------------------------------------------
+static PyObject* RBC_ColourTracker_SetTrackedValue( RBC_ColourTrackerObject* pSelf, PyObject* pArgs, PyObject* pKwds )
+{
+    float trackedValue;
+    float maxAbsValueDiff = ColourTracker::DEFAULT_MAX_ABS_VALUE_DIFF;
+    
+    static char* keyWorldList[] = 
+    { 
+        (char*)"trackedValue", 
+        (char*)"maxAbsValueDiff", 
+        NULL 
+    };
+    
+    if ( !PyArg_ParseTupleAndKeywords( pArgs, pKwds, "f|f", keyWorldList,
+        &trackedValue, &maxAbsValueDiff ) )
+    {
+        return NULL;
+    }
+    
+    pSelf->mTracker.SetTrackedValue( trackedValue, maxAbsValueDiff );
+    
+    return Py_BuildValue( "" );
+}
+
+//------------------------------------------------------------------------------
 static PyMethodDef RBC_ColourTrackerMethods[] = 
 {
     { "reset", (PyCFunction)RBC_ColourTracker_Reset, METH_NOARGS, "Resets the tracker" },
     { "processFrame", (PyCFunction)RBC_ColourTracker_ProcessFrame, METH_VARARGS, "Processes the given frame" },
     { "getBlobData", (PyCFunction)RBC_ColourTracker_GetBlobData, METH_NOARGS, "Gets information about the tracked blob" },
+    { "setTrackedHue", (PyCFunction)RBC_ColourTracker_SetTrackedHue, METH_VARARGS | METH_KEYWORDS, "Sets the hue being tracked" },
+    { "setTrackedSaturation", (PyCFunction)RBC_ColourTracker_SetTrackedSaturation, METH_VARARGS | METH_KEYWORDS, "Sets the saturation being tracked" },
+    { "setTrackedValue", (PyCFunction)RBC_ColourTracker_SetTrackedValue, METH_VARARGS | METH_KEYWORDS, "Sets the value being tracked" },
+    
 
     { NULL, NULL, 0, NULL }        // Sentinel
 };

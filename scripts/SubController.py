@@ -18,6 +18,13 @@ class SubController:
 
     PLAYER_SERVER_ADDRESS = 'localhost'
     PLAYER_SERVER_PORT = 6665
+    
+    TRACKED_HUE = 22.0
+    MAX_ABS_HUE_DIFF = 6.0
+    TRACKED_SATURATION = 70.0
+    MAX_ABS_SATURATION_DIFF = 5.0
+    TRACKED_VALUE = 60.0
+    MAX_ABS_VALUE_DIFF = 15.0
 
     #---------------------------------------------------------------------------
     def __init__( self, robotType = ROBOT_TYPE_REAL, 
@@ -26,6 +33,9 @@ class SubController:
 
         self.robotType = robotType
         self.tracker = ColourTracker()
+        self.tracker.setTrackedHue( self.TRACKED_HUE, self.MAX_ABS_HUE_DIFF )
+        self.tracker.setTrackedSaturation( self.TRACKED_SATURATION, self.MAX_ABS_SATURATION_DIFF )
+        self.tracker.setTrackedValue( self.TRACKED_VALUE, self.MAX_ABS_VALUE_DIFF )
         
         self.frameWidth = 320
         self.frameHeight = 240
