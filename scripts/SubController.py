@@ -37,6 +37,7 @@ class SubController:
         self.tracker.setTrackedSaturation( self.TRACKED_SATURATION, self.MAX_ABS_SATURATION_DIFF )
         self.tracker.setTrackedValue( self.TRACKED_VALUE, self.MAX_ABS_VALUE_DIFF )
         
+        self.frame = None
         self.frameWidth = 320
         self.frameHeight = 240
         
@@ -116,6 +117,7 @@ class SubController:
     #---------------------------------------------------------------------------
     @Profiling.printTiming
     def getAndProcessFrame( self ):
+        
         self.frame = self.getImage()
                 
         #cv.CvtColor( frame, frame, cv.CV_RGB2BGR )

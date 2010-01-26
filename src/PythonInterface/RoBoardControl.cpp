@@ -229,6 +229,7 @@ static PyObject* RBC_ColourTracker_ProcessFrame( RBC_ColourTrackerObject* pSelf,
 
     PyObject* pResult = PyString_FromStringAndSize(pProcessedFrame->imageData, pProcessedFrame->imageSize);
     cvReleaseImage( &pProcessedFrame );
+    cvReleaseImage( &pIplFrame );
     return pResult;
 }
 
