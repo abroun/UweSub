@@ -50,23 +50,6 @@ static bool RBC_ConvertPyObjectToIplImage( PyObject *o, IplImage **dst )
 }
 
 //------------------------------------------------------------------------------
-static PyObject *pythonize_IplImage(iplimage_t *cva)
-{
-    // Need to make this iplimage look like any other, with a Python 
-    // string as its data.
-    // So copy the image data into a Python string object, then release 
-    // it.
-    
-    IplImage *ipl = (IplImage*)(cva->a);
-    PyObject *data = PyString_FromStringAndSize(ipl->imageData, ipl->imageSize);
-    cva->data = data;
-    cva->offset = 0;
-    cvReleaseData(ipl);
-    
-    return (PyObject*)cva;
-}
-
-//------------------------------------------------------------------------------
 static PyObject* RBC_Sin( PyObject* pSelf, PyObject* pArgs )
 {
     float x;
@@ -226,10 +209,10 @@ static PyObject* RBC_ColourTracker_ProcessFrame( RBC_ColourTrackerObject* pSelf,
     }
     IplImage* pProcessedFrame = pSelf->mTracker.ProcessFrame( pIplFrame );
     
-
     PyObject* pResult = PyString_FromStringAndSize(pProcessedFrame->imageData, pProcessedFrame->imageSize);
     cvReleaseImage( &pProcessedFrame );
-    cvReleaseImage( &pIplFrame );
+    cvReleaseData( pIplFrame );
+    
     return pResult;
 }
 

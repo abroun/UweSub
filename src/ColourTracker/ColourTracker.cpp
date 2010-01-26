@@ -75,10 +75,9 @@ IplImage* ColourTracker::ProcessFrame( const IplImage* pFrame )
     // This routine expects BGR frames...
         
     // Convert the frame to HSV
-    IplImage* pProcessedFrame = cvCreateImage( cvSize( pFrame->width, pFrame->height ), pFrame->depth, pFrame->nChannels );
+    IplImage* pProcessedFrame = cvCloneImage( pFrame );
     IplImage* pHSVFrame = cvCreateImage( cvSize( pFrame->width, pFrame->height ), pFrame->depth, pFrame->nChannels );
     cvCvtColor( pFrame, pHSVFrame, CV_RGB2HSV );
-    pProcessedFrame = cvCloneImage( pFrame );
     
     // Loop through each pixel in the frame looking for pixels that are close enough to the tracked colour
     int centreX = 0;

@@ -163,16 +163,17 @@ class MainWindow:
                     frame.width,
                     frame.height,
                     frame.width*frame.nChannels )
-                    
-                self.processedFramePixBuf = gtk.gdk.pixbuf_new_from_data( 
-                    processedFrameData, 
-                    gtk.gdk.COLORSPACE_RGB,
-                    False,
-                    frame.depth,
-                    frame.width,
-                    frame.height,
-                    frame.width*frame.nChannels )
-                    
+                   
+                if processedFrameData != None:
+                    self.processedFramePixBuf = gtk.gdk.pixbuf_new_from_data( 
+                        processedFrameData, 
+                        gtk.gdk.COLORSPACE_RGB,
+                        False,
+                        frame.depth,
+                        frame.width,
+                        frame.height,
+                        frame.width*frame.nChannels )
+                        
                 # Redraw the frames
                 self.dwgCurFrame.queue_draw()
                 self.dwgProcessedFrame.queue_draw()
