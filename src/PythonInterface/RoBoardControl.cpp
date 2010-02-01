@@ -29,24 +29,29 @@ struct iplimage_t {
 //------------------------------------------------------------------------------
 static bool RBC_ConvertPyObjectToIplImage( PyObject *o, IplImage **dst )
 {
-  iplimage_t *ipl = (iplimage_t*)o;
-  void *buffer;
-  Py_ssize_t buffer_len;
-
-  if (PyString_Check(ipl->data)) {
-    cvSetData(ipl->a, PyString_AsString(ipl->data) + ipl->offset, ipl->a->widthStep);
+    iplimage_t *ipl = (iplimage_t*)o;
+    void *buffer;
+    Py_ssize_t buffer_len;
     
-    *dst = ipl->a;
-    return true;
-  } else if (ipl->data && PyObject_AsWriteBuffer(ipl->data, &buffer, &buffer_len) == 0) {
-    cvSetData(ipl->a, (void*)((char*)buffer + ipl->offset), ipl->a->widthStep);
+    if (PyString_Check(ipl->data)) 
+    {
+        cvSetData(ipl->a, PyString_AsString(ipl->data) + ipl->offset, ipl->a->widthStep);
 
-    *dst = ipl->a;
-    return true;
-  } else {
-    fprintf( stderr, "IplImage argument has no data" );
-    return false;
-  }
+        *dst = ipl->a;
+        return true;
+    } 
+    else if (ipl->data && PyObject_AsWriteBuffer(ipl->data, &buffer, &buffer_len) == 0) 
+    {   
+        cvSetData(ipl->a, (void*)((char*)buffer + ipl->offset), ipl->a->widthStep);
+
+        *dst = ipl->a;
+        return true;
+    } 
+    else 
+    {
+        fprintf( stderr, "IplImage argument has no data" );
+        return false;
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -211,7 +216,6 @@ static PyObject* RBC_ColourTracker_ProcessFrame( RBC_ColourTrackerObject* pSelf,
     
     PyObject* pResult = PyString_FromStringAndSize(pProcessedFrame->imageData, pProcessedFrame->imageSize);
     cvReleaseImage( &pProcessedFrame );
-    cvReleaseData( pIplFrame );
     
     return pResult;
 }

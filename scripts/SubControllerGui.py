@@ -3,20 +3,24 @@
 # GUI for submarine control program
 #-------------------------------------------------------------------------------
 
+import os
+from optparse import OptionParser
+
 import cv
+import yaml
 import pygtk
 pygtk.require('2.0')
 import gtk
 import gobject
-from SubController import SubController
+from SubController import SubController, SubControllerConfig
 
 #-------------------------------------------------------------------------------
 class MainWindow:
 
     #---------------------------------------------------------------------------
-    def __init__( self ):
+    def __init__( self, subControllerConfig = SubControllerConfig() ):
 
-        self.subController = SubController()
+        self.subController = SubController( subControllerConfig )
         self.curFramePixBuf = None
         self.processedFramePixBuf = None
         
@@ -34,14 +38,14 @@ class MainWindow:
         # Setup an drawing area to show the current frame
         self.dwgCurFrame = gtk.DrawingArea()
         self.dwgCurFrame.connect( "expose_event", self.onDwgCurFrameExpose )
-        self.dwgCurFrame.set_size_request( self.subController.frameWidth, self.subController.frameHeight )
+        #self.dwgCurFrame.set_size_request( 0, 0 )
         layoutBox_A_0.pack_start( self.dwgCurFrame )
         self.dwgCurFrame.show()
         
         # Setup an drawing area to show the processed frame
         self.dwgProcessedFrame = gtk.DrawingArea()
         self.dwgProcessedFrame.connect( "expose_event", self.onProcessedCurFrameExpose )
-        self.dwgProcessedFrame.set_size_request( self.subController.frameWidth, self.subController.frameHeight )
+        #self.dwgProcessedFrame.set_size_request( 0, 0 )
         layoutBox_A_0.pack_start( self.dwgProcessedFrame )
         self.dwgProcessedFrame.show()
         
@@ -134,14 +138,15 @@ class MainWindow:
         widgetX, widgetY, widgetWidth, widgetHeight = widget.get_allocation()
         
         imgRect = gtk.gdk.Rectangle( 0, 0, widgetWidth, widgetHeight )
+        (requestedWidth, requestedHeight) = widget.get_size_request()
         
-        if widgetWidth > self.subController.frameWidth:
-            imgRect.x = (widgetWidth - self.subController.frameWidth) / 2
-            imgRect.width = self.subController.frameWidth
+        if widgetWidth > requestedWidth:
+            imgRect.x = (widgetWidth - requestedWidth) / 2
+            imgRect.width = requestedWidth
             
-        if widgetHeight > self.subController.frameHeight:
-            imgRect.y = (widgetHeight - self.subController.frameHeight) / 2
-            imgRect.height = self.subController.frameHeight
+        if widgetHeight > requestedHeight:
+            imgRect.y = (widgetHeight - requestedHeight) / 2
+            imgRect.height = requestedHeight
         
         return imgRect
       
@@ -163,7 +168,7 @@ class MainWindow:
                     frame.width,
                     frame.height,
                     frame.width*frame.nChannels )
-                   
+
                 if processedFrameData != None:
                     self.processedFramePixBuf = gtk.gdk.pixbuf_new_from_data( 
                         processedFrameData, 
@@ -173,7 +178,14 @@ class MainWindow:
                         frame.width,
                         frame.height,
                         frame.width*frame.nChannels )
-                        
+
+                # Resize the frames if necessary
+                if self.dwgCurFrame.get_size_request() != ( frame.width, frame.height ):
+                    self.dwgCurFrame.set_size_request( frame.width, frame.height )
+
+                if self.dwgProcessedFrame.get_size_request() != ( frame.width, frame.height ):
+                    self.dwgProcessedFrame.set_size_request( frame.width, frame.height )
+
                 # Redraw the frames
                 self.dwgCurFrame.queue_draw()
                 self.dwgProcessedFrame.queue_draw()
@@ -184,5 +196,20 @@ class MainWindow:
 
 #-------------------------------------------------------------------------------
 if __name__ == "__main__":
-    mainWindow = MainWindow()
+
+    optionParser = OptionParser()
+    optionParser.add_option( "-c", "--config", dest="configFilename",
+        help="read configuration from CONFIG_FILE", metavar="CONFIG_FILE" )
+
+    (options, args) = optionParser.parse_args()
+    subControllerConfig = SubControllerConfig()
+
+    if options.configFilename != None \
+        and os.path.exists( options.configFilename ):
+    
+        configFile = file( options.configFilename, "r" )
+        subControllerConfig = yaml.load( configFile )
+        configFile.close()
+
+    mainWindow = MainWindow( subControllerConfig )
     mainWindow.main()

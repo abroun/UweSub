@@ -99,7 +99,7 @@ IplImage* ColourTracker::ProcessFrame( const IplImage* pFrame )
             for ( int x = 0; x < pHSVFrame->width; x++ )
             {                
                 float pixelHue = (float)pCurPixel[ 0 ];
-                float pixelSaturation = (float)pCurPixel[ 2 ];
+                float pixelSaturation = (float)pCurPixel[ 1 ];
                 float pixelValue = (float)pCurPixel[ 2 ];
                 
                 // Determine the difference from the target hue in the range [-90..90)
