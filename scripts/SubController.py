@@ -32,6 +32,10 @@ class SubControllerConfig( yaml.YAMLObject ):
     MAX_ABS_SATURATION_DIFF = 5.0
     TRACKED_VALUE = 60.0
     MAX_ABS_VALUE_DIFF = 15.0
+
+    FORWARD_SPEED = 1.0
+    YAW_SPEED = 0.3
+    SCREEN_RADIUS_OF_CLOSE_BUOY = 0.2
     
     def __init__( self ):
         self.robotType = self.ROBOT_TYPE_REAL
@@ -46,8 +50,15 @@ class SubControllerConfig( yaml.YAMLObject ):
         self.trackedValue = self.TRACKED_VALUE
         self.maxAbsValueDiff = self.MAX_ABS_VALUE_DIFF
 
+        self.forwardSpeed = self.FORWARD_SPEED
+        self.yawSpeed = self.YAW_SPEED
+        self.screenRadiusOfCloseBuoy = self.SCREEN_RADIUS_OF_CLOSE_BUOY
+
 #-------------------------------------------------------------------------------
 class SubController:
+
+    LEFT = "Left"
+    RIGHT = "Right"
 
     #---------------------------------------------------------------------------
     def __init__( self, config = SubControllerConfig() ):
@@ -59,6 +70,10 @@ class SubController:
         self.tracker.setTrackedValue( config.trackedValue, config.maxAbsValueDiff )
         
         self.frame = None
+        self.lastTurnDirection = self.LEFT
+        self.forwardSpeed = config.forwardSpeed
+        self.absYawSpeed = abs( config.yawSpeed )
+        self.screenRadiusOfCloseBuoy = config.screenRadiusOfCloseBuoy
         
         # Create a client object
         self.playerClient = playerc_client( None, 
@@ -127,19 +142,47 @@ class SubController:
             self.getAndProcessFrame()        
             newFrameAvailable = True
                      
+            forwardSpeed = 0.0
+            yawSpeed = 0.0
+
             blobData = self.tracker.getBlobData()
             if blobData.visible:
 
-                command = "Go Forward"
                 halfFrameWidth = self.frame.width / 2.0
+                radiusOfCloseBuoy = self.screenRadiusOfCloseBuoy*self.frame.width
+
                 if blobData.centreX < halfFrameWidth * 0.9:
                     command = "Go Left"
+                    yawSpeed = self.absYawSpeed
+                    self.lastTurnDirection = self.LEFT
                 elif blobData.centreX > halfFrameWidth * 1.1:
                     command = "Go Right"
+                    yawSpeed = -self.absYawSpeed
+                    self.lastTurnDirection = self.RIGHT
+                else:
+                    if blobData.radius < radiusOfCloseBuoy:
+                        command = "Go Forward"
+                        forwardSpeed = self.forwardSpeed
+                    else:
+                        command = "Stay Still"
 
                 print "Buoy Visible at ( " + str( blobData.centreX ) + ", " + str( blobData.centreY ) + " ) - " + command
+
             else:
-                print "Can't see buoy"
+                print "Can't see buoy - turning " + self.lastTurnDirection.lower()
+
+                # Turn to search for the buoy
+                if self.lastTurnDirection == self.LEFT:
+                    yawSpeed = self.absYawSpeed
+                else:
+                    yawSpeed = -self.absYawSpeed
+
+            # Steer the AUV
+            if self.playerPos3d != None:
+                self.playerPos3d.set_velocity( 
+                    forwardSpeed, 0.0, 0.0, # x, y, z
+                    0.0, 0.0, yawSpeed, # roll, pitch, yaw
+                    0 )   # State
         
         return newFrameAvailable
 
