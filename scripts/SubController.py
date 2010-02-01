@@ -108,9 +108,17 @@ class SubController:
                      
             blobData = self.tracker.getBlobData()
             if blobData.visible:
-                print "Buoy Visible at ( " + str( blobData.centreX ) + ", " + str( blobData.centreY ) + " )"
+
+                command = "Go Forward"
+                halfFrameWidth = self.frameWidth / 2.0
+                if blobData.centreX < halfFrameWidth * 0.9:
+                    command = "Go Left"
+                elif blobData.centreX > halfFrameWidth * 1.1:
+                    command = "Go Right"
+
+                print "Buoy Visible at ( " + str( blobData.centreX ) + ", " + str( blobData.centreY ) + " ) - " + command
             else:
-                print "Can't see blob"
+                print "Can't see buoy"
         
         return newFrameAvailable
 

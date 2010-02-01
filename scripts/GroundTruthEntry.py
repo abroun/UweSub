@@ -13,6 +13,7 @@ import Profiling
 import BuoyGroundTruth
 #from ColourTracker import ColourTracker
 from RoBoardControl import ColourTracker
+TRACKER_NEEDS_RGB = True
 
 #-------------------------------------------------------------------------------
 def tryParseFloat( strFloat, alternative ):
@@ -37,6 +38,13 @@ class MainWindow:
         </menubar>
         </ui>'''
 
+    TRACKED_HUE = 15.0
+    MAX_ABS_HUE_DIFF = 5.0
+    TRACKED_SATURATION = 70.0
+    MAX_ABS_SATURATION_DIFF = 5.0
+    TRACKED_VALUE = 60.0
+    MAX_ABS_VALUE_DIFF = 15.0
+
     #---------------------------------------------------------------------------
     def __init__( self ):
 
@@ -45,6 +53,11 @@ class MainWindow:
         self.curFramePixBuf = None
         self.settingFrame = False
         self.tracker = ColourTracker()
+
+        #self.tracker.setTrackedHue( self.TRACKED_HUE, self.MAX_ABS_HUE_DIFF )
+        #self.tracker.setTrackedSaturation( self.TRACKED_SATURATION, self.MAX_ABS_SATURATION_DIFF )
+        #self.tracker.setTrackedValue( self.TRACKED_VALUE, self.MAX_ABS_VALUE_DIFF )
+        
 
         # Create a new window
         self.window = gtk.Window( gtk.WINDOW_TOPLEVEL)
@@ -227,16 +240,19 @@ class MainWindow:
         cv.SetCaptureProperty( self.videoCapture, cv.CV_CAP_PROP_POS_FRAMES, frameIdx )
 
         baseFrame = cv.QueryFrame( self.videoCapture )
+        pythonFrame = cv.CloneImage( baseFrame )
+        cv.CvtColor( pythonFrame, pythonFrame, cv.CV_BGR2RGB )
+        
+
         if self.chkEnableTracker.get_active():
             # We may process the same frame multiple times (i.e. if the screen is redrawn)
             # This shouldn't be a problem as this program is only for debug purposes so such
             # issues should be noticable
-            self.processFrame( baseFrame )
-            #self.tracker.processFrame( baseFrame )  
+            if TRACKER_NEEDS_RGB:
+                self.processFrame( pythonFrame )
+            else:
+                self.processFrame( baseFrame )
         
-        pythonFrame = cv.CloneImage( baseFrame )
-
-        cv.CvtColor( pythonFrame, pythonFrame, cv.CV_BGR2RGB )
         self.curFramePixBuf = gtk.gdk.pixbuf_new_from_data( 
             pythonFrame.tostring(), 
             gtk.gdk.COLORSPACE_RGB,

@@ -23,10 +23,10 @@ print "sin( 1.57 ) = " + str( RoBoardControl.sin( 1.57 ) )
 
 ct = RoBoardControl.ColourTracker()
 print dir( ct )
-print "" + tracker
+#print "" + tracker
 
-#while frame != None:
-#    tracker.processFrame( frame )
-#    frame = cv.QueryFrame( videoCapture )
+while frame != None:
+    tracker.processFrame( frame )
+    frame = cv.QueryFrame( videoCapture )
 
 print "Done!"
