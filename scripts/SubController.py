@@ -74,6 +74,8 @@ class SubController:
         self.forwardSpeed = config.forwardSpeed
         self.absYawSpeed = abs( config.yawSpeed )
         self.screenRadiusOfCloseBuoy = config.screenRadiusOfCloseBuoy
+
+        self.lastCameraFrameTime = 0.0
         
         # Create a client object
         self.playerClient = playerc_client( None, 
@@ -82,12 +84,10 @@ class SubController:
         if self.playerClient.connect() != 0:
             raise playerc_error_str()
 
-        self.playerPos3d = None
-        if self.robotType == SubControllerConfig.ROBOT_TYPE_SIM:
-            # Create a proxy for position3d:0
-            self.playerPos3d = playerc_position3d( self.playerClient, 0 )
-            if self.playerPos3d.subscribe( PLAYERC_OPEN_MODE ) != 0:
-                raise playerc_error_str()
+        # Create a proxy for position3d:0
+        self.playerPos3d = playerc_position3d( self.playerClient, 0 )
+        if self.playerPos3d.subscribe( PLAYERC_OPEN_MODE ) != 0:
+            raise playerc_error_str()
         
         self.playerCamera = playerc_camera( self.playerClient, 0 )
         if self.playerCamera.subscribe( PLAYERC_OPEN_MODE ) != 0:
@@ -117,7 +117,8 @@ class SubController:
     #---------------------------------------------------------------------------
     #@Profiling.printTiming
     def getImage( self ):
-        self.playerClient.read()
+        
+        self.lastCameraFrameTime = self.playerCamera.info.datatime
 
         if self.playerCamera.compression != PLAYER_CAMERA_COMPRESS_RAW:
             self.playerCamera.decompress()
@@ -128,9 +129,6 @@ class SubController:
        
         cvImage = cv.CreateImageHeader( ( self.playerCamera.width, self.playerCamera.height ), cv.IPL_DEPTH_8U, 3 )       
         cv.SetData( cvImage, self.playerCamera.image[:self.playerCamera.image_count], self.playerCamera.width*3 )
-
-        #if self.robotType != ROBOT_TYPE_REAL:
-        #    cv.CvtColor( cvImage, cvImage, cv.CV_RGB2BGR )
         
         return cvImage
         
@@ -139,60 +137,65 @@ class SubController:
         newFrameAvailable = False
     
         if self.playerClient.peek( 0 ):
-            self.getAndProcessFrame()        
-            newFrameAvailable = True
-                     
-            forwardSpeed = 0.0
-            yawSpeed = 0.0
+            self.playerClient.read()
 
-            blobData = self.tracker.getBlobData()
-            if blobData.visible:
+            if self.isNewFrameAvailable():
+                self.getAndProcessFrame()
+                newFrameAvailable = True
+                        
+                forwardSpeed = 0.0
+                yawSpeed = 0.0
 
-                halfFrameWidth = self.frame.width / 2.0
-                radiusOfCloseBuoy = self.screenRadiusOfCloseBuoy*self.frame.width
+                blobData = self.tracker.getBlobData()
+                if blobData.visible:
 
-                if blobData.centreX < halfFrameWidth * 0.9:
-                    command = "Go Left"
-                    yawSpeed = self.absYawSpeed
-                    self.lastTurnDirection = self.LEFT
-                elif blobData.centreX > halfFrameWidth * 1.1:
-                    command = "Go Right"
-                    yawSpeed = -self.absYawSpeed
-                    self.lastTurnDirection = self.RIGHT
-                else:
-                    if blobData.radius < radiusOfCloseBuoy:
-                        command = "Go Forward"
-                        forwardSpeed = self.forwardSpeed
+                    halfFrameWidth = self.frame.width / 2.0
+                    radiusOfCloseBuoy = self.screenRadiusOfCloseBuoy*self.frame.width
+
+                    if blobData.centreX < halfFrameWidth * 0.9:
+                        command = "Go Left"
+                        yawSpeed = self.absYawSpeed
+                        self.lastTurnDirection = self.LEFT
+                    elif blobData.centreX > halfFrameWidth * 1.1:
+                        command = "Go Right"
+                        yawSpeed = -self.absYawSpeed
+                        self.lastTurnDirection = self.RIGHT
                     else:
-                        command = "Stay Still"
+                        if blobData.radius < radiusOfCloseBuoy:
+                            command = "Go Forward"
+                            forwardSpeed = self.forwardSpeed
+                        else:
+                            command = "Stay Still"
 
-                print "Buoy Visible at ( " + str( blobData.centreX ) + ", " + str( blobData.centreY ) + " ) - " + command
+                    print "Buoy Visible at ( " + str( blobData.centreX ) + ", " + str( blobData.centreY ) + " ) - " + command
 
-            else:
-                print "Can't see buoy - turning " + self.lastTurnDirection.lower()
-
-                # Turn to search for the buoy
-                if self.lastTurnDirection == self.LEFT:
-                    yawSpeed = self.absYawSpeed
                 else:
-                    yawSpeed = -self.absYawSpeed
+                    print "Can't see buoy - turning " + self.lastTurnDirection.lower()
 
-            # Steer the AUV
-            if self.playerPos3d != None:
-                self.playerPos3d.set_velocity( 
-                    forwardSpeed, 0.0, 0.0, # x, y, z
-                    0.0, 0.0, yawSpeed, # roll, pitch, yaw
-                    0 )   # State
+                    # Turn to search for the buoy
+                    if self.lastTurnDirection == self.LEFT:
+                        yawSpeed = self.absYawSpeed
+                    else:
+                        yawSpeed = -self.absYawSpeed
+
+                # Steer the AUV
+                if self.playerPos3d != None:
+                    self.playerPos3d.set_velocity( 
+                        forwardSpeed, 0.0, 0.0, # x, y, z
+                        0.0, 0.0, yawSpeed, # roll, pitch, yaw
+                        0 )   # State
         
         return newFrameAvailable
+
+    #---------------------------------------------------------------------------
+    def isNewFrameAvailable( self ):
+        return self.lastCameraFrameTime != self.playerCamera.info.datatime
 
     #---------------------------------------------------------------------------
     @Profiling.printTiming
     def getAndProcessFrame( self ):
         
         self.frame = self.getImage()
-                
-        #cv.CvtColor( frame, frame, cv.CV_RGB2BGR )
         self.processedFrameData = self.tracker.processFrame( self.frame )
         
         #processedFrame = cv.CreateImageHeader( ( self.playerCamera.width, self.playerCamera.height ), cv.IPL_DEPTH_8U, 3 )       

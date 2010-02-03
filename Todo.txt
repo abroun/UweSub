@@ -11,8 +11,10 @@ Write a script to evaluate the performance of a tracker algorithm against the gr
     - Total and average error over a number of frames
     - Allow the error to be tracked over just a subset of the frames
         
-Create a player driver that uses the roboard IO library to turn the AUV left and right using PWM
-
+- Create a player driver that uses the roboard IO library to turn the AUV left and right using PWM
+    - Create the driver
+    - Expose the Position3D interface
+    - Implement the interface
 
 
 DONE

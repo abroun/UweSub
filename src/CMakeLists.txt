@@ -29,6 +29,7 @@ SET_SOURCE_FILES_PROPERTIES( ${global_sources}
 
 ADD_SUBDIRECTORY( ColourTracker )
 ADD_SUBDIRECTORY( PythonInterface )
+ADD_SUBDIRECTORY( UweSubPlugin )
 
 IF ( CMAKE_LINK_FLAGS_${CMAKE_BUILD_TYPE} )
   SET_SOURCE_FILES_PROPERTIES(${global_sources} PROPERTIES LINK_FLAGS 
@@ -37,4 +38,5 @@ ENDIF ( CMAKE_LINK_FLAGS_${CMAKE_BUILD_TYPE} )
 
 TARGET_LINK_LIBRARIES( roboardcontrol
     ${global_link_libs} playerinterface playerwkb playercommon jpeg playerjpeg )
+
 
