@@ -11,11 +11,6 @@ Write a script to evaluate the performance of a tracker algorithm against the gr
     - Total and average error over a number of frames
     - Allow the error to be tracked over just a subset of the frames
         
-- Create a player driver that uses the roboard IO library to turn the AUV left and right using PWM
-    - Create the driver
-    - Expose the Position3D interface
-    - Implement the interface
-
 
 DONE
 ====
@@ -48,6 +43,10 @@ Create the control script for the submarine
 - Give the SubController script a configuration file so it can more easily be used for different roles i.e. both Sim and real world - 1/2/10
 - Hook SubController up to the Position3D interface and use it to steer the submarine to the buoy - 1/2/10
 
+- Create a player driver that uses the roboard IO library to turn the AUV left and right using PWM - 1/2/10 and 3/2/10
+    - Create the driver
+    - Expose the Position3D interface
+    - Implement the interface
 
 INSTALLATION
 ============
