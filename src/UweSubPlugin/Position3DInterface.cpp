@@ -52,8 +52,8 @@ int Position3DInterface::ProcessMessage( QueuePointer& respQueue,
     {
         player_position3d_cmd_vel_t* pCmd = (player_position3d_cmd_vel_t*)pData;
         
-        printf( "Setting forward speed to %2.3f and yaw speed to %2.3f\n", 
-                (float)pCmd->vel.px, (float)pCmd->vel.pyaw );
+        //printf( "Setting forward speed to %2.3f and yaw speed to %2.3f\n", 
+        //        (float)pCmd->vel.px, (float)pCmd->vel.pyaw );
         
         
         

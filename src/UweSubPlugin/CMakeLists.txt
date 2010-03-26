@@ -23,8 +23,8 @@ SET_TARGET_PROPERTIES( uwesubplugin PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PROJEC
 SET_TARGET_PROPERTIES( uwesubplugin PROPERTIES PREFIX "" )
 
 TARGET_LINK_LIBRARIES( uwesubplugin
-    ${global_link_libs} 
-    RBIO )
+    ${global_link_libs}
+     RBIO )
 
 INSTALL( TARGETS uwesubplugin
         LIBRARY DESTINATION lib )
