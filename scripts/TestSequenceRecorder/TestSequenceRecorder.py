@@ -26,6 +26,7 @@ class MainWindow:
         self.recording = False
         self.displayPixBuf = None
         self.lastCameraFrameTime = 0.0
+        self.frameNumber = 0.0
 
         self.connectToPlayer()
     
@@ -39,6 +40,46 @@ class MainWindow:
         builder.connect_signals( self )
         
         self.window.show()
+
+        while 1:
+            if self.playerClient.peek( 0 ):
+                self.playerClient.read()
+
+                if self.isNewFrameAvailable():
+                    cameraFrameTime = self.playerCamera.info.datatime
+
+                    #if self.playerCamera.compression != PLAYER_CAMERA_COMPRESS_RAW:
+                    #    self.playerCamera.decompress()
+            
+                    #if self.playerCamera.compression != PLAYER_CAMERA_COMPRESS_RAW:
+                    #    print "Error: Unable to decompress frame"
+                    #    sys.exit( -1 )
+
+                    # Give the image to OpenCV as a very inefficient way to
+                    # save it as a jpeg
+                    #rgbImage = cv.CreateImageHeader( ( self.playerCamera.width, self.playerCamera.height ), cv.IPL_DEPTH_8U, 3 )       
+                    #cv.SetData( rgbImage, self.playerCamera.image[:self.playerCamera.image_count], self.playerCamera.width*3 )
+        
+                    # Save the image
+
+                    # Display the image
+                    #self.displayPixBuf = gtk.gdk.pixbuf_new_from_data( 
+                    #    rgbImage.tostring(), 
+                    #    gtk.gdk.COLORSPACE_RGB,
+                    #    False,
+                    #    rgbImage.depth,
+                    #    rgbImage.width,
+                    #    rgbImage.height,
+                    #    rgbImage.width*rgbImage.nChannels )
+
+                    # Resize the drawing area if necessary
+                    #if self.dwgDisplay.get_size_request() != ( rgbImage.width, rgbImage.height ):
+                    #    self.dwgDisplay.set_size_request( rgbImage.width, rgbImage.height )
+
+                    #self.dwgDisplay.queue_draw()
+                    self.lastCameraFrameTime = cameraFrameTime
+
+                    print cameraFrameTime
 
         updateLoop = self.update()
         gobject.idle_add( updateLoop.next )
@@ -56,20 +97,20 @@ class MainWindow:
                 raise Exception( playerc_error_str() )
 
             # Create a proxy for simulation:0
-            self.playerSim = playerc_simulation( self.playerClient, 0 )
-            if self.playerSim.subscribe( PLAYERC_OPEN_MODE ) != 0:
-                raise Exception( playerc_error_str() )
+            #self.playerSim = playerc_simulation( self.playerClient, 0 )
+            #if self.playerSim.subscribe( PLAYERC_OPEN_MODE ) != 0:
+            #    raise Exception( playerc_error_str() )
             
             # And for the camera
             self.playerCamera = playerc_camera( self.playerClient, 0 )
             if self.playerCamera.subscribe( PLAYERC_OPEN_MODE ) != 0:
                 raise Exception( playerc_error_str() )
 
-            if self.playerClient.datamode( PLAYERC_DATAMODE_PULL ) != 0:
-                raise Exception( playerc_error_str() )
+            #if self.playerClient.datamode( PLAYERC_DATAMODE_PULL ) != 0:
+            #    raise Exception( playerc_error_str() )
         
-            if self.playerClient.set_replace_rule( -1, -1, PLAYER_MSGTYPE_DATA, -1, 1 ) != 0:
-                raise Exception( playerc_error_str() )
+            #if self.playerClient.set_replace_rule( -1, -1, PLAYER_MSGTYPE_DATA, -1, 1 ) != 0:
+            #    raise Exception( playerc_error_str() )
         except Exception as e:
             self.ShowErrorMessage( "Exception when connecting to Player - " + str( e ) )
             sys.exit( -1 )
@@ -176,6 +217,33 @@ class MainWindow:
             self.recording = False
 
     #---------------------------------------------------------------------------
+    def onBtnOutputFileClicked( self, widget, data = None ):
+
+        filter = gtk.FileFilter()
+        filter.add_pattern( "*.yaml" )
+        filter.set_name( "Sequence Files" )
+
+        dialog = gtk.FileChooserDialog(
+            title="Choose Output File",
+            action=gtk.FILE_CHOOSER_ACTION_SAVE,
+            buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT,
+                      gtk.STOCK_OK, gtk.RESPONSE_ACCEPT) )
+
+        dialog.set_current_folder( "../../data/Sequences" )
+        dialog.add_filter( filter )
+        dialog.set_filter( filter )
+        result = dialog.run()
+
+        if result == gtk.RESPONSE_ACCEPT:
+            filename = dialog.get_filename()
+            if os.path.splitext( filename )[ 1 ] == "":
+                filename += ".yaml"
+
+            self.tbxOutputFile.set_text( filename )
+
+        dialog.destroy()
+
+    #---------------------------------------------------------------------------
     def getImageRectangleInWidget( self, widget, imageWidth, imageHeight ):
         
         # Centre the image inside the widget
@@ -205,36 +273,40 @@ class MainWindow:
                 self.playerClient.read()
 
                 if self.isNewFrameAvailable():
-                    self.lastCameraFrameTime = self.playerCamera.info.datatime
+                    cameraFrameTime = self.playerCamera.info.datatime
 
-                    if self.playerCamera.compression != PLAYER_CAMERA_COMPRESS_RAW:
-                        self.playerCamera.decompress()
+                    #if self.playerCamera.compression != PLAYER_CAMERA_COMPRESS_RAW:
+                    #    self.playerCamera.decompress()
             
-                    if self.playerCamera.compression != PLAYER_CAMERA_COMPRESS_RAW:
-                        print "Error: Unable to decompress frame"
-                        sys.exit( -1 )
+                    #if self.playerCamera.compression != PLAYER_CAMERA_COMPRESS_RAW:
+                    #    print "Error: Unable to decompress frame"
+                    #    sys.exit( -1 )
 
                     # Give the image to OpenCV as a very inefficient way to
                     # save it as a jpeg
-                    rgbImage = cv.CreateImageHeader( ( self.playerCamera.width, self.playerCamera.height ), cv.IPL_DEPTH_8U, 3 )       
-                    cv.SetData( rgbImage, self.playerCamera.image[:self.playerCamera.image_count], self.playerCamera.width*3 )
+                    #rgbImage = cv.CreateImageHeader( ( self.playerCamera.width, self.playerCamera.height ), cv.IPL_DEPTH_8U, 3 )       
+                    #cv.SetData( rgbImage, self.playerCamera.image[:self.playerCamera.image_count], self.playerCamera.width*3 )
         
+                    # Save the image
+
                     # Display the image
-                    self.displayPixBuf = gtk.gdk.pixbuf_new_from_data( 
-                        rgbImage.tostring(), 
-                        gtk.gdk.COLORSPACE_RGB,
-                        False,
-                        rgbImage.depth,
-                        rgbImage.width,
-                        rgbImage.height,
-                        rgbImage.width*rgbImage.nChannels )
+                    #self.displayPixBuf = gtk.gdk.pixbuf_new_from_data( 
+                    #    rgbImage.tostring(), 
+                    #    gtk.gdk.COLORSPACE_RGB,
+                    #    False,
+                    #    rgbImage.depth,
+                    #    rgbImage.width,
+                    #    rgbImage.height,
+                    #    rgbImage.width*rgbImage.nChannels )
 
                     # Resize the drawing area if necessary
-                    if self.dwgDisplay.get_size_request() != ( rgbImage.width, rgbImage.height ):
-                        self.dwgDisplay.set_size_request( rgbImage.width, rgbImage.height )
+                    #if self.dwgDisplay.get_size_request() != ( rgbImage.width, rgbImage.height ):
+                    #    self.dwgDisplay.set_size_request( rgbImage.width, rgbImage.height )
 
+                    #self.dwgDisplay.queue_draw()
+                    self.lastCameraFrameTime = cameraFrameTime
 
-                    self.dwgDisplay.queue_draw()
+                    print cameraFrameTime
                 
             yield True
             
