@@ -1,0 +1,12 @@
+Measuring the FOV of a webcam.
+
+- Assuming that the webacm is in focus...
+- Place object of width W in view of the camera until it fills the image
+- Measure distance D to the object
+
+fov = 2*arctan(W/2*D)
+
+W = 32.5 cm = 0.325m
+D = 40cm = 0.4m
+
+fov is approx 44 degrees

@@ -1,6 +1,13 @@
 TODO
 ====
 
+- Produce a simulated version of the submarine run that was done at the BRL
+    - Write Python script that records a test sequence. Data that should be recorded includes
+        - Camera view
+        - Position and heading of sub
+        - Position of buoy
+        - Position and orientation of gate (position of pole 1 and 2)
+
 - Redo the GUI for the GroundTruthEntry program using Glade
 
 - Make it so that values can be optional in the config file
