@@ -1,6 +1,6 @@
 #! /usr/bin/python
 #-------------------------------------------------------------------------------
-# Simple app for recording simulation test sequences
+# Simple joystick application for controlling the sub
 #-------------------------------------------------------------------------------
 
 import sys
@@ -34,7 +34,7 @@ class MainWindow:
     
         # Setup the GUI
         builder = gtk.Builder()
-        builder.add_from_file( "SubJoy.glade" )
+        builder.add_from_file( os.path.dirname( __file__ ) + "/SubJoy.glade" )
         
         self.window = builder.get_object( "winMain" )
         self.dwgControlArea = builder.get_object( "dwgControlArea" )

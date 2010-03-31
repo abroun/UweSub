@@ -16,47 +16,10 @@ from playerc import *
 import cv
 import yaml
 
-#-------------------------------------------------------------------------------
-class TestSequence( yaml.YAMLObject ):
-
-    yaml_tag = u'!TestSequence'
-
-    #---------------------------------------------------------------------------
-    def __init__( self ):
-        self.fixedEntities = []
-        self.frames = []
-
-    #---------------------------------------------------------------------------
-    def addFixedEntity( self, fixedEntity ):
-        self.fixedEntities.append( fixedEntity )
-
-    #---------------------------------------------------------------------------
-    def addFrame( self, frameData ):
-        self.frames.append( frameData )
-
-#-------------------------------------------------------------------------------
-class FixedEntityData( yaml.YAMLObject ):
-
-    yaml_tag = u'!FixedEntityData'
-
-    #---------------------------------------------------------------------------
-    def __init__( self, name, x, y ):
-        self.name = name
-        self.x = x
-        self.y = y
-
-#-------------------------------------------------------------------------------
-class FrameData( yaml.YAMLObject ):
-
-    yaml_tag = u'!FrameData'
-
-    #---------------------------------------------------------------------------
-    def __init__( self, subX, subY, subYaw, timestamp, imageFilename ):
-        self.subX = subX
-        self.subY = subY
-        self.subYaw = subYaw
-        self.timestamp = timestamp
-        self.imageFilename = imageFilename
+# Add common packages directory to path
+sys.path.append( "../" )
+import SubJoy
+import TestSequence
 
 #-------------------------------------------------------------------------------
 class MainWindow:
@@ -78,7 +41,8 @@ class MainWindow:
     
         # Setup the GUI
         builder = gtk.Builder()
-        builder.add_from_file( "TestSequenceRecorder.glade" )
+        builder.add_from_file( os.path.dirname( __file__ ) 
+            + "/TestSequenceRecorder.glade" )
         
         self.window = builder.get_object( "winMain" )
         self.dwgDisplay = builder.get_object( "dwgDisplay" )
@@ -89,6 +53,10 @@ class MainWindow:
 
         updateLoop = self.update()
         gobject.idle_add( updateLoop.next )
+
+        # Slightly crappy way to start up the joystick...
+        subJoyWindow = SubJoy.MainWindow()
+        subJoyWindow.main()
     
     #---------------------------------------------------------------------------
     def connectToPlayer( self ):
@@ -212,13 +180,13 @@ class MainWindow:
             os.mkdir( self.outputImageDir )
 
             # Start recording
-            self.outputSequence = TestSequence()
+            self.outputSequence = TestSequence.TestSequence()
 
             # Get the position of the Buoy
             buoyPose = self.playerSim.get_pose2d( "Buoy" )
             if buoyPose[ 0 ] == 0:
                 self.outputSequence.addFixedEntity(
-                    FixedEntityData( "Buoy", buoyPose[ 1 ], buoyPose[ 2 ] ) )
+                    TestSequence.FixedEntityData( "Buoy", buoyPose[ 1 ], buoyPose[ 2 ] ) )
             else:
                 print "Warning: Unable to get Buoy pose"
 
@@ -240,9 +208,9 @@ class MainWindow:
                 rightGateY = gatePose[ 2 ] + HALF_GATE_WIDTH*sinAngle
 
                 self.outputSequence.addFixedEntity(
-                    FixedEntityData( "LeftGatePost", leftGateX, leftGateY ) )
+                    TestSequence.FixedEntityData( "LeftGatePost", leftGateX, leftGateY ) )
                 self.outputSequence.addFixedEntity(
-                    FixedEntityData( "RightGatePost", rightGateX, rightGateY ) )
+                    TestSequence.FixedEntityData( "RightGatePost", rightGateX, rightGateY ) )
             else:
                 print "Warning: Unable to get Gate pose"
 
@@ -347,7 +315,7 @@ class MainWindow:
 
                             # Record the frame
                             self.outputSequence.addFrame(
-                                FrameData( subPose[ 1 ], subPose[ 2 ], subPose[ 3 ],
+                                TestSequence.FrameData( subPose[ 1 ], subPose[ 2 ], subPose[ 3 ],
                                     cameraFrameTime, relativeImageFilename ) )
 
                             self.frameNumber += 1
