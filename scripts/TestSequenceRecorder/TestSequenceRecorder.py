@@ -6,6 +6,7 @@
 import sys
 import os.path
 import shutil
+import math
 
 import pygtk
 pygtk.require('2.0')
@@ -13,6 +14,49 @@ import gtk
 import gobject
 from playerc import *
 import cv
+import yaml
+
+#-------------------------------------------------------------------------------
+class TestSequence( yaml.YAMLObject ):
+
+    yaml_tag = u'!TestSequence'
+
+    #---------------------------------------------------------------------------
+    def __init__( self ):
+        self.fixedEntities = []
+        self.frames = []
+
+    #---------------------------------------------------------------------------
+    def addFixedEntity( self, fixedEntity ):
+        self.fixedEntities.append( fixedEntity )
+
+    #---------------------------------------------------------------------------
+    def addFrame( self, frameData ):
+        self.frames.append( frameData )
+
+#-------------------------------------------------------------------------------
+class FixedEntityData( yaml.YAMLObject ):
+
+    yaml_tag = u'!FixedEntityData'
+
+    #---------------------------------------------------------------------------
+    def __init__( self, name, x, y ):
+        self.name = name
+        self.x = x
+        self.y = y
+
+#-------------------------------------------------------------------------------
+class FrameData( yaml.YAMLObject ):
+
+    yaml_tag = u'!FrameData'
+
+    #---------------------------------------------------------------------------
+    def __init__( self, subX, subY, subYaw, timestamp, imageFilename ):
+        self.subX = subX
+        self.subY = subY
+        self.subYaw = subYaw
+        self.timestamp = timestamp
+        self.imageFilename = imageFilename
 
 #-------------------------------------------------------------------------------
 class MainWindow:
@@ -24,9 +68,11 @@ class MainWindow:
     def __init__( self ):
     
         self.recording = False
+        self.outputSequence = None
+        self.outputFilename = None
         self.displayPixBuf = None
         self.lastCameraFrameTime = 0.0
-        self.frameNumber = 0.0
+        self.frameNumber = 0
 
         self.connectToPlayer()
     
@@ -40,46 +86,6 @@ class MainWindow:
         builder.connect_signals( self )
         
         self.window.show()
-
-        while 1:
-            if self.playerClient.peek( 0 ):
-                self.playerClient.read()
-
-                if self.isNewFrameAvailable():
-                    cameraFrameTime = self.playerCamera.info.datatime
-
-                    #if self.playerCamera.compression != PLAYER_CAMERA_COMPRESS_RAW:
-                    #    self.playerCamera.decompress()
-            
-                    #if self.playerCamera.compression != PLAYER_CAMERA_COMPRESS_RAW:
-                    #    print "Error: Unable to decompress frame"
-                    #    sys.exit( -1 )
-
-                    # Give the image to OpenCV as a very inefficient way to
-                    # save it as a jpeg
-                    #rgbImage = cv.CreateImageHeader( ( self.playerCamera.width, self.playerCamera.height ), cv.IPL_DEPTH_8U, 3 )       
-                    #cv.SetData( rgbImage, self.playerCamera.image[:self.playerCamera.image_count], self.playerCamera.width*3 )
-        
-                    # Save the image
-
-                    # Display the image
-                    #self.displayPixBuf = gtk.gdk.pixbuf_new_from_data( 
-                    #    rgbImage.tostring(), 
-                    #    gtk.gdk.COLORSPACE_RGB,
-                    #    False,
-                    #    rgbImage.depth,
-                    #    rgbImage.width,
-                    #    rgbImage.height,
-                    #    rgbImage.width*rgbImage.nChannels )
-
-                    # Resize the drawing area if necessary
-                    #if self.dwgDisplay.get_size_request() != ( rgbImage.width, rgbImage.height ):
-                    #    self.dwgDisplay.set_size_request( rgbImage.width, rgbImage.height )
-
-                    #self.dwgDisplay.queue_draw()
-                    self.lastCameraFrameTime = cameraFrameTime
-
-                    print cameraFrameTime
 
         updateLoop = self.update()
         gobject.idle_add( updateLoop.next )
@@ -97,20 +103,20 @@ class MainWindow:
                 raise Exception( playerc_error_str() )
 
             # Create a proxy for simulation:0
-            #self.playerSim = playerc_simulation( self.playerClient, 0 )
-            #if self.playerSim.subscribe( PLAYERC_OPEN_MODE ) != 0:
-            #    raise Exception( playerc_error_str() )
+            self.playerSim = playerc_simulation( self.playerClient, 0 )
+            if self.playerSim.subscribe( PLAYERC_OPEN_MODE ) != 0:
+                raise Exception( playerc_error_str() )
             
             # And for the camera
             self.playerCamera = playerc_camera( self.playerClient, 0 )
             if self.playerCamera.subscribe( PLAYERC_OPEN_MODE ) != 0:
                 raise Exception( playerc_error_str() )
 
-            #if self.playerClient.datamode( PLAYERC_DATAMODE_PULL ) != 0:
-            #    raise Exception( playerc_error_str() )
+            if self.playerClient.datamode( PLAYERC_DATAMODE_PULL ) != 0:
+                raise Exception( playerc_error_str() )
         
-            #if self.playerClient.set_replace_rule( -1, -1, PLAYER_MSGTYPE_DATA, -1, 1 ) != 0:
-            #    raise Exception( playerc_error_str() )
+            if self.playerClient.set_replace_rule( -1, -1, PLAYER_MSGTYPE_DATA, -1, 1 ) != 0:
+                raise Exception( playerc_error_str() )
         except Exception as e:
             self.ShowErrorMessage( "Exception when connecting to Player - " + str( e ) )
             sys.exit( -1 )
@@ -166,8 +172,8 @@ class MainWindow:
 
         if not self.recording:
 
-            outputFilename = self.tbxOutputFile.get_text()
-            outputDir = os.path.dirname( outputFilename )
+            self.outputFilename = self.tbxOutputFile.get_text()
+            outputDir = os.path.dirname( self.outputFilename )
 
             # Check that the output directory exists
             if not os.path.exists( outputDir ):
@@ -177,11 +183,11 @@ class MainWindow:
 
             # Work out where we're going to store the images and check if
             # it's ok to delete anything which may already be there
-            self.imageDir = os.path.splitext( outputFilename )[ 0 ] + "_images"
-            if os.path.exists( self.imageDir ): 
+            self.outputImageDir = os.path.splitext( self.outputFilename )[ 0 ] + "_images"
+            if os.path.exists( self.outputImageDir ): 
 
                 msgString = "The directory where the images will be stored - " \
-                    "{0} - already exists. Is it ok to overwrite it?"
+                    "{0} - already exists. Is it ok to overwrite it?".format( self.outputImageDir )
 
                 dialog = gtk.MessageDialog( parent=None, 
                     flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
@@ -197,23 +203,59 @@ class MainWindow:
                     return
                 else:
                     try:
-                        shutil.rmtree( self.imageDir )
+                        shutil.rmtree( self.outputImageDir )
                     except Exception as e:
                         self.ShowErrorMessage( "Error when deleting image directory - " + str( e ) )
                         return
             
             # Create the image directory
-            os.mkdir( self.imageDir )
+            os.mkdir( self.outputImageDir )
 
             # Start recording
-            self.outputFile = open( outputFilename, "w" )
+            self.outputSequence = TestSequence()
+
+            # Get the position of the Buoy
+            buoyPose = self.playerSim.get_pose2d( "Buoy" )
+            if buoyPose[ 0 ] == 0:
+                self.outputSequence.addFixedEntity(
+                    FixedEntityData( "Buoy", buoyPose[ 1 ], buoyPose[ 2 ] ) )
+            else:
+                print "Warning: Unable to get Buoy pose"
+
+            # Get the position of the Gate
+            gatePose = self.playerSim.get_pose2d( "Gate" )
+            if gatePose[ 0 ] == 0:
+
+                GATE_WIDTH = 0.9
+                HALF_GATE_WIDTH = GATE_WIDTH / 2.0
+
+                # We can only deal with point features so enter the 
+                # gate posts as two separate entities
+                sinAngle = math.sin( gatePose[ 3 ] )
+                cosAngle = math.cos( gatePose[ 3 ] )
+
+                leftGateX = gatePose[ 1 ] - HALF_GATE_WIDTH*cosAngle
+                leftGateY = gatePose[ 2 ] - HALF_GATE_WIDTH*sinAngle
+                rightGateX = gatePose[ 1 ] + HALF_GATE_WIDTH*cosAngle
+                rightGateY = gatePose[ 2 ] + HALF_GATE_WIDTH*sinAngle
+
+                self.outputSequence.addFixedEntity(
+                    FixedEntityData( "LeftGatePost", leftGateX, leftGateY ) )
+                self.outputSequence.addFixedEntity(
+                    FixedEntityData( "RightGatePost", rightGateX, rightGateY ) )
+            else:
+                print "Warning: Unable to get Gate pose"
+
+            self.frameNumber = 0
             self.recording = True
 
     #---------------------------------------------------------------------------
     def onBtnStopRecordingClicked( self, widget, data = None ):
 
         if self.recording:
-            self.outputFile.close()
+            outputFile = file( self.outputFilename, "w" )
+            yaml.dump( self.outputSequence, outputFile )
+            outputFile.close()
             self.recording = False
 
     #---------------------------------------------------------------------------
@@ -275,38 +317,59 @@ class MainWindow:
                 if self.isNewFrameAvailable():
                     cameraFrameTime = self.playerCamera.info.datatime
 
-                    #if self.playerCamera.compression != PLAYER_CAMERA_COMPRESS_RAW:
-                    #    self.playerCamera.decompress()
+                    if self.playerCamera.compression != PLAYER_CAMERA_COMPRESS_RAW:
+                        self.playerCamera.decompress()
             
-                    #if self.playerCamera.compression != PLAYER_CAMERA_COMPRESS_RAW:
-                    #    print "Error: Unable to decompress frame"
-                    #    sys.exit( -1 )
+                    if self.playerCamera.compression != PLAYER_CAMERA_COMPRESS_RAW:
+                        print "Error: Unable to decompress frame"
+                        sys.exit( -1 )
 
                     # Give the image to OpenCV as a very inefficient way to
                     # save it as a jpeg
-                    #rgbImage = cv.CreateImageHeader( ( self.playerCamera.width, self.playerCamera.height ), cv.IPL_DEPTH_8U, 3 )       
-                    #cv.SetData( rgbImage, self.playerCamera.image[:self.playerCamera.image_count], self.playerCamera.width*3 )
+                    rgbImage = cv.CreateImageHeader( ( self.playerCamera.width, self.playerCamera.height ), cv.IPL_DEPTH_8U, 3 )       
+                    cv.SetData( rgbImage, self.playerCamera.image[:self.playerCamera.image_count], self.playerCamera.width*3 )
         
-                    # Save the image
+                    if self.recording:
+                        # Get the submarine's pose
+                        subPose = self.playerSim.get_pose2d( "Sub" )
+                        subFound = ( subPose[ 0 ] == 0 )
+
+                        if subFound:
+
+                            # Save the current image
+                            imageFilename = "{0}/frame_{1:06}_{2}.jpeg".format( 
+                                self.outputImageDir, self.frameNumber, cameraFrameTime )
+                            relativeImageFilename = os.path.relpath( imageFilename, os.path.dirname( self.outputFilename ) )
+
+                            bgrImage = cv.CreateImage( ( rgbImage.width, rgbImage.height ), cv.IPL_DEPTH_8U, 3 )
+                            cv.CvtColor( rgbImage, bgrImage, cv.CV_RGB2BGR )
+                            cv.SaveImage( imageFilename, bgrImage )
+
+                            # Record the frame
+                            self.outputSequence.addFrame(
+                                FrameData( subPose[ 1 ], subPose[ 2 ], subPose[ 3 ],
+                                    cameraFrameTime, relativeImageFilename ) )
+
+                            self.frameNumber += 1
+                        else:
+                            print "Warning: Unable to get Sub pose"
 
                     # Display the image
-                    #self.displayPixBuf = gtk.gdk.pixbuf_new_from_data( 
-                    #    rgbImage.tostring(), 
-                    #    gtk.gdk.COLORSPACE_RGB,
-                    #    False,
-                    #    rgbImage.depth,
-                    #    rgbImage.width,
-                    #    rgbImage.height,
-                    #    rgbImage.width*rgbImage.nChannels )
+                    self.displayPixBuf = gtk.gdk.pixbuf_new_from_data( 
+                        rgbImage.tostring(), 
+                        gtk.gdk.COLORSPACE_RGB,
+                        False,
+                        rgbImage.depth,
+                        rgbImage.width,
+                        rgbImage.height,
+                        rgbImage.width*rgbImage.nChannels )
 
                     # Resize the drawing area if necessary
-                    #if self.dwgDisplay.get_size_request() != ( rgbImage.width, rgbImage.height ):
-                    #    self.dwgDisplay.set_size_request( rgbImage.width, rgbImage.height )
+                    if self.dwgDisplay.get_size_request() != ( rgbImage.width, rgbImage.height ):
+                        self.dwgDisplay.set_size_request( rgbImage.width, rgbImage.height )
 
-                    #self.dwgDisplay.queue_draw()
+                    self.dwgDisplay.queue_draw()
                     self.lastCameraFrameTime = cameraFrameTime
-
-                    print cameraFrameTime
                 
             yield True
             
