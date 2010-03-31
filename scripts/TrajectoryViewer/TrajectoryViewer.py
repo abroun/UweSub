@@ -5,6 +5,7 @@
 
 import sys
 import os.path
+import math
 
 import pygtk
 pygtk.require('2.0')
@@ -12,10 +13,13 @@ import gtk
 import gobject
 import cv
 
+import RoBoardControl
+
 # Add common packages directory to path
 sys.path.append( "../" )
 import SubJoy
 import TestSequence
+from Maths.Vector2D import Vector2D, Normalise
 
 #-------------------------------------------------------------------------------
 class MainWindow:
@@ -46,6 +50,8 @@ class MainWindow:
         
         self.setCurFrameIdx( 0 )
         self.window.show()
+
+        self.estimateTrajectory()
 
     #---------------------------------------------------------------------------
     def onWinMainDestroy( self, widget, data = None ):  
@@ -192,6 +198,60 @@ class MainWindow:
         self.dwgCameraDisplay.queue_draw()
         
         self.settingFrame = False
+
+    #---------------------------------------------------------------------------
+    def estimateTrajectory( self ):
+
+        CAMERA_FOV = 44.0
+        HALF_CAMERA_FOV = CAMERA_FOV / 2.0
+        COS_OF_HALF_CAMERA_FOV = math.cos( HALF_CAMERA_FOV )
+        CAMERA_WIDTH = 320.0
+        HALF_CAMERA_WIDTH = CAMERA_WIDTH / 2.0
+        CAMERA_HEIGHT = 240.0
+        HALF_CAMERA_HEIGHT = CAMERA_HEIGHT / 2.0
+        FOCAL_DISTANCE = CAMERA_WIDTH / ( 2.0*math.tan( CAMERA_FOV / 2.0 ) )
+        FOCAL_HYP_X = math.sqrt( FOCAL_DISTANCE*FOCAL_DISTANCE + HALF_CAMERA_WIDTH*HALF_CAMERA_WIDTH )
+
+        # Create camera parameters
+        cameraParams = [ FOCAL_DISTANCE, 0.0, CAMERA_WIDTH / 2.0,
+                         0.0, FOCAL_DISTANCE, CAMERA_HEIGHT / 2.0,
+                         0.0, 0.0, 1.0 ]
+
+        # Create initial guesses for the camera positions
+        poseGuesses = [0] * 7 * self.numFrames
+
+        # For each frame work out where the landmarks are projected
+        landmarkPoints = []
+
+        for entity in self.testSequence.fixedEntities:
+            pointList = [ entity.x, entity.y, 0.0 ]
+            numFramesVisible = 0
+
+            for frameIdx in range( self.numFrames ):
+                frameData = self.testSequence.frames[ frameIdx ]
+                subHeading = Vector2D( -math.sin( frameData.subYaw ), 
+                    math.cos( frameData.subYaw ) )
+                dirToEntity = Normalise( 
+                    Vector2D( entity.x - frameData.subX, entity.y - frameData.subY ) )
+
+                cosOfAngleToEntity = subHeading.Dot( dirToEntity )
+                if cosOfAngleToEntity > COS_OF_HALF_CAMERA_FOV:
+                    # Entity is visible in this frame
+                    numFramesVisible += 1
+                    subXAxis = Vector2D( subHeading.y, -subHeading.x )
+                    if subXAxis.Dot( dirToEntity ) > 0.0:
+                        entityPixelX = HALF_CAMERA_WIDTH + cosOfAngleToEntity*FOCAL_HYP_X
+                    else:
+                        entityPixelX = HALF_CAMERA_WIDTH - cosOfAngleToEntity*FOCAL_HYP_X
+
+                    pointList.extend( [ frameIdx, entityPixelX, HALF_CAMERA_HEIGHT ] )
+
+            pointList.insert( 3, numFramesVisible )
+            landmarkPoints.extend( pointList )
+        
+        # Use bundle adjustment to estimate camera positions
+        poseResults = RoBoardControl.bundleAdjustment( cameraParams, poseGuesses, landmarkPoints )
+        print poseResults
 
 #-------------------------------------------------------------------------------
 if __name__ == "__main__":

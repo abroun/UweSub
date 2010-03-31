@@ -16,6 +16,8 @@
 
 #include "ColourTracker/ColourTracker.h"
 
+#include "sba.h"
+
 //------------------------------------------------------------------------------
 // IplImage conversion. Nicked from OpenCV Python bindings
 //------------------------------------------------------------------------------
@@ -69,9 +71,55 @@ static PyObject* RBC_Sin( PyObject* pSelf, PyObject* pArgs )
 }
 
 //------------------------------------------------------------------------------
+static double* PyListToIntArray( PyObject* pPyList )
+{
+    double* pResult = NULL;
+    
+    int listSize = PyList_Size( pPyList );
+    if ( listSize >= 0 )
+    {
+        pResult = new double[ listSize ];
+        
+        for ( int i = 0; i < listSize; i++ )
+        {
+            PyObject* pFloat = PyList_GetItem( pPyList, i );
+            pResult[ i ] = PyFloat_AsDouble( pFloat );
+        }
+    }
+    
+    return pResult;
+}
+
+//------------------------------------------------------------------------------
+static PyObject* RBC_BundleAdjustment( PyObject* pSelf, PyObject* pArgs )
+{
+    PyObject* pCameraPyList;
+    PyObject* pPoseGuessPyList;
+    PyObject* pLandmarkPointPyList;
+
+    if ( !PyArg_ParseTuple( pArgs, "OOO", &pCameraPyList, &pPoseGuessPyList, &pLandmarkPointPyList ) )
+    {
+        return NULL;
+    }
+    
+    double* pCameraArray = PyListToIntArray( pCameraPyList );
+    double* pPoseGuessArray = PyListToIntArray( pPoseGuessPyList );
+    double* pLandmarkPointArray = PyListToIntArray( pLandmarkPointPyList );
+    
+    float result = sinf( 1.57f );
+    
+    delete [] pCameraArray;
+    delete [] pPoseGuessArray;
+    delete [] pLandmarkPointArray;
+    
+    return Py_BuildValue( "f", result );
+}
+
+//------------------------------------------------------------------------------
 static PyMethodDef RoBoardControlMethods[] = 
 {
     { "sin", RBC_Sin, METH_VARARGS, "Calculates the sine of the input" },
+    { "bundleAdjustment", RBC_BundleAdjustment, METH_VARARGS, "Interface to the sba library" },
 
     { NULL, NULL, 0, NULL }        // Sentinel
 };
