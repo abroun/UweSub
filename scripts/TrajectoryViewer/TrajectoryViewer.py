@@ -213,19 +213,33 @@ class MainWindow:
         FOCAL_HYP_X = math.sqrt( FOCAL_DISTANCE*FOCAL_DISTANCE + HALF_CAMERA_WIDTH*HALF_CAMERA_WIDTH )
 
         # Create camera parameters
-        cameraParams = [ FOCAL_DISTANCE, 0.0, CAMERA_WIDTH / 2.0,
-                         0.0, FOCAL_DISTANCE, CAMERA_HEIGHT / 2.0,
-                         0.0, 0.0, 1.0 ]
+        #cameraParams = [ FOCAL_DISTANCE, 0.0, CAMERA_WIDTH / 2.0,
+        #                 0.0, FOCAL_DISTANCE, CAMERA_HEIGHT / 2.0,
+        #                 0.0, 0.0, 1.0 ]
 
-        # Create initial guesses for the camera positions
-        poseGuesses = [0] * 7 * self.numFrames
+        cameraParams = [ 
+            FOCAL_DISTANCE, # fu 
+            CAMERA_WIDTH / 2.0, # u0
+            CAMERA_HEIGHT / 2.0,    # v0
+            CAMERA_HEIGHT / CAMERA_WIDTH, # Ratio to get from width to height
+            0.0 ]   # Skew
 
-        # For each frame work out where the landmarks are projected
-        landmarkPoints = []
+        # Create initial guesses for the camera poses and landmark positions
+        motionStruct = [0] * 6 * self.numFrames  # Place camera guesses at the origin
 
         for entity in self.testSequence.fixedEntities:
-            pointList = [ entity.x, entity.y, 0.0 ]
-            numFramesVisible = 0
+            motionStruct.extend( [ entity.x, entity.y, 0.0 ] )
+
+        # Repeat camera rotation guesses as quaternions
+        initialRotations = [ 1.0, 0.0, 0.0, 0.0 ] * self.numFrames
+
+        # For each frame work out where the landmarks are projected
+        numEntities = len( self.testSequence.fixedEntities )
+        landmarkPoints = []
+        landmarkVisibility = [0] * self.numFrames * numEntities
+
+        for entityIdx in range( numEntities ):
+            entity = self.testSequence.fixedEntities[ entityIdx ]
 
             for frameIdx in range( self.numFrames ):
                 frameData = self.testSequence.frames[ frameIdx ]
@@ -237,20 +251,22 @@ class MainWindow:
                 cosOfAngleToEntity = subHeading.Dot( dirToEntity )
                 if cosOfAngleToEntity > COS_OF_HALF_CAMERA_FOV:
                     # Entity is visible in this frame
-                    numFramesVisible += 1
+                    landmarkVisibility[ entityIdx * self.numFrames + frameIdx ] = 1
+                    
                     subXAxis = Vector2D( subHeading.y, -subHeading.x )
                     if subXAxis.Dot( dirToEntity ) > 0.0:
                         entityPixelX = HALF_CAMERA_WIDTH + cosOfAngleToEntity*FOCAL_HYP_X
                     else:
                         entityPixelX = HALF_CAMERA_WIDTH - cosOfAngleToEntity*FOCAL_HYP_X
 
-                    pointList.extend( [ frameIdx, entityPixelX, HALF_CAMERA_HEIGHT ] )
-
-            pointList.insert( 3, numFramesVisible )
-            landmarkPoints.extend( pointList )
+                    landmarkPoints.extend( [ entityPixelX, HALF_CAMERA_HEIGHT ] )
         
         # Use bundle adjustment to estimate camera positions
-        poseResults = RoBoardControl.bundleAdjustment( cameraParams, poseGuesses, landmarkPoints )
+        print len( landmarkPoints )
+        poseResults = RoBoardControl.bundleAdjustment( 
+            self.numFrames, numEntities, len( landmarkPoints ) / 2,
+            motionStruct, initialRotations, 
+            landmarkPoints, landmarkVisibility, cameraParams )
         print poseResults
 
 #-------------------------------------------------------------------------------

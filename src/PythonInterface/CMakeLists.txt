@@ -7,7 +7,8 @@ IF ( ENABLE_PYTHON )
         ${PROJECT_SOURCE_DIR}/3rdParty/sba )
 
     SET( srcFiles 
-        RoBoardControl.cpp )
+        RoBoardControl.cpp
+        imgproj.cpp )
 
     SET_SOURCE_FILES_PROPERTIES( ${srcFiles} 
         PROPERTIES COMPILE_FLAGS "-pthread -fno-strict-aliasing -fwrapv -fPIC" )
