@@ -20,9 +20,16 @@ sys.path.append( "../" )
 import SubJoy
 import TestSequence
 from Maths.Vector2D import Vector2D, Normalise
+from TrajectoryEstimator import TrajectoryEstimator
 
 #-------------------------------------------------------------------------------
 class MainWindow:
+
+    SCALE_UP = 1.25
+    SCALE_DOWN = 1.0 / SCALE_UP
+    MIN_SCALE = 10.0
+    MAX_SCALE = 1000000.0
+    
 
     #---------------------------------------------------------------------------
     def __init__( self ):
@@ -34,6 +41,12 @@ class MainWindow:
         self.testSequenceDir = "../../data/Sequences"
         self.testSequence = TestSequence.loadSequenceFromFile( self.testSequenceDir + "/BRLSimTest.yaml" )
         self.numFrames = len( self.testSequence.frames )
+
+        self.displayOriginX = 150
+        self.displayOriginY = 200
+        self.displayScale = 100
+        self.draggingDisplay = False
+        self.lastDragPos = None
 
         # Setup the GUI
         builder = gtk.Builder()
@@ -51,7 +64,7 @@ class MainWindow:
         self.setCurFrameIdx( 0 )
         self.window.show()
 
-        self.estimateTrajectory()
+        self.estimateTrajectoryGradientDescent()
 
     #---------------------------------------------------------------------------
     def onWinMainDestroy( self, widget, data = None ):  
@@ -68,13 +81,24 @@ class MainWindow:
 
         (windowWidth, windowHeight) = widget.window.get_size()
 
-        originX = 150
-        originY = 200
-        scaleX = 100
-        scaleY = -100
+        originX = self.displayOriginX
+        originY = self.displayOriginY
+        scaleX = self.displayScale
+        scaleY = -self.displayScale
+
         numPoints = self.curFrameIdx - 1
         pointList = [ ( int( originX + scaleX*self.testSequence.frames[ i ].subX ),
             int( originY + scaleY*self.testSequence.frames[ i ].subY ) ) for i in range( self.curFrameIdx ) ]
+
+        
+
+        estimatedTrajectoryPointList = \
+            [ ( int( originX + scaleX*self.estimator.poseGuesses[ i ][ 0 ] ),
+            int( originY + scaleY*self.estimator.poseGuesses[ i ][ 1 ] ) ) \
+            for i in range( self.curFrameIdx ) ]
+
+        
+
 
         graphicsContext = widget.window.new_gc()
         graphicsContext.set_rgb_fg_color( gtk.gdk.Color( 65535, 65535, 65535 ) )
@@ -82,9 +106,42 @@ class MainWindow:
         widget.window.draw_rectangle( graphicsContext, filled=True,
             x=0, y=0, width=windowWidth, height=windowHeight ) 
 
-        graphicsContext.set_rgb_fg_color( gtk.gdk.Color( 0, 0, 0 ) )
         if numPoints > 0:
+            graphicsContext.set_rgb_fg_color( gtk.gdk.Color( 0, 0, 0 ) )
+            graphicsContext.set_line_attributes( 2, gtk.gdk.LINE_SOLID,
+                gtk.gdk.CAP_BUTT, gtk.gdk.JOIN_BEVEL )
             widget.window.draw_points( graphicsContext, pointList ) 
+
+            lastPoint = pointList[ -1 ]
+            self.drawCircle( widget.window, graphicsContext,
+                lastPoint[ 0 ], lastPoint[ 1 ], 0.05*self.displayScale, filled=True )
+
+            yaw = self.testSequence.frames[ self.curFrameIdx - 1 ].subYaw
+            headingX = math.cos( yaw + math.pi/2.0 )*scaleX*0.10
+            headingY = math.sin( yaw + math.pi/2.0 )*scaleY*0.10
+
+            widget.window.draw_line( graphicsContext, 
+                lastPoint[ 0 ], lastPoint[ 1 ],
+                lastPoint[ 0 ] + headingX, lastPoint[ 1 ] + headingY )
+
+            
+            graphicsContext.set_rgb_fg_color( gtk.gdk.Color( 65535, 0, 0 ) )
+            graphicsContext.set_line_attributes( 2, gtk.gdk.LINE_SOLID,
+                gtk.gdk.CAP_BUTT, gtk.gdk.JOIN_BEVEL )
+            widget.window.draw_points( graphicsContext, estimatedTrajectoryPointList ) 
+
+            lastEstimnatedPoint = estimatedTrajectoryPointList[ -1 ]
+            self.drawCircle( widget.window, graphicsContext,
+                lastEstimnatedPoint[ 0 ], lastEstimnatedPoint[ 1 ], 
+                0.05*self.displayScale, filled=True )
+
+            yaw = self.estimator.poseGuesses[ self.curFrameIdx - 1 ][ 2 ]
+            headingX = math.cos( yaw + math.pi/2.0 )*scaleX*0.10
+            headingY = math.sin( yaw + math.pi/2.0 )*scaleY*0.10
+
+            widget.window.draw_line( graphicsContext, 
+                lastEstimnatedPoint[ 0 ], lastEstimnatedPoint[ 1 ],
+                lastEstimnatedPoint[ 0 ] + headingX, lastEstimnatedPoint[ 1 ] + headingY )
 
     #---------------------------------------------------------------------------
     def onDwgCameraDisplayExposeEvent( self, widget, event ):
@@ -125,6 +182,45 @@ class MainWindow:
     def onTbxFrameNumberKeyPressed( self, widget, keyPressEvent ):
         if gtk.gdk.keyval_name( keyPressEvent.keyval ) == "Return":
             self.onTbxFrameNumberFocusOut( widget )
+
+    #---------------------------------------------------------------------------
+    def onDwgTrajectoryDisplayScrollEvent( self, widget, event = None ):
+        if event.direction == gtk.gdk.SCROLL_UP: 
+            self.displayScale *= self.SCALE_UP
+        else: 
+            self.displayScale *= self.SCALE_DOWN
+
+        if self.displayScale < self.MIN_SCALE:
+            self.displayScale = self.MIN_SCALE
+        if self.displayScale > self.MAX_SCALE:
+            self.displayScale = self.MAX_SCALE
+
+        self.dwgTrajectoryDisplay.queue_draw()
+
+    #---------------------------------------------------------------------------
+    def onDwgTrajectoryDisplayButtonPressEvent( self, widget, event = None ):
+        
+        if event.button == 1:
+            self.draggingDisplay = True
+            self.lastDragPos = ( event.x, event.y )
+
+    #---------------------------------------------------------------------------
+    def onDwgTrajectoryDisplayButtonReleaseEvent( self, widget, event = None ):
+        
+        if event.button == 1:
+            self.draggingDisplay = False
+
+    #---------------------------------------------------------------------------
+    def onDwgTrajectoryDisplayMotionNotifyEvent( self, widget, event = None ):
+    
+        if self.draggingDisplay == True:
+            newDragPos = ( event.x, event.y )
+    
+            if newDragPos != self.lastDragPos:
+                self.displayOriginX += newDragPos[ 0 ] - self.lastDragPos[ 0 ]
+                self.displayOriginY += newDragPos[ 1 ] - self.lastDragPos[ 1 ]
+                self.lastDragPos = newDragPos
+                self.dwgTrajectoryDisplay.queue_draw()
 
     #---------------------------------------------------------------------------
     def drawCircle( self, drawable, graphicsContext, x, y, radius, filled ):
@@ -202,7 +298,7 @@ class MainWindow:
     #---------------------------------------------------------------------------
     def estimateTrajectory( self ):
 
-        CAMERA_FOV = 44.0
+        CAMERA_FOV = 44.0*math.pi/180.0
         HALF_CAMERA_FOV = CAMERA_FOV / 2.0
         COS_OF_HALF_CAMERA_FOV = math.cos( HALF_CAMERA_FOV )
         CAMERA_WIDTH = 320.0
@@ -268,6 +364,62 @@ class MainWindow:
             motionStruct, initialRotations, 
             landmarkPoints, landmarkVisibility, cameraParams )
         print poseResults
+
+    #---------------------------------------------------------------------------
+    def bearingToFeature( self, subX, subY, subYaw, featureX, featureY ):
+        return math.atan2( featureY - subY, featureX - subX ) - subYaw
+
+    #---------------------------------------------------------------------------
+    def estimateTrajectoryGradientDescent( self ):
+
+        CAMERA_FOV = 44.0*math.pi/180.0
+        HALF_CAMERA_FOV = CAMERA_FOV / 2.0
+        COS_OF_HALF_CAMERA_FOV = math.cos( HALF_CAMERA_FOV )
+        CAMERA_WIDTH = 320.0
+        HALF_CAMERA_WIDTH = CAMERA_WIDTH / 2.0
+        CAMERA_HEIGHT = 240.0
+        HALF_CAMERA_HEIGHT = CAMERA_HEIGHT / 2.0
+        FOCAL_DISTANCE = CAMERA_WIDTH / ( 2.0*math.tan( CAMERA_FOV / 2.0 ) )
+        FOCAL_HYP_X = math.sqrt( FOCAL_DISTANCE*FOCAL_DISTANCE + HALF_CAMERA_WIDTH*HALF_CAMERA_WIDTH )
+
+        # Initial guesses for position and orientation  
+        poseGuesses = []
+        for poseIdx in range( self.numFrames ):
+            poseGuesses.append( [ 0.0, 0.0, 0.0 ] )
+
+        # For each frame work out where the landmarks are projected
+        numEntities = len( self.testSequence.fixedEntities )
+        landmarkPositions = [(e.x, e.y) for e in self.testSequence.fixedEntities]
+        landmarkBearings = []
+        landmarkVisibility = []
+
+        for frameIdx in range( self.numFrames ):
+            frameData = self.testSequence.frames[ frameIdx ]
+
+            bearingArray = []
+            visibilityArray = []
+
+            for entityIdx in range( numEntities ):
+                entity = self.testSequence.fixedEntities[ entityIdx ]
+
+                bearing = self.bearingToFeature( 
+                    frameData.subX, frameData.subY, frameData.subYaw,
+                    entity.x, entity.y )
+                bearingArray.append( bearing )
+
+                # Entity is visible in this frame
+                visibilityArray.append( math.cos( bearing ) > COS_OF_HALF_CAMERA_FOV )
+            
+            landmarkBearings.append( bearingArray )
+            landmarkVisibility.append( visibilityArray )
+
+        # Use bundle adjustment to estimate camera positions
+        self.estimator = TrajectoryEstimator()
+        totalError = self.estimator.estimateTrajectory( 
+            poseGuesses, landmarkPositions, 
+            landmarkBearings, landmarkVisibility )
+
+        print "Average Error =", totalError / self.numFrames
 
 #-------------------------------------------------------------------------------
 if __name__ == "__main__":

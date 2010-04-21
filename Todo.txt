@@ -1,12 +1,12 @@
 TODO
 ====
 
-- Produce a simulated version of the submarine run that was done at the BRL
-    - Write Python script that records a test sequence. Data that should be recorded includes
-        - Camera view
-        - Position and heading of sub
-        - Position of buoy
-        - Position and orientation of gate (position of pole 1 and 2)
+- Draw trajectories as lines
+- Allow trajectories to be turned on and off
+- Draw the current position and heading for each trajectory
+- Draw in the map features
+- Display which features are visible along with their bearings
+- Start using the visibility information to tackle a harder version of the problem
 
 - Redo the GUI for the GroundTruthEntry program using Glade
 
@@ -14,7 +14,7 @@ TODO
    
 Write a script to evaluate the performance of a tracker algorithm against the ground truth
     - Give error per frame
-        - Square of position error. If the tracker gets visible/invisible wrong then give a fixed penalty of half the screen diagonal squared
+    - Square of position error. If the tracker gets visible/invisible wrong then give a fixed penalty of half the screen diagonal squared
     - Total and average error over a number of frames
     - Allow the error to be tracked over just a subset of the frames
         
@@ -54,6 +54,15 @@ Create the control script for the submarine
     - Create the driver
     - Expose the Position3D interface
     - Implement the interface
+
+- Produce a simulated version of the submarine run that was done at the BRL 31/3/10
+    - Write Python script that records a test sequence. Data that should be recorded includes
+        - Camera view
+        - Position and heading of sub
+        - Position of buoy
+        - Position and orientation of gate (position of pole 1 and 2)
+
+- Implemented a rough and ready gradient descent solver that tries to solve a simplified version of the location problem for the submarine trajectory. By simplified I mean that at the moment it can see all landmarks at all times but I'm hopeful that it can be extended towards the much harder real life case. 16/4/2010
 
 INSTALLATION
 ============

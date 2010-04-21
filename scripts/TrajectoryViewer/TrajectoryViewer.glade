@@ -44,7 +44,12 @@
                 <property name="width_request">300</property>
                 <property name="height_request">300</property>
                 <property name="visible">True</property>
+                <property name="events">GDK_BUTTON_MOTION_MASK | GDK_BUTTON1_MOTION_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_STRUCTURE_MASK | GDK_SCROLL_MASK</property>
                 <signal name="expose_event" handler="onDwgTrajectoryDisplayExposeEvent"/>
+                <signal name="button_press_event" handler="onDwgTrajectoryDisplayButtonPressEvent"/>
+                <signal name="motion_notify_event" handler="onDwgTrajectoryDisplayMotionNotifyEvent"/>
+                <signal name="scroll_event" handler="onDwgTrajectoryDisplayScrollEvent"/>
+                <signal name="button_release_event" handler="onDwgTrajectoryDisplayButtonReleaseEvent"/>
               </object>
               <packing>
                 <property name="position">0</property>
