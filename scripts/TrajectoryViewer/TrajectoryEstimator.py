@@ -8,7 +8,7 @@ import math
 
 class TrajectoryEstimator:
 
-    USE_VISIBILTY = True
+    USE_VISIBILTY = False
 
     #---------------------------------------------------------------------------
     def __init__( self ):

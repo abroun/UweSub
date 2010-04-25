@@ -90,21 +90,47 @@ class MainWindow:
         pointList = [ ( int( originX + scaleX*self.testSequence.frames[ i ].subX ),
             int( originY + scaleY*self.testSequence.frames[ i ].subY ) ) for i in range( self.curFrameIdx ) ]
 
-        
-
         estimatedTrajectoryPointList = \
             [ ( int( originX + scaleX*self.estimator.poseGuesses[ i ][ 0 ] ),
             int( originY + scaleY*self.estimator.poseGuesses[ i ][ 1 ] ) ) \
             for i in range( self.curFrameIdx ) ]
-
-        
-
 
         graphicsContext = widget.window.new_gc()
         graphicsContext.set_rgb_fg_color( gtk.gdk.Color( 65535, 65535, 65535 ) )
 
         widget.window.draw_rectangle( graphicsContext, filled=True,
             x=0, y=0, width=windowWidth, height=windowHeight ) 
+            
+        # Draw the landmarks
+        for fixedEntity in self.testSequence.fixedEntities:
+            x = int( originX + scaleX*fixedEntity.x )
+            y = int( originY + scaleY*fixedEntity.y )
+            innerRadius = 0.05*scaleX
+            outerRadius = 0.25*scaleX
+            
+            graphicsContext.set_rgb_fg_color( gtk.gdk.Color( 0, 0, 0 ) )
+            self.drawCircle( widget.window, graphicsContext, x, y, innerRadius, filled = True )
+            
+            graphicsContext.set_rgb_fg_color( gtk.gdk.Color( 65535/2, 65535/2, 65535/2 ) )
+            self.drawCircle( widget.window, graphicsContext, x, y, outerRadius, filled = False )
+            
+        # Draw the Sub...
+        graphicsContext.set_rgb_fg_color( gtk.gdk.Color( 0, 0, 0 ) )
+        subPos = ( originX + scaleX*0.0, originY + scaleY*0.0 )
+        self.drawCircle( widget.window, graphicsContext,
+            subPos[ 0 ], subPos[ 1 ], 
+            0.05*self.displayScale, filled=True )
+
+        yaw = math.pi/3.0
+        headingX = math.cos( yaw + math.pi/2.0 )*scaleX*0.10
+        headingY = math.sin( yaw + math.pi/2.0 )*scaleY*0.10
+
+        widget.window.draw_line( graphicsContext, 
+            subPos[ 0 ], subPos[ 1 ],
+            subPos[ 0 ] + headingX, subPos[ 1 ] + headingY )
+        
+            
+        landmarkPositions = [(e.x, e.y) for e in self.testSequence.fixedEntities]
 
         if numPoints > 0:
             graphicsContext.set_rgb_fg_color( gtk.gdk.Color( 0, 0, 0 ) )
@@ -130,9 +156,9 @@ class MainWindow:
                 gtk.gdk.CAP_BUTT, gtk.gdk.JOIN_BEVEL )
             widget.window.draw_points( graphicsContext, estimatedTrajectoryPointList ) 
 
-            lastEstimnatedPoint = estimatedTrajectoryPointList[ -1 ]
+            lastEstimatedPoint = estimatedTrajectoryPointList[ -1 ]
             self.drawCircle( widget.window, graphicsContext,
-                lastEstimnatedPoint[ 0 ], lastEstimnatedPoint[ 1 ], 
+                lastEstimatedPoint[ 0 ], lastEstimatedPoint[ 1 ], 
                 0.05*self.displayScale, filled=True )
 
             yaw = self.estimator.poseGuesses[ self.curFrameIdx - 1 ][ 2 ]
@@ -140,8 +166,8 @@ class MainWindow:
             headingY = math.sin( yaw + math.pi/2.0 )*scaleY*0.10
 
             widget.window.draw_line( graphicsContext, 
-                lastEstimnatedPoint[ 0 ], lastEstimnatedPoint[ 1 ],
-                lastEstimnatedPoint[ 0 ] + headingX, lastEstimnatedPoint[ 1 ] + headingY )
+                lastEstimatedPoint[ 0 ], lastEstimatedPoint[ 1 ],
+                lastEstimatedPoint[ 0 ] + headingX, lastEstimatedPoint[ 1 ] + headingY )
 
     #---------------------------------------------------------------------------
     def onDwgCameraDisplayExposeEvent( self, widget, event ):
