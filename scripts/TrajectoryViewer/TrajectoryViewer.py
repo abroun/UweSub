@@ -111,23 +111,23 @@ class MainWindow:
             graphicsContext.set_rgb_fg_color( gtk.gdk.Color( 0, 0, 0 ) )
             self.drawCircle( widget.window, graphicsContext, x, y, innerRadius, filled = True )
             
-            graphicsContext.set_rgb_fg_color( gtk.gdk.Color( 65535/2, 65535/2, 65535/2 ) )
-            self.drawCircle( widget.window, graphicsContext, x, y, outerRadius, filled = False )
+            #graphicsContext.set_rgb_fg_color( gtk.gdk.Color( 65535/2, 65535/2, 65535/2 ) )
+            #self.drawCircle( widget.window, graphicsContext, x, y, outerRadius, filled = False )
             
         # Draw the Sub...
-        graphicsContext.set_rgb_fg_color( gtk.gdk.Color( 0, 0, 0 ) )
-        subPos = ( originX + scaleX*0.0, originY + scaleY*0.0 )
-        self.drawCircle( widget.window, graphicsContext,
-            subPos[ 0 ], subPos[ 1 ], 
-            0.05*self.displayScale, filled=True )
+        #graphicsContext.set_rgb_fg_color( gtk.gdk.Color( 0, 0, 0 ) )
+        #subPos = ( originX + scaleX*0.0, originY + scaleY*0.0 )
+        #self.drawCircle( widget.window, graphicsContext,
+        #    subPos[ 0 ], subPos[ 1 ], 
+        #    0.05*self.displayScale, filled=True )
 
-        yaw = math.pi/3.0
-        headingX = math.cos( yaw + math.pi/2.0 )*scaleX*0.10
-        headingY = math.sin( yaw + math.pi/2.0 )*scaleY*0.10
+        #yaw = math.pi/3.0
+        #headingX = math.cos( yaw + math.pi/2.0 )*scaleX*0.10
+        #headingY = math.sin( yaw + math.pi/2.0 )*scaleY*0.10
 
-        widget.window.draw_line( graphicsContext, 
-            subPos[ 0 ], subPos[ 1 ],
-            subPos[ 0 ] + headingX, subPos[ 1 ] + headingY )
+        #widget.window.draw_line( graphicsContext, 
+        #    subPos[ 0 ], subPos[ 1 ],
+        #    subPos[ 0 ] + headingX, subPos[ 1 ] + headingY )
         
             
         landmarkPositions = [(e.x, e.y) for e in self.testSequence.fixedEntities]

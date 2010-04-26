@@ -76,6 +76,8 @@ class TrajectoryEstimator:
                     poseGuess[ 2 ], landmarkPos[ 0 ], landmarkPos[ 1 ],
                     bearings[ landmarkIdx ] )
 
+            # Also match the position to the previous and next frame
+
         return error
 
     #---------------------------------------------------------------------------
