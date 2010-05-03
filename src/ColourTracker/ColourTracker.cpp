@@ -144,7 +144,7 @@ IplImage* ColourTracker::ProcessFrame( const IplImage* pFrame )
     }
                 
     // Return the centre of mass of all the matching pixels
-    printf( "Num Matching Pixels = %i\n", numMatchingPixels );
+    //printf( "Num Matching Pixels = %i\n", numMatchingPixels );
     if ( numMatchingPixels > 0 )
     {
         centreX /= numMatchingPixels;
