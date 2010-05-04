@@ -1,0 +1,64 @@
+<?xml version="1.0"?>
+<interface>
+  <requires lib="gtk+" version="2.16"/>
+  <!-- interface-naming-policy project-wide -->
+  <object class="GtkWindow" id="winMain">
+    <signal name="destroy" handler="onMainWinDestroy"/>
+    <child>
+      <object class="GtkVBox" id="vbox1">
+        <property name="visible">True</property>
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkLabel" id="lblCameraView">
+            <property name="visible">True</property>
+            <property name="xalign">0</property>
+            <property name="xpad">2</property>
+            <property name="label" translatable="yes">Camera View</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">False</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkDrawingArea" id="dwgDisplay">
+            <property name="visible">True</property>
+            <signal name="expose_event" handler="onDwgDisplayExposeEvent"/>
+          </object>
+          <packing>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="label1">
+            <property name="visible">True</property>
+            <property name="xalign">0</property>
+            <property name="xpad">2</property>
+            <property name="label" translatable="yes">Map View</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="position">2</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkDrawingArea" id="dwgMap">
+            <property name="width_request">400</property>
+            <property name="height_request">400</property>
+            <property name="visible">True</property>
+            <property name="events">GDK_BUTTON_MOTION_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_STRUCTURE_MASK | GDK_SCROLL_MASK</property>
+            <signal name="expose_event" handler="onDwgMapExposeEvent"/>
+            <signal name="motion_notify_event" handler="onDwgMapMotionNotifyEvent"/>
+            <signal name="button_press_event" handler="onDwgMapButtonPressEvent"/>
+            <signal name="button_release_event" handler="onDwgMapButtonReleaseEvent"/>
+            <signal name="scroll_event" handler="onDwgMapScrollEvent"/>
+          </object>
+          <packing>
+            <property name="position">3</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>
