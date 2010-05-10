@@ -1,0 +1,45 @@
+diff -r -u player-3.0.1/client_libs/libplayerc/bindings/python/playerc.i player-3.0.1_bak/client_libs/libplayerc/bindings/python/playerc.i
+--- player-3.0.1/client_libs/libplayerc/bindings/python/playerc.i	2009-07-24 12:28:20.000000000 +0100
++++ player-3.0.1/client_libs/libplayerc/bindings/python/playerc.i	2010-01-01 20:30:01.000000000 +0000
+@@ -375,6 +375,11 @@
+   $result = PyBuffer_FromMemory((void*)$1,sizeof(uint8_t)*$1_dim0);
+ }
+ 
++%typemap(out) uint8_t *image
++{
++  $result = PyBuffer_FromMemory((void*)$1,arg1->image_count);
++}
++
+ // Provide array access doubly-dimensioned arrays
+ %typemap(out) double [ANY][ANY]
+ {
+diff -r -u player-3.0.1/server/drivers/camera/uvc/UvcInterface.cc player-3.0.1_bak/server/drivers/camera/uvc/UvcInterface.cc
+--- player-3.0.1/server/drivers/camera/uvc/UvcInterface.cc	2009-07-23 16:39:16.000000000 +0100
++++ player-3.0.1/server/drivers/camera/uvc/UvcInterface.cc	2010-05-10 12:30:13.000000000 +0100
+@@ -181,7 +181,7 @@
+ int UvcInterface::Read()
+ {
+ 	int ret=0;
+-	const int hdr=0xaf;
++	//const int hdr=0xaf;
+ 
+ 	try
+ 	{
+@@ -203,10 +203,13 @@
+ 	    if(ret==-1)
+ 			throw "Unable to dequeue frame";
+ 
+-		memcpy(frame,buffer[buf.index],hdr);
+-		memcpy(frame+hdr,dht_data,dht_size);
+-		memcpy(frame+hdr+dht_size,buffer[buf.index]+hdr,(buf.bytesused-hdr));
+-		frameSize=buf.bytesused+dht_size;
++        memcpy(frame,buffer[buf.index],buf.bytesused);
++        frameSize=buf.bytesused;
++        
++		//memcpy(frame,buffer[buf.index],hdr);
++		//memcpy(frame+hdr,dht_data,dht_size);
++        //memcpy(frame+hdr+dht_size,buffer[buf.index]+hdr,(buf.bytesused-hdr));
++		//frameSize=buf.bytesused+dht_size;
+ 
+ 		ret=ioctl(fd,VIDIOC_QBUF,&buf);
+ 		if(ret==-1)
