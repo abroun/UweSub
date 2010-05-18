@@ -9,10 +9,11 @@
 
 #include <math.h>
 
-#include <opencv/cxcore.h>
-#include <opencv/cv.h>
-#include <opencv/cvwimage.h>
-#include <opencv/highgui.h>
+// OpenCV includes
+#include <cxcore.h>
+#include <cv.h>
+#include <cvwimage.h>
+#include <highgui.h>
 
 #include "ColourTracker/ColourTracker.h"
 

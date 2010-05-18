@@ -25,6 +25,13 @@ class Position3DInterface : public UweSubInterface
 
     // Update this interface, publish new info.
     public: virtual void Update();
+    
+    private: static const int PWM_FREQUENCY_US;
+    private: static const int MIN_DUTY_CYCLE_US;
+    private: static const int MAX_DUTY_CYCLE_US;
+    private: static const int ZERO_DUTY_CYCLE_US;
+    
+    private: static const int LEFT_MOTOR_CHANNEL;
 };
 
 #endif // POSITION_3D_INTERFACE_H

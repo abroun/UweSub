@@ -13,6 +13,17 @@
 #include "pwm.h"
 
 //------------------------------------------------------------------------------
+const int Position3DInterface::PWM_FREQUENCY_US = 20000;
+const int Position3DInterface::MIN_DUTY_CYCLE_US = 1000;
+const int Position3DInterface::MAX_DUTY_CYCLE_US = 2000;
+const int Position3DInterface::ZERO_DUTY_CYCLE_US = (MIN_DUTY_CYCLE_US + MAX_DUTY_CYCLE_US)/2;
+
+const int Position3DInterface::LEFT_MOTOR_CHANNEL = 2;
+
+#define NUM_CHANNELS 24
+#define PWM_DUTY 1700
+
+//------------------------------------------------------------------------------
 Position3DInterface::Position3DInterface( player_devaddr_t addr, 
     UweSubDriver* pDriver, ConfigFile* pConfigFile, int section )
     : UweSubInterface( addr, pDriver, pConfigFile, section )
@@ -24,13 +35,17 @@ Position3DInterface::Position3DInterface( player_devaddr_t addr,
     else
     {
         printf( "PWM library initialised\n" );
-        if ( pwm_SetPulse( 0, 10, 1 ) )
+        for ( int channelIdx = 0; channelIdx < NUM_CHANNELS; channelIdx++ )
         {
-            printf( "Sent PWM\n" );
-        }
-        else
-        {
-            printf( "Can't send PWM\n" );
+            if ( pwm_SetPulse_50MHZ( channelIdx, PWM_FREQUENCY_US, PWM_DUTY ) )
+            {
+                printf( "Sent PWM, ch %i, %i, %i\n",
+                     channelIdx, PWM_FREQUENCY_US, PWM_DUTY );
+            }
+            else
+            {
+                printf( "Can't send PWM\n" );
+            }
         }
     }
 }
@@ -278,6 +293,19 @@ void Position3DInterface::Update()
     mpDriver->Publish( this->mDeviceAddress,
                        PLAYER_MSGTYPE_DATA, PLAYER_POSITION3D_DATA_STATE,
                        (void*)&data, sizeof( data ) );
+                       
+    for ( int channelIdx = 0; channelIdx < NUM_CHANNELS; channelIdx++ )
+        {
+            if ( pwm_SetPulse_50MHZ( channelIdx, PWM_FREQUENCY_US, PWM_DUTY ) )
+            {
+                //printf( "Sent PWM, ch %i, %i, %i\n",
+                //     channelIdx, PWM_FREQUENCY_US, PWM_DUTY );
+            }
+            else
+            {
+                printf( "Can't send PWM\n" );
+            }
+        }
 }
 
 
