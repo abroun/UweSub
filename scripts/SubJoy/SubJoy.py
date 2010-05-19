@@ -49,7 +49,7 @@ class MainWindow:
         (self.CONTROL_AREA_WIDTH, self.CONTROL_AREA_HEIGHT) = self.dwgControlArea.get_size_request()
         self.CONTROL_BOX_WIDTH = self.CONTROL_AREA_WIDTH*0.95
         self.HALF_CONTROL_BOX_WIDTH = self.CONTROL_BOX_WIDTH / 2.0
-        self.DEAD_ZONE_WIDTH = self.CONTROL_AREA_WIDTH*0.1
+        self.DEAD_ZONE_WIDTH = self.CONTROL_AREA_WIDTH*0.0
         self.HALF_DEAD_ZONE_WIDTH = self.DEAD_ZONE_WIDTH / 2.0
 
         builder.connect_signals( self )

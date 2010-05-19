@@ -8,6 +8,7 @@
 #define POSITION_3D_INTERFACE_H
 
 //------------------------------------------------------------------------------
+#include "Common.h"
 #include "UweSubInterface.h"
 
 //------------------------------------------------------------------------------
@@ -26,12 +27,15 @@ class Position3DInterface : public UweSubInterface
     // Update this interface, publish new info.
     public: virtual void Update();
     
-    private: static const int PWM_FREQUENCY_US;
-    private: static const int MIN_DUTY_CYCLE_US;
-    private: static const int MAX_DUTY_CYCLE_US;
-    private: static const int ZERO_DUTY_CYCLE_US;
+    private: static const U32 PWM_FREQUENCY_US;
+    private: static const U32 MIN_DUTY_CYCLE_US;
+    private: static const U32 MAX_DUTY_CYCLE_US;
+    private: static const U32 ZERO_DUTY_CYCLE_US;
     
-    private: static const int LEFT_MOTOR_CHANNEL;
+    private: static const U32 LEFT_MOTOR_CHANNEL;
+    private: static const U32 TEST_CHANNEL;
+    
+    private: static const F32 MAX_ABS_FORWARD_SPEED;
 };
 
 #endif // POSITION_3D_INTERFACE_H
