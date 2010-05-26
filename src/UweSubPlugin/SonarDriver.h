@@ -1,24 +1,42 @@
 //------------------------------------------------------------------------------
-// File: MotorDriver.h
-// Desc: A driver for controlling the motors of the AUV using PWM signals
+// File: SonarDriver.h
+// Desc: A driver for controlling a Tritech Micron Sonar
+//
+// Usage Example:
+//
+//  driver
+//  (
+//    name "sonardriver"
+//    provides ["camera:1"]
+//    requires ["opaque:0"]
+//    buffer_size 20480
+//  )
+//
+//  driver
+//  (
+//    name "serialstream"
+//    provides ["opaque:0"]
+//    port "/dev/ttyS0"
+//  )
+//
 //------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
-#ifndef MOTOR_DRIVER_H
-#define MOTOR_DRIVER_H
+#ifndef SONAR_DRIVER_H
+#define SONAR_DRIVER_H
 
 //------------------------------------------------------------------------------
 #include <libplayercore/playercore.h>
 #include "Common.h"
 
 //------------------------------------------------------------------------------
-class MotorDriver : public ThreadedDriver
+class SonarDriver : public ThreadedDriver
 {
     typedef ThreadedDriver base;
     
     // Constructor/Destructor
-    public: MotorDriver( ConfigFile* pConfigFile, int section );
-    public: virtual ~MotorDriver();
+    public: SonarDriver( ConfigFile* pConfigFile, int section );
+    public: virtual ~SonarDriver();
 
     // Set up the driver.  Return 0 if things go well, and -1 otherwise.
     public: virtual int MainSetup();
@@ -33,20 +51,9 @@ class MotorDriver : public ThreadedDriver
                                         
     // The main routine of the thread
     private: virtual void Main();
-
-    private: static const U32 PWM_FREQUENCY_US;
-    private: static const U32 MIN_DUTY_CYCLE_US;
-    private: static const U32 MAX_DUTY_CYCLE_US;
-    private: static const U32 ZERO_DUTY_CYCLE_US;
-    
-    private: static const U32 LEFT_MOTOR_CHANNEL;
-    private: static const U32 TEST_CHANNEL;
-    
-    private: static const F32 MAX_ABS_FORWARD_SPEED;
-    private: bool mbInitialisedPWM;
 };
 
 //------------------------------------------------------------------------------
-void MotorDriverRegister( DriverTable* pTable );
+void SonarDriverRegister( DriverTable* pTable );
 
-#endif // MOTOR_DRIVER_H
+#endif // SONAR_DRIVER_H

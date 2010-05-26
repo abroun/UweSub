@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// File: MotorDriver.h
+// File: MotorDriver.cpp
 // Desc: A driver for controlling the motors of the AUV using PWM signals
 //------------------------------------------------------------------------------
 
