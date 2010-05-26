@@ -15,6 +15,7 @@ import gtk
 import gobject
 from playerc import *
 import cv
+import yaml
 
 # Add common packages directory to path
 sys.path.append( "../" )
