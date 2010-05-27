@@ -33,8 +33,11 @@
 class RollingBuffer
 {
     // Constructor/Destructor
-    public: RollingBuffer( U32 bufferSize );
+    public: RollingBuffer();
     public: ~RollingBuffer();
+    
+    public: bool Init( U32 bufferSize );
+    public: void Deinit();
     
     // Information about the buffer
     public: U32 GetSize() const { return mBufferSize; }
@@ -58,7 +61,7 @@ class RollingBuffer
     // Attempts to add numBytes of data to the buffer. If there isn't
     // enough space in the buffer then it returns false. Otherwise it
     // returns true.
-    public: bool TryToAddBytes( U8* pData, U32 numBytes );
+    public: bool TryToAddBytes( const U8* pData, U32 numBytes );
     
     // Helper routine for making sure that indicies stay within the buffer
     private: U32 AddOffsetToIdx( U32 idx, U32 offset ) const;

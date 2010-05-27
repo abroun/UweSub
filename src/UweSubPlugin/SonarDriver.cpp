@@ -12,18 +12,39 @@
 //------------------------------------------------------------------------------
 // RollingBuffer
 //------------------------------------------------------------------------------
-RollingBuffer::RollingBuffer( U32 bufferSize )
-{
-    mpBuffer = (U8*)malloc( bufferSize );
-    assert( NULL != mpBuffer && "Unable to allocate buffer" );
-    
-    mBufferSize = bufferSize;
-    mDataStartIdx = 0;
-    mDataSize = 0;
+RollingBuffer::RollingBuffer()
+    : mpBuffer( NULL ),
+    mBufferSize( bufferSize ),
+    mDataStartIdx( 0 ),
+    mDataSize( 0 )
+{  
 }
 
 //------------------------------------------------------------------------------
 RollingBuffer::~RollingBuffer()
+{
+    Deinit();
+}
+
+//------------------------------------------------------------------------------
+bool RollingBuffer::Init( U32 bufferSize )
+{
+    mpBuffer = (U8*)malloc( bufferSize );
+    bool bBufferAllocated = ( NULL != mpBuffer );
+    assert( bBufferAllocated && "Unable to allocate buffer" );
+    
+    if ( bBufferAllocated )
+    {
+        mBufferSize = bufferSize;
+        mDataStartIdx = 0;
+        mDataSize = 0;
+    }
+    
+    return bBufferAllocated;
+}
+
+//------------------------------------------------------------------------------
+void RollingBuffer::Deinit()
 {
     if ( NULL != mpBuffer )
     {
@@ -93,7 +114,7 @@ void RollingBuffer::AdvanceBuffer( U32 numBytes )
 }
     
 //------------------------------------------------------------------------------
-bool RollingBuffer::TryToAddBytes( U8* pData, U32 numBytes )
+bool RollingBuffer::TryToAddBytes( const U8* pData, U32 numBytes )
 {
     bool bBytesAdded = false;
     
