@@ -9,9 +9,8 @@ INCLUDE_DIRECTORIES(
     ${PROJECT_SOURCE_DIR}/3rdParty/Roboard/Include )
 
 SET( srcFiles 
-    UweSubDriver.cpp
-    UweSubInterface.cpp
-    Position3DInterface.cpp )
+    UweSubPlugin.cpp
+    MotorDriver.cpp )
 
 LINK_DIRECTORIES( 
     ${global_link_dirs}

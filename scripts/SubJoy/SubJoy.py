@@ -7,6 +7,7 @@ import sys
 import os.path
 import shutil
 import math
+from optparse import OptionParser
 
 import pygtk
 pygtk.require('2.0')
@@ -14,16 +15,19 @@ import gtk
 import gobject
 from playerc import *
 import cv
+import yaml
+
+# Add common packages directory to path
+sys.path.append( "../" )
+from SubControllerConfig import SubControllerConfig
 
 #-------------------------------------------------------------------------------
 class MainWindow:
-   
-    PLAYER_SERVER_ADDRESS = '192.168.7.10'
-    PLAYER_SERVER_PORT = 6665
-
-    #---------------------------------------------------------------------------
-    def __init__( self ):
     
+    #---------------------------------------------------------------------------
+    def __init__( self, config = SubControllerConfig() ):
+    
+        self.config = config
         self.controlActive = False
         self.normalisedForwardSpeed = 0.0
         self.normalisedAngularSpeed = 0.0
@@ -65,7 +69,7 @@ class MainWindow:
         try:
             # Create a client object to connect to Player
             self.playerClient = playerc_client( None, 
-                self.PLAYER_SERVER_ADDRESS, self.PLAYER_SERVER_PORT )
+                self.config.playerServerAddress, self.config.playerServerPort )
             
             # Connect it
             if self.playerClient.connect() != 0:
@@ -279,5 +283,19 @@ class MainWindow:
 #-------------------------------------------------------------------------------
 if __name__ == "__main__":
 
-    mainWindow = MainWindow()
+    optionParser = OptionParser()
+    optionParser.add_option( "-c", "--config", dest="configFilename",
+        help="read configuration from CONFIG_FILE", metavar="CONFIG_FILE" )
+
+    (options, args) = optionParser.parse_args()
+    subControllerConfig = SubControllerConfig()
+
+    if options.configFilename != None \
+        and os.path.exists( options.configFilename ):
+    
+        configFile = file( options.configFilename, "r" )
+        subControllerConfig = yaml.load( configFile )
+        configFile.close()
+
+    mainWindow = MainWindow( subControllerConfig )
     mainWindow.main()
