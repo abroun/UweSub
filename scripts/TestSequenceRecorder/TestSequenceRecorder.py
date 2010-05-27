@@ -73,7 +73,8 @@ class MainWindow:
             # Create a proxy for simulation:0
             self.playerSim = playerc_simulation( self.playerClient, 0 )
             if self.playerSim.subscribe( PLAYERC_OPEN_MODE ) != 0:
-                raise Exception( playerc_error_str() )
+                print "Unable to connect to simulayion:0. Assuming that we're talking to a real robot"
+                self.playerSim = None
             
             # And for the camera
             self.playerCamera = playerc_camera( self.playerClient, 0 )
@@ -138,7 +139,7 @@ class MainWindow:
     #---------------------------------------------------------------------------
     def onBtnStartRecordingClicked( self, widget, data = None ):
 
-        if not self.recording:
+        if not self.recording and self.playerSim != None:
 
             self.outputFilename = self.tbxOutputFile.get_text()
             outputDir = os.path.dirname( self.outputFilename )
