@@ -17,7 +17,6 @@ typedef short S16;
 typedef unsigned short U16;
 typedef char S8;
 typedef unsigned char U8;
-
 typedef float F32;
 
 //------------------------------------------------------------------------------
