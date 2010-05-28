@@ -1,13 +1,13 @@
 //------------------------------------------------------------------------------
-// File: SonarDriver.h
-// Desc: A driver for controlling a Tritech Micron Sonar
+// File: CompassDriver.h
+// Desc: A driver for controlling a PNI Compass
 //
 // Usage Example:
 //
 //  driver
 //  (
-//    name "sonardriver"
-//    provides ["camera:1"]
+//    name "compassdriver"
+//    provides ["imu:0"]
 //    requires ["opaque:0"]
 //    buffer_size 20480
 //  )
@@ -22,8 +22,8 @@
 //------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
-#ifndef SONAR_DRIVER_H
-#define SONAR_DRIVER_H
+#ifndef COMPASS_DRIVER_H
+#define COMPASS_DRIVER_H
 
 //------------------------------------------------------------------------------
 #include <libplayercore/playercore.h>
@@ -31,13 +31,13 @@
 #include "DataStructures/RollingBuffer.h"
 
 //------------------------------------------------------------------------------
-class SonarDriver : public ThreadedDriver
+class CompassDriver : public ThreadedDriver
 {
     typedef ThreadedDriver base;
     
     // Constructor/Destructor
-    public: SonarDriver( ConfigFile* pConfigFile, int section );
-    public: virtual ~SonarDriver();
+    public: CompassDriver( ConfigFile* pConfigFile, int section );
+    public: virtual ~CompassDriver();
 
     // Set up the driver.  Return 0 if things go well, and -1 otherwise.
     public: virtual int MainSetup();
@@ -68,6 +68,6 @@ class SonarDriver : public ThreadedDriver
 };
 
 //------------------------------------------------------------------------------
-void SonarDriverRegister( DriverTable* pTable );
+void CompassDriverRegister( DriverTable* pTable );
 
-#endif // SONAR_DRIVER_H
+#endif // COMPASS_DRIVER_H

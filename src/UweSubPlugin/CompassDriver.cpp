@@ -1,22 +1,22 @@
 //------------------------------------------------------------------------------
-// File: SonarDriver.cpp
-// Desc: A driver for controlling a Tritech Micron Sonar
+// File: CompassDriver.cpp
+// Desc: A driver for controlling a PNI Compass
 //------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
 #include <stdio.h>
 #include <assert.h>
-#include "SonarDriver.h"
+#include "CompassDriver.h"
 
 //------------------------------------------------------------------------------
 // A factory creation function, declared outside of the class so that it
 // can be invoked without any object context (alternatively, you can
 // declare it static in the class).  In this function, we create and return
 // (as a generic Driver*) a pointer to a new instance of this driver.
-Driver* SonarDriverInit( ConfigFile* pConfigFile, int section )
+Driver* CompassDriverInit( ConfigFile* pConfigFile, int section )
 {
     // Create and return a new instance of this driver
-    return (Driver*)(new SonarDriver( pConfigFile, section ));
+    return (Driver*)(new CompassDriver( pConfigFile, section ));
 }
 
 //------------------------------------------------------------------------------
@@ -24,22 +24,22 @@ Driver* SonarDriverInit( ConfigFile* pConfigFile, int section )
 // that it can be invoked without object context.  In this function, we add
 // the driver into the given driver table, indicating which interfaces the
 // driver can support and how to create a driver instance.
-void SonarDriverRegister( DriverTable* pTable )
+void CompassDriverRegister( DriverTable* pTable )
 {
-    pTable->AddDriver( (char*)"sonardriver", SonarDriverInit );
+    pTable->AddDriver( (char*)"compassdriver", CompassDriverInit );
 }
 
 //------------------------------------------------------------------------------
-// SonarDriver
+// CompassDriver
 //------------------------------------------------------------------------------
-const U32 SonarDriver::DEFAULT_BUFFER_SIZE = 10000;
+const U32 CompassDriver::DEFAULT_BUFFER_SIZE = 10000;
 
 //------------------------------------------------------------------------------
 // Constructor.  Retrieve options from the configuration file and do any
 // pre-Setup() setup.
-SonarDriver::SonarDriver( ConfigFile* pConfigFile, int section )
+CompassDriver::CompassDriver( ConfigFile* pConfigFile, int section )
     : ThreadedDriver( pConfigFile, section, false, 
-        PLAYER_MSGQUEUE_DEFAULT_MAXLEN, PLAYER_CAMERA_CODE ),
+        PLAYER_MSGQUEUE_DEFAULT_MAXLEN, PLAYER_IMU_CODE ),
     mBufferSize( "buffer_size", DEFAULT_BUFFER_SIZE, false )
 {
     this->alwayson = true;
@@ -61,16 +61,16 @@ SonarDriver::SonarDriver( ConfigFile* pConfigFile, int section )
 }
 
 //------------------------------------------------------------------------------
-SonarDriver::~SonarDriver()
+CompassDriver::~CompassDriver()
 {
     mBuffer.Deinit();
 }
 
 //------------------------------------------------------------------------------
 // Set up the device.  Return 0 if things go well, and -1 otherwise.
-int SonarDriver::MainSetup()
+int CompassDriver::MainSetup()
 {
-    PLAYER_WARN( "Setting up Sonar driver" );
+    PLAYER_WARN( "Setting up Compass driver" );
 
     if ( Device::MatchDeviceAddress( mOpaqueID, this->device_addr ) )
     {
@@ -106,25 +106,25 @@ int SonarDriver::MainSetup()
     //delete [] buffer;
     //buffer = NULL;
 
-    PLAYER_WARN( "Sonar driver ready" );
+    PLAYER_WARN( "Compass driver ready" );
 
     return 0;
 }
 
 //------------------------------------------------------------------------------
 // Shutdown the device
-void SonarDriver::MainQuit()
+void CompassDriver::MainQuit()
 {
-    PLAYER_WARN( "Sonar driver shutting down");
+    PLAYER_WARN( "Compass driver shutting down");
 
     mpOpaque->Unsubscribe( this->InQueue );
 
-    PLAYER_WARN( "Sonar driver has been shutdown" );
+    PLAYER_WARN( "Compass driver has been shutdown" );
 }
 
 //------------------------------------------------------------------------------
 // Process all messages for this driver.
-int SonarDriver::ProcessMessage( QueuePointer& respQueue,
+int CompassDriver::ProcessMessage( QueuePointer& respQueue,
                                 player_msghdr* pHeader, void* pData )
 {   
     if ( Message::MatchMessage(
@@ -138,7 +138,7 @@ int SonarDriver::ProcessMessage( QueuePointer& respQueue,
         }
         else
         {
-            PLAYER_WARN( "Sonar driver buffer is full. Dropping data" );
+            PLAYER_WARN( "Compass driver buffer is full. Dropping data" );
         }
         return 0;
     }
@@ -149,7 +149,7 @@ int SonarDriver::ProcessMessage( QueuePointer& respQueue,
 
 //------------------------------------------------------------------------------
 // Main function for device thread
-void SonarDriver::Main()
+void CompassDriver::Main()
 {
     for (;;)
     {
@@ -163,7 +163,7 @@ void SonarDriver::Main()
 }
 
 //------------------------------------------------------------------------------
-void SonarDriver::ProcessData()
+void CompassDriver::ProcessData()
 {
     const S32 MAX_STRING_LENGTH = 1024;
     U8 stringBuffer[ MAX_STRING_LENGTH + 1 ];

@@ -5,8 +5,9 @@
 
 //------------------------------------------------------------------------------
 #include <cxxtest/TestSuite.h>
+#include <string.h>
 #include "Common.h"
-#include "UweSubPlugin/SonarDriver.h"
+#include "UweSubPlugin/DataStructures/RollingBuffer.h"
 
 //------------------------------------------------------------------------------
 class RollingBufferTests : public CxxTest::TestSuite 
