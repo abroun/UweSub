@@ -1,0 +1,247 @@
+<?xml version="1.0"?>
+<interface>
+  <requires lib="gtk+" version="2.16"/>
+  <!-- interface-naming-policy project-wide -->
+  <object class="GtkWindow" id="winMain">
+    <property name="height_request">200</property>
+    <property name="resizable">False</property>
+    <signal name="destroy" handler="onWinMainDestroy"/>
+    <child>
+      <object class="GtkHBox" id="Panel">
+        <property name="visible">True</property>
+        <child>
+          <object class="GtkDrawingArea" id="viewZ">
+            <property name="width_request">200</property>
+            <property name="height_request">160</property>
+            <property name="visible">True</property>
+            <property name="events">GDK_BUTTON1_MOTION_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_STRUCTURE_MASK</property>
+            <signal name="expose_event" handler="onViewZExposeEvent"/>
+            <signal name="motion_notify_event" handler="onViewZMotionNotifyEvent"/>
+          </object>
+          <packing>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkDrawingArea" id="viewXY">
+            <property name="width_request">200</property>
+            <property name="height_request">160</property>
+            <property name="visible">True</property>
+            <property name="events">GDK_BUTTON1_MOTION_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_STRUCTURE_MASK</property>
+            <signal name="motion_notify_event" handler="onViewXYMotionNotifyEvent"/>
+            <signal name="expose_event" handler="onViewXYExposeEvent"/>
+          </object>
+          <packing>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkVBox" id="controlBox">
+            <property name="visible">True</property>
+            <child>
+              <object class="GtkHBox" id="displayMaxLinearSpeed">
+                <property name="visible">True</property>
+                <child>
+                  <object class="GtkLabel" id="lblMaxLinearSpeed">
+                    <property name="visible">True</property>
+                    <property name="xalign">0.98000001907348633</property>
+                    <property name="label" translatable="yes">Max Linear Speed:</property>
+                  </object>
+                  <packing>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkSpinButton" id="spinMaxLinearSpeed">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="invisible_char">&#x2022;</property>
+                    <property name="digits">2</property>
+                    <property name="numeric">True</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkHBox" id="displayMaxAngularSpeed">
+                <property name="visible">True</property>
+                <child>
+                  <object class="GtkLabel" id="lblMaxAngularSpeed">
+                    <property name="visible">True</property>
+                    <property name="xalign">0.98000001907348633</property>
+                    <property name="label" translatable="yes">Max Ang. Speed:</property>
+                  </object>
+                  <packing>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkSpinButton" id="spinMaxAngularSpeed">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="invisible_char">&#x2022;</property>
+                    <property name="digits">2</property>
+                    <property name="numeric">True</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkHBox" id="displayMaxDepthSpeed">
+                <property name="visible">True</property>
+                <child>
+                  <object class="GtkLabel" id="lblMaxDepthSpeed">
+                    <property name="visible">True</property>
+                    <property name="xalign">0.98000001907348633</property>
+                    <property name="label" translatable="yes">Max Depth:</property>
+                  </object>
+                  <packing>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkSpinButton" id="spinMaxDepthSpeed">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="invisible_char">&#x25CF;</property>
+                    <property name="digits">2</property>
+                    <property name="numeric">True</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="position">2</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkHBox" id="displayLinearSpeed">
+                <property name="visible">True</property>
+                <property name="homogeneous">True</property>
+                <child>
+                  <object class="GtkLabel" id="lblLinearSpeedName">
+                    <property name="visible">True</property>
+                    <property name="label" translatable="yes">Linear Speed:</property>
+                  </object>
+                  <packing>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkHScale" id="scaleLinearSpeed">
+                    <property name="width_request">100</property>
+                    <property name="height_request">40</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="events">GDK_BUTTON1_MOTION_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_STRUCTURE_MASK</property>
+                    <property name="no_show_all">True</property>
+                    <property name="show_fill_level">True</property>
+                    <signal name="button_press_event" handler="onLinearSpeedControlButtonPressEvent"/>
+                    <signal name="move_slider" handler="onScaleLinearSpeedMoveSlider"/>
+                    <signal name="button_release_event" handler="onLinearSpeedControlButtonReleaseEvent"/>
+                  </object>
+                  <packing>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="position">3</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkHBox" id="displayAngularSpeed">
+                <property name="visible">True</property>
+                <property name="homogeneous">True</property>
+                <child>
+                  <object class="GtkLabel" id="lblAngularSpeedName">
+                    <property name="visible">True</property>
+                    <property name="label" translatable="yes">Angular Speed:</property>
+                  </object>
+                  <packing>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkHScale" id="scaleAngularSpeed">
+                    <property name="width_request">100</property>
+                    <property name="height_request">40</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="show_fill_level">True</property>
+                    <signal name="button_press_event" handler="onAngSpeedControlButtonPressEvent"/>
+                    <signal name="button_release_event" handler="onAngSpeedControlButtonReleaseEvent"/>
+                  </object>
+                  <packing>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="position">4</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkHBox" id="displayDepthSpeed">
+                <property name="visible">True</property>
+                <property name="homogeneous">True</property>
+                <child>
+                  <object class="GtkLabel" id="lblDepthSpeedName">
+                    <property name="visible">True</property>
+                    <property name="label" translatable="yes">Depth Speed:</property>
+                  </object>
+                  <packing>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkHScale" id="scaleDepthSpeed">
+                    <property name="width_request">100</property>
+                    <property name="height_request">40</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="show_fill_level">True</property>
+                    <signal name="button_press_event" handler="onDepthSpeedControlButtonPressEvent"/>
+                    <signal name="button_release_event" handler="onDepthSpeedControlButtonReleaseEvent"/>
+                  </object>
+                  <packing>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="position">5</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="position">2</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

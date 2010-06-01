@@ -270,7 +270,7 @@ class MainWindow:
 
                 # Display the speeds
                 self.lblForwardSpeed.set_text( "{0:.2}".format( newForwardSpeed ) )
-                self.lblAngularSpeed.set_text( "{0:.2}".format( newAngularSpeed ) )
+                self.lblAngularSpeed.set_text( "{0:.2}".format( 180*newAngularSpeed/math.pi ) )
             
                 # Store the speeds
                 self.forwardSpeed = newForwardSpeed

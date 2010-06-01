@@ -44,13 +44,15 @@ class MotorDriver : public ThreadedDriver
     private: static const U32 ZERO_DUTY_CYCLE_US;
     
     private: static const U32 LEFT_MOTOR_CHANNEL;
+    private: static const U32 RIGHT_MOTOR_CHANNEL;
+    private: static const U32 FRONT_MOTOR_CHANNEL;
+    private: static const U32 BACK_MOTOR_CHANNEL;
     private: static const U32 TEST_CHANNEL;
     
-    private: static const F32 MAX_ABS_FORWARD_SPEED;
-    private: bool mbInitialisedPWM;
-    
-    // Used to keep track of the rate at which we update the interfaces
-    protected: double mLastInterfaceUpdateTime;
+    private: static const F32 MAX_ABS_2D_DIST;
+    private: static const F32 MAX_ABS_LINEAR_SPEED;
+    private: static const F32 MAX_ABS_ANG_SPEED;
+    private: bool mbInitialisedPWM; 
 };
 
 //------------------------------------------------------------------------------
