@@ -20,6 +20,7 @@ import yaml
 # Add common packages directory to path
 sys.path.append( "../" )
 from SubControllerConfig import SubControllerConfig
+from Controllers import YawControl
 
 #-------------------------------------------------------------------------------
 class MainWindow:
@@ -31,21 +32,22 @@ class MainWindow:
         self.controlActive = False
         self.normalisedLinearSpeed = 0.0
         self.normalisedAngularSpeed = 0.0
-	    self.normalisedDepthSpeed = 0.0
-	    self.depthSpeed = 0.0
+        self.normalisedDepthSpeed = 0.0
+        self.depthSpeed = 0.0
         self.linearSpeed = 0.0
         self.angularSpeed = 0.0
         
         self.connectToPlayer()
+        self.yawController = YawControl( self.playerPos3d,
+            self.playerCompass, self.playerSimPos3d )
+        self.yawController.setDesiredAngle( math.pi/2.0 )
     
         # Setup the GUI
         builder = gtk.Builder()
         builder.add_from_file( os.path.dirname( __file__ ) + "/MonkeyDials.glade" )
         
         self.window = builder.get_object( "winMain" )
-        self.viewZ = builder.get_object( "viewZ" )
-        self.viewXY = builder.get_object( "viewXY" )
-	    self.spinMaxDepthSpeed = builder.get_object( "spinMaxDepthSpeed" )
+        self.spinMaxDepthSpeed = builder.get_object( "spinMaxDepthSpeed" )
         self.spinMaxLinearSpeed = builder.get_object( "spinMaxLinearSpeed" )
         self.spinMaxAngularSpeed = builder.get_object( "spinMaxAngularSpeed" )
         self.depthSpeed = builder.get_object( "scaleDepthSpeed" )
@@ -58,7 +60,7 @@ class MainWindow:
 
     	self.BAR_WIDTH = 100
         self.CONTROL_BAR_WIDTH = self.BAR_WIDTH*0.95
-	    self.HALF_CONTROL_BAR_WIDTH = self.CONTROL_BAR_WIDTH / 2.0
+        self.HALF_CONTROL_BAR_WIDTH = self.CONTROL_BAR_WIDTH / 2.0
         self.DEAD_ZONE_WIDTH = self.BAR_WIDTH*0.0
         self.HALF_DEAD_ZONE_WIDTH = self.DEAD_ZONE_WIDTH / 2.0
 
@@ -85,6 +87,16 @@ class MainWindow:
             self.playerPos3d = playerc_position3d( self.playerClient, 0 )
             if self.playerPos3d.subscribe( PLAYERC_OPEN_MODE ) != 0:
                 raise Exception( playerc_error_str() )
+            
+            # Try to also create one for position3d.1 if it exists
+            self.playerSimPos3d = playerc_position3d( self.playerClient, 1 )
+            if self.playerSimPos3d.subscribe( PLAYERC_OPEN_MODE ) != 0:
+                self.playerSimPos3d = None
+                
+            # Try to connect to imu:0
+            self.playerCompass = playerc_imu( self.playerClient, 0 )
+            if self.playerCompass.subscribe( PLAYERC_OPEN_MODE ) != 0:
+                self.playerCompass = None
 
             if self.playerClient.datamode( PLAYERC_DATAMODE_PULL ) != 0:
                 raise Exception( playerc_error_str() )
@@ -146,9 +158,9 @@ class MainWindow:
    
 #---------------------------------------------------------------------------
     def updateNormalisedX( self, x ):
-	# x -> linear speed
-	
-	MAX_DEFLECTION = self.HALF_CONTROL_BAR_WIDTH
+        # x -> linear speed
+
+        MAX_DEFLECTION = self.HALF_CONTROL_BAR_WIDTH
 
         if self.controlActive:
     
@@ -239,8 +251,8 @@ class MainWindow:
 
 
 #---------------------------------------------------------------------------
-    def onScaleLinearSpeedMoveSlider(self, range, scrolltype)
-        
+    def onScaleLinearSpeedMoveSlider(self, range, scrolltype):
+        pass
 
 
 #---------------------------------------------------------------------------
@@ -257,7 +269,19 @@ class MainWindow:
     
         while 1:
 
-	        maxDepthSpeed = self.spinMaxDepthSpeed.get_value()	    
+            # Pull data from Player if it's available
+            if self.playerClient.peek( 0 ):
+                self.playerClient.read()
+             
+            # Get compass angle
+            #compassAngle = self.playerCompass.pose.pyaw
+            
+            # Call this to change the desired angle
+            #self.yawController.setDesiredAngle( angle )
+            
+            self.yawController.update()
+
+            maxDepthSpeed = self.spinMaxDepthSpeed.get_value()	    
             maxLinearSpeed = self.spinMaxLinearSpeed.get_value()
             maxAngularSpeed = self.spinMaxAngularSpeed.get_value()*math.pi/180.0
 
@@ -266,8 +290,8 @@ class MainWindow:
                 newLinearSpeed = self.normalisedLinearSpeed*maxLinearSpeed
                 newAngularSpeed = -self.normalisedAngularSpeed*maxAngularSpeed
             else:
-		        newDepthSpeed = 0.0                
-		        newLinearSpeed = 0.0
+                newDepthSpeed = 0.0                
+                newLinearSpeed = 0.0
                 newAngularSpeed = 0.0
 
             if newLinearSpeed != self.linearSpeed \
@@ -276,11 +300,11 @@ class MainWindow:
 
                 # Send the new speed to player
                 self.playerPos3d.set_velocity( newLinearSpeed, 0.0, newDepthSpeed, # x, y, z
-			                                   0.0, 0.0, newAngularSpeed, # roll, pitch, yaw
-		              		                   0 )   # State
+                                               0.0, 0.0, newAngularSpeed, # roll, pitch, yaw
+                                               0 )   # State
                 # Store the speeds
                 self.depthSpeed = newDepthSpeed
-		        self.linearSpeed = newLinearSpeed
+                self.linearSpeed = newLinearSpeed
                 self.angularSpeed = newAngularSpeed
                 
             yield True
