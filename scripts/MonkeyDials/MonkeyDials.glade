@@ -10,32 +10,6 @@
       <object class="GtkHBox" id="Panel">
         <property name="visible">True</property>
         <child>
-          <object class="GtkDrawingArea" id="viewZ">
-            <property name="width_request">200</property>
-            <property name="height_request">160</property>
-            <property name="visible">True</property>
-            <property name="events">GDK_BUTTON1_MOTION_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_STRUCTURE_MASK</property>
-            <signal name="expose_event" handler="onViewZExposeEvent"/>
-            <signal name="motion_notify_event" handler="onViewZMotionNotifyEvent"/>
-          </object>
-          <packing>
-            <property name="position">0</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkDrawingArea" id="viewXY">
-            <property name="width_request">200</property>
-            <property name="height_request">160</property>
-            <property name="visible">True</property>
-            <property name="events">GDK_BUTTON1_MOTION_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_STRUCTURE_MASK</property>
-            <signal name="motion_notify_event" handler="onViewXYMotionNotifyEvent"/>
-            <signal name="expose_event" handler="onViewXYExposeEvent"/>
-          </object>
-          <packing>
-            <property name="position">1</property>
-          </packing>
-        </child>
-        <child>
           <object class="GtkVBox" id="controlBox">
             <property name="visible">True</property>
             <child>
@@ -238,7 +212,7 @@
             </child>
           </object>
           <packing>
-            <property name="position">2</property>
+            <property name="position">0</property>
           </packing>
         </child>
       </object>

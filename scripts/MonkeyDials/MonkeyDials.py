@@ -26,13 +26,13 @@ class MainWindow:
 
     #---------------------------------------------------------------------------
     def __init__( self, config = SubControllerConfig() ):
-    
+            
         self.config = config
         self.controlActive = False
         self.normalisedLinearSpeed = 0.0
         self.normalisedAngularSpeed = 0.0
-	self.normalisedDepthSpeed = 0.0
-	self.depthSpeed = 0.0
+	    self.normalisedDepthSpeed = 0.0
+	    self.depthSpeed = 0.0
         self.linearSpeed = 0.0
         self.angularSpeed = 0.0
         
@@ -45,7 +45,7 @@ class MainWindow:
         self.window = builder.get_object( "winMain" )
         self.viewZ = builder.get_object( "viewZ" )
         self.viewXY = builder.get_object( "viewXY" )
-	self.spinMaxDepthSpeed = builder.get_object( "spinMaxDepthSpeed" )
+	    self.spinMaxDepthSpeed = builder.get_object( "spinMaxDepthSpeed" )
         self.spinMaxLinearSpeed = builder.get_object( "spinMaxLinearSpeed" )
         self.spinMaxAngularSpeed = builder.get_object( "spinMaxAngularSpeed" )
         self.depthSpeed = builder.get_object( "scaleDepthSpeed" )
@@ -56,15 +56,9 @@ class MainWindow:
         self.spinMaxLinearSpeed.set_value( 0.5 )
         self.spinMaxAngularSpeed.set_value( 30.0 )
 
-        (self.DISPLAY_AREAZ_WIDTH, self.DISPLAY_AREAZ_HEIGHT) = self.viewZ.get_size_request()
-        (self.DISPLAY_AREAXY_WIDTH, self.DISPLAY_AREAXY_HEIGHT) = self.viewXY.get_size_request()
-	self.DISPLAY_BOXXY_WIDTH = self.DISPLAY_AREAXY_WIDTH*0.95
-	self.HALF_DISPLAY_BOXXY_WIDTH = self.DISPLAY_BOXXY_WIDTH / 2.0
-
-
-	self.BAR_WIDTH = 100
+    	self.BAR_WIDTH = 100
         self.CONTROL_BAR_WIDTH = self.BAR_WIDTH*0.95
-	self.HALF_CONTROL_BAR_WIDTH = self.CONTROL_BAR_WIDTH / 2.0
+	    self.HALF_CONTROL_BAR_WIDTH = self.CONTROL_BAR_WIDTH / 2.0
         self.DEAD_ZONE_WIDTH = self.BAR_WIDTH*0.0
         self.HALF_DEAD_ZONE_WIDTH = self.DEAD_ZONE_WIDTH / 2.0
 
@@ -259,100 +253,11 @@ class MainWindow:
 
 
 #---------------------------------------------------------------------------
-    def onViewXYMotionNotifyEvent( self, widget, event ):
-
-        if self.controlActive:
-            self.viewXY.queue_draw()
-#---------------------------------------------------------------------------
-    def onViewXYExposeEvent( self, widget, event ):
-    
-        FILLED = True
-
-        innerCircleRadius = (self.DISPLAY_AREAXY_WIDTH/2.0) * 0.01 
-        centreX = int( self.DISPLAY_AREAXY_WIDTH/2 )
-        centreY = int( self.DISPLAY_AREAXY_HEIGHT/2 )
-            
-        imgRect = self.getImageRectangleInWidget( widget )
-            
-        imgOffsetX = imgRect.x
-        imgOffsetY = imgRect.y
-            
-        # Get the total area that needs to be redrawn
-        imgRect = imgRect.intersect( event.area )
-    
-        # Draw the background
-        graphicsContext = widget.window.new_gc()
-        graphicsContext.set_rgb_fg_color( gtk.gdk.Color( 65535, 65535, 65535 ) )
-
-        widget.window.draw_rectangle( graphicsContext, filled=True,
-            x=imgRect.x, y=imgRect.y, width=imgRect.width, height=imgRect.height ) 
-
-        # Draw the control area
-        graphicsContext.set_rgb_fg_color( gtk.gdk.Color( 0, 0, 0 ) )
-        self.drawCircle( widget.window, graphicsContext, 
-            centreX, centreY, innerCircleRadius, filled=True )
-        widget.window.draw_rectangle( graphicsContext, filled=False,
-            x=int( centreX - self.HALF_DISPLAY_BOXXY_WIDTH ), 
-            y=int( centreY - self.HALF_DISPLAY_BOXXY_WIDTH ),
-            width=int( self.DISPLAY_BOXXY_WIDTH ), 
-            height=int( self.DISPLAY_BOXXY_WIDTH ) )
-        widget.window.draw_rectangle( graphicsContext, filled=False,
-            x=int( centreX - self.HALF_DEAD_ZONE_WIDTH ), 
-            y=int( centreY - self.HALF_DEAD_ZONE_WIDTH ),
-            width=int( self.DEAD_ZONE_WIDTH ), 
-            height=int( self.DEAD_ZONE_WIDTH ) )
-
-        # Draw the control arrow if needed
-        if self.controlActive:
-            widget.window.draw_line( graphicsContext, centreX, centreY,
-                int( centreX + self.normalisedAngularSpeed*self.HALF_DISPLAY_BOXXY_WIDTH ),
-                int( centreY - self.normalisedLinearSpeed*self.HALF_DISPLAY_BOXXY_WIDTH ) )
-
-#---------------------------------------------------------------------------
-    def drawCircle( self, drawable, graphicsContext, x, y, radius, filled ):
-        topLeftX = int( x - radius )
-        topLeftY = int( y - radius )
-        width = height = int( radius * 2 )
-
-        drawable.draw_arc( graphicsContext, filled, topLeftX, topLeftY, width, height, 0, 360 * 64 )
-
-#---------------------------------------------------------------------------
-    def getImageRectangleInWidget( self, widget ):
-        
-        # Centre the image inside the widget
-        widgetX, widgetY, widgetWidth, widgetHeight = widget.get_allocation()
-        
-        imgRect = gtk.gdk.Rectangle( 0, 0, widgetWidth, widgetHeight )
-        (requestedWidth, requestedHeight) = widget.get_size_request()
-        
-        if widgetWidth > requestedWidth:
-            imgRect.x = (widgetWidth - requestedWidth) / 2
-            imgRect.width = requestedWidth
-            
-        if widgetHeight > requestedHeight:
-            imgRect.y = (widgetHeight - requestedHeight) / 2
-            imgRect.height = requestedHeight
-        
-        return imgRect
-
-#---------------------------------------------------------------------------
-    def onViewZMotionNotifyEvent( self, widget, event ):
-
-        if self.controlActive:
-            self.viewZ.queue_draw()
-#---------------------------------------------------------------------------
-    def onViewZExposeEvent( self, widget, event ):
-	if self.controlActive:
-            widget.window.draw_line( graphicsContext, centreX, centreY,
-                int( centreX + self.normalisedAngularSpeed*self.HALF_DISPLAY_BOXXY_WIDTH ),
-                int( centreY - self.normalisedLinearSpeed*self.HALF_DISPLAY_BOXXY_WIDTH ) )
-
-#---------------------------------------------------------------------------
     def update( self ):
     
         while 1:
 
-	    maxDepthSpeed = self.spinMaxDepthSpeed.get_value()	    
+	        maxDepthSpeed = self.spinMaxDepthSpeed.get_value()	    
             maxLinearSpeed = self.spinMaxLinearSpeed.get_value()
             maxAngularSpeed = self.spinMaxAngularSpeed.get_value()*math.pi/180.0
 
@@ -361,21 +266,21 @@ class MainWindow:
                 newLinearSpeed = self.normalisedLinearSpeed*maxLinearSpeed
                 newAngularSpeed = -self.normalisedAngularSpeed*maxAngularSpeed
             else:
-		newDepthSpeed = 0.0                
-		newLinearSpeed = 0.0
+		        newDepthSpeed = 0.0                
+		        newLinearSpeed = 0.0
                 newAngularSpeed = 0.0
 
             if newLinearSpeed != self.linearSpeed \
-		or newAngularSpeed != self.angularSpeed \
-		or newDepthSpeed != self.depthSpeed:
+                or newAngularSpeed != self.angularSpeed \
+		        or newDepthSpeed != self.depthSpeed:
 
                 # Send the new speed to player
                 self.playerPos3d.set_velocity( newLinearSpeed, 0.0, newDepthSpeed, # x, y, z
-			                       0.0, 0.0, newAngularSpeed, # roll, pitch, yaw
-		              		       0 )   # State
+			                                   0.0, 0.0, newAngularSpeed, # roll, pitch, yaw
+		              		                   0 )   # State
                 # Store the speeds
                 self.depthSpeed = newDepthSpeed
-		self.linearSpeed = newLinearSpeed
+		        self.linearSpeed = newLinearSpeed
                 self.angularSpeed = newAngularSpeed
                 
             yield True
