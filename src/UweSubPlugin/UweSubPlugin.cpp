@@ -6,7 +6,9 @@
 
 //------------------------------------------------------------------------------
 #include <stdio.h>
+#include "CompassDriver.h"
 #include "MotorDriver.h"
+#include "SonarDriver.h"
 
 //------------------------------------------------------------------------------
 // Need the extern to avoid C++ name-mangling
@@ -14,7 +16,9 @@ extern "C"
 {
     int player_driver_init( DriverTable* pTable )
     {
+        CompassDriverRegister( pTable );
         MotorDriverRegister( pTable );
+        SonarDriverRegister( pTable );
         return 0;
     }
 }

@@ -1,4 +1,5 @@
-diff -r -u player-3.0.1/client_libs/libplayerc/bindings/python/playerc.i player-3.0.1_bak/client_libs/libplayerc/bindings/python/playerc.i
+Only in player-3.0.1/: build
+diff -r -u player-3.0.1/client_libs/libplayerc/bindings/python/playerc.i player-3.0.1/client_libs/libplayerc/bindings/python/playerc.i
 --- player-3.0.1/client_libs/libplayerc/bindings/python/playerc.i	2009-07-24 12:28:20.000000000 +0100
 +++ player-3.0.1/client_libs/libplayerc/bindings/python/playerc.i	2010-01-01 20:30:01.000000000 +0000
 @@ -375,6 +375,11 @@
@@ -13,9 +14,28 @@ diff -r -u player-3.0.1/client_libs/libplayerc/bindings/python/playerc.i player-
  // Provide array access doubly-dimensioned arrays
  %typemap(out) double [ANY][ANY]
  {
-diff -r -u player-3.0.1/server/drivers/camera/uvc/UvcInterface.cc player-3.0.1_bak/server/drivers/camera/uvc/UvcInterface.cc
+Only in player-3.0.1/: .kdev4
+diff -r -u player-3.0.1/libplayerjpeg/playerjpeg.c player-3.0.1/libplayerjpeg/playerjpeg.c
+--- player-3.0.1/libplayerjpeg/playerjpeg.c	2009-07-28 07:24:55.000000000 +0100
++++ player-3.0.1/libplayerjpeg/playerjpeg.c	2010-01-01 17:37:45.000000000 +0000
+@@ -247,11 +247,13 @@
+   //cinfo.err = jpeg_std_error(&jerr);
+   cinfo.err = jpeg_std_error(&mderr.pub);
+   mderr.pub.error_exit = my_error_exit;
++  
+   if(setjmp(mderr.setjmp_buffer)){
+ 	  jpeg_destroy_decompress(&cinfo);
+ 	  fprintf(stderr, "sonething very bad has happened\n");
+ 	  return;
+   }
++  
+   jpeg_create_decompress(&cinfo);
+   jpeg_memory_src(&cinfo, src, src_size);
+   jpeg_read_header(&cinfo, TRUE);
+Only in player-3.0.1/: player-3.0.1.kdev4
+diff -r -u player-3.0.1/server/drivers/camera/uvc/UvcInterface.cc player-3.0.1/server/drivers/camera/uvc/UvcInterface.cc
 --- player-3.0.1/server/drivers/camera/uvc/UvcInterface.cc	2009-07-23 16:39:16.000000000 +0100
-+++ player-3.0.1/server/drivers/camera/uvc/UvcInterface.cc	2010-05-10 12:30:13.000000000 +0100
++++ player-3.0.1/server/drivers/camera/uvc/UvcInterface.cc	2010-05-28 11:17:06.000000000 +0100
 @@ -181,7 +181,7 @@
  int UvcInterface::Read()
  {
@@ -43,3 +63,24 @@ diff -r -u player-3.0.1/server/drivers/camera/uvc/UvcInterface.cc player-3.0.1_b
  
  		ret=ioctl(fd,VIDIOC_QBUF,&buf);
  		if(ret==-1)
+diff -r -u player-3.0.1/server/drivers/opaque/serialstream.cc player-3.0.1/server/drivers/opaque/serialstream.cc
+--- player-3.0.1/server/drivers/opaque/serialstream.cc	2009-12-16 00:41:06.000000000 +0000
++++ player-3.0.1/server/drivers/opaque/serialstream.cc	2010-05-28 10:05:54.000000000 +0100
+@@ -463,6 +463,9 @@
+ 	case 38400:
+ 		term_speed = B38400;
+ 		break;
++    case 57600:
++        term_speed = B57600;
++        break;
+ 	case 115200:
+ 		term_speed = B115200;
+ 		break;
+@@ -480,6 +483,7 @@
+     case B9600:
+     case B19200:
+     case B38400:
++    case B57600:
+     case B115200:
+ #ifdef B500000
+     case B500000:

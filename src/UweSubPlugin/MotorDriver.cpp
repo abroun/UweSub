@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// File: MotorDriver.h
+// File: MotorDriver.cpp
 // Desc: A driver for controlling the motors of the AUV using PWM signals
 //------------------------------------------------------------------------------
 
@@ -55,6 +55,9 @@ const F32 MotorDriver::MAX_ABS_ANG_SPEED = M_PI/6;
 MotorDriver::MotorDriver( ConfigFile* pConfigFile, int section )
     : ThreadedDriver( pConfigFile, section, false, 
         PLAYER_MSGQUEUE_DEFAULT_MAXLEN, PLAYER_POSITION3D_CODE ),
+    mbCompassAvailable( false ),
+    mbCompassAngleValid( false ),
+    mLastDisplayedCompassAngleTimestamp( 0.0 ),
     mbInitialisedPWM( false )
 {
     this->alwayson = true;
@@ -91,6 +94,18 @@ MotorDriver::MotorDriver( ConfigFile* pConfigFile, int section )
         pwm_EnableMultiPWM(0xffffffffL);
         printf( "Enabled everything\n" );
     }
+    
+    mpCompass = NULL;
+    // See if we have an imu (compass) device
+    if ( pConfigFile->ReadDeviceAddr( &mCompassID, section, "requires",
+                       PLAYER_IMU_CODE, -1, NULL ) != 0 )
+    {
+        PLAYER_WARN( "No Compass driver specified" );
+    }
+    else
+    {
+        mbCompassAvailable = true;
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -102,6 +117,28 @@ MotorDriver::~MotorDriver()
 // Set up the device.  Return 0 if things go well, and -1 otherwise.
 int MotorDriver::MainSetup()
 {
+    if ( mbCompassAvailable )
+    {
+        if ( Device::MatchDeviceAddress( mCompassID, this->device_addr ) )
+        {
+            PLAYER_ERROR( "Attempting to subscribe to self" );
+            return -1;
+        }
+
+        mpCompass = deviceTable->GetDevice( mCompassID );
+        if ( NULL == mpCompass )
+        {
+            PLAYER_ERROR( "Unable to locate suitable compass device" );
+            return -1;
+        }
+
+        if ( mpCompass->Subscribe( this->InQueue ) != 0 )
+        {
+            PLAYER_ERROR( "Unable to subscribe to compass device" );
+            return -1;
+        }
+    }
+    
     return 0;
 }
 
@@ -202,6 +239,17 @@ int MotorDriver::ProcessMessage( QueuePointer& respQueue,
             PLAYER_POSITION3D_REQ_MOTOR_POWER );
         return 0;
     }
+    else if ( Message::MatchMessage(
+        pHeader, PLAYER_MSGTYPE_DATA, PLAYER_IMU_DATA_STATE, mCompassID ) )
+    {
+        player_imu_data_state_t* pCompassData = (player_imu_data_state_t*)pData;
+        
+        mCompassAngle = pCompassData->pose.pyaw;
+        mbCompassAngleValid = true;
+        mCompassAngleTimestamp = pHeader->timestamp;
+        return 0;
+    }
+    
     
     printf( "Unhandled message\n" );
     return -1;
@@ -217,6 +265,13 @@ void MotorDriver::Main()
         base::Wait();
         
         base::ProcessMessages();
+        
+        if ( mbCompassAngleValid
+            && mCompassAngleTimestamp != mLastDisplayedCompassAngleTimestamp )
+        {
+            printf( "Current compass angle is %2.3f degrees\n", mCompassAngle*180.0f/M_PI );
+            mLastDisplayedCompassAngleTimestamp = mCompassAngleTimestamp;
+        }
     }
 }
 

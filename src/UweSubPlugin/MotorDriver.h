@@ -12,10 +12,6 @@
 #include "Common.h"
 
 //------------------------------------------------------------------------------
-// Forward declarations
-class UweSubInterface;
-
-//------------------------------------------------------------------------------
 class MotorDriver : public ThreadedDriver
 {
     typedef ThreadedDriver base;
@@ -37,6 +33,16 @@ class MotorDriver : public ThreadedDriver
                                         
     // The main routine of the thread
     private: virtual void Main();
+    
+    // Link to the compass decive
+    private: Device* mpCompass;
+    private: player_devaddr_t mCompassID;
+    private: bool mbCompassAvailable;
+    
+    private: F32 mCompassAngle;
+    private: bool mbCompassAngleValid;
+    private: double mCompassAngleTimestamp;
+    private: double mLastDisplayedCompassAngleTimestamp;
 
     private: static const U32 PWM_FREQUENCY_US;
     private: static const U32 MIN_DUTY_CYCLE_US;

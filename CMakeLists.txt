@@ -71,16 +71,15 @@ ENDIF ( PKG_CONFIG_FOUND )
 
 #-------------------------------------------------------------------------------
 # Add in CxxTest unit tests
-#ENABLE_TESTING()
+ENABLE_TESTING()
 
 # Use Python interpreter
-#FIND_PACKAGE(PythonInterp)
+FIND_PACKAGE( PythonInterp )
 
-#SET(CXXTESTGEN /home/abroun/dev/extra/cxxtest/cxxtestgen.py)
-#
-#ADD_CXXTEST( unitTests 
-#            ${PROJECT_SOURCE_DIR}/unitTests/VectorTests.h
-#            ${PROJECT_SOURCE_DIR}/unitTests/MathUtilsTests.h )
+SET( CXXTESTGEN ${PROJECT_SOURCE_DIR}/3rdParty/cxxtest/cxxtestgen.py )
+
+ADD_CXXTEST( unitTests 
+            ${PROJECT_SOURCE_DIR}/unitTests/RollingBufferTests.h )
 
 #-------------------------------------------------------------------------------
 # Include the source files
@@ -88,7 +87,7 @@ ENDIF ( PKG_CONFIG_FOUND )
 INCLUDE_DIRECTORIES(
     ${PROJECT_SOURCE_DIR} 
     ${PROJECT_BINARY_DIR}
-    /home/abroun/dev/extra/cxxtest
+    ${PROJECT_SOURCE_DIR}/3rdParty/cxxtest
     ${PROJECT_SOURCE_DIR}/src
     ${global_include_dirs} )
 

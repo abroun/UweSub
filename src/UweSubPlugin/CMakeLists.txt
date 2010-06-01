@@ -10,7 +10,10 @@ INCLUDE_DIRECTORIES(
 
 SET( srcFiles 
     UweSubPlugin.cpp
-    MotorDriver.cpp )
+    CompassDriver.cpp
+    MotorDriver.cpp
+    SonarDriver.cpp
+    DataStructures/RollingBuffer.cpp )
 
 LINK_DIRECTORIES( 
     ${global_link_dirs}
