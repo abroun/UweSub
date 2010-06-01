@@ -76,7 +76,7 @@ ENABLE_TESTING()
 # Use Python interpreter
 FIND_PACKAGE( PythonInterp )
 
-SET( CXXTESTGEN /home/abroun/dev/extra/cxxtest/cxxtestgen.py )
+SET( CXXTESTGEN ${PROJECT_SOURCE_DIR}/3rdParty/cxxtest/cxxtestgen.py )
 
 ADD_CXXTEST( unitTests 
             ${PROJECT_SOURCE_DIR}/unitTests/RollingBufferTests.h )
@@ -87,7 +87,7 @@ ADD_CXXTEST( unitTests
 INCLUDE_DIRECTORIES(
     ${PROJECT_SOURCE_DIR} 
     ${PROJECT_BINARY_DIR}
-    /home/abroun/dev/extra/cxxtest
+    ${PROJECT_SOURCE_DIR}/3rdParty/cxxtest
     ${PROJECT_SOURCE_DIR}/src
     ${global_include_dirs} )
 
