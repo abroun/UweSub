@@ -1,0 +1,5 @@
+Arduino SS tied to GND   so pin 10 to GND
+
+SPICLK - White wire - Roboard Pin 5 to Arduino pin 13
+SPI D0 MOSI - Yellow Wire - Roboard Pin 7 to Arduino pin 11
+SPI D1 MISO - Purple Wire - Roboard Pin 9 to Arduino pin 12
