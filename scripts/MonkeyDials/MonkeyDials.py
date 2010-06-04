@@ -40,8 +40,7 @@ class MainWindow:
         self.connectToPlayer()
         self.yawController = YawControl( self.playerPos3d,
             self.playerCompass, self.playerSimPos3d )
-        self.yawController.setDesiredAngle( math.pi/2.0 )
-    
+       
         # Setup the GUI
         builder = gtk.Builder()
         builder.add_from_file( os.path.dirname( __file__ ) + "/MonkeyDials.glade" )
@@ -53,16 +52,14 @@ class MainWindow:
         self.depthSpeed = builder.get_object( "scaleDepthSpeed" )
         self.linearSpeed = builder.get_object( "scaleLinearSpeed" )
         self.angularSpeed = builder.get_object( "scaleAngularSpeed" )
+        self.lblCompassAngle = builder.get_object( "lblCompassAngle" )
 
         self.spinMaxDepthSpeed.set_value( 2.0 )
-        self.spinMaxLinearSpeed.set_value( 0.5 )
+        self.spinMaxLinearSpeed.set_value( 2.0 )
         self.spinMaxAngularSpeed.set_value( 30.0 )
 
-    	self.BAR_WIDTH = 100
-        self.CONTROL_BAR_WIDTH = self.BAR_WIDTH*0.95
-        self.HALF_CONTROL_BAR_WIDTH = self.CONTROL_BAR_WIDTH / 2.0
-        self.DEAD_ZONE_WIDTH = self.BAR_WIDTH*0.0
-        self.HALF_DEAD_ZONE_WIDTH = self.DEAD_ZONE_WIDTH / 2.0
+    	self.RANGE = 100
+        self.DEAD_ZONE = self.RANGE*0.01
 
         builder.connect_signals( self )
         
@@ -113,12 +110,14 @@ class MainWindow:
    # The program exits when the window is closed
     def onWinMainDestroy( self, widget, data = None ):  
         gtk.main_quit()
-         #---------------------------------------------------------------------------   
+        
+#---------------------------------------------------------------------------   
     def main( self ):
         # All PyGTK applications must have a gtk.main(). Control ends here
         # and waits for an event to occur (like a key press or mouse event).
         gtk.main()
-         #---------------------------------------------------------------------------   
+        
+#---------------------------------------------------------------------------   
     def showErrorMessage( self, msg ):
 
         dialog = gtk.MessageDialog( parent=None, 
@@ -134,159 +133,89 @@ class MainWindow:
 #---------------------------------------------------------------------------
     def updateNormalisedZ( self, z ):
 	# z -> depth speed
-	
-	MAX_DEFLECTION = self.CONTROL_BAR_WIDTH
+        
+        maxDepthSpeed = self.spinMaxDepthSpeed.get_value()
 
         if self.controlActive:
-    
-            # Offset the input
-            z -= MAX_DEFLECTION
-
-            # Constrain the input
-            if z > MAX_DEFLECTION:
-                z = MAX_DEFLECTION
-            elif z < -MAX_DEFLECTION:
-                z = -MAX_DEFLECTION
-
             
             # Apply the dead zone
-	    if z >= -self.DEAD_ZONE_WIDTH \
-                and z <= self.DEAD_ZONE_WIDTH:
+            if z >= -self.DEAD_ZONE and z <= self.DEAD_ZONE:
                 z = 0.0
 
-            self.normalisedDepthSpeed = -z / MAX_DEFLECTION
+        self.normalisedDepthSpeed = z / self.RANGE
    
 #---------------------------------------------------------------------------
     def updateNormalisedX( self, x ):
         # x -> linear speed
-
-        MAX_DEFLECTION = self.HALF_CONTROL_BAR_WIDTH
-
+        maxLinearSpeed = self.spinMaxLinearSpeed.get_value()
+        
+        #print x
+        
         if self.controlActive:
-    
-            # Offset the input
-            x -= MAX_DEFLECTION
-
-            # Constrain the input
-            if x > MAX_DEFLECTION:
-                x = MAX_DEFLECTION
-            elif x < -MAX_DEFLECTION:
-                x = -MAX_DEFLECTION
-
-            # Apply the dead zone
-            if x >= -self.HALF_DEAD_ZONE_WIDTH \
-                and x <= self.HALF_DEAD_ZONE_WIDTH:
+ 
+             # Apply the dead zone
+            if x >= -self.DEAD_ZONE and x <= self.DEAD_ZONE:
                 x = 0.0
 
-            self.normalisedLinearSpeed = x / MAX_DEFLECTION
+        self.normalisedLinearSpeed = x / self.RANGE
 
+        #print self.normalisedLinearSpeed
+        
 #---------------------------------------------------------------------------
     def updateNormalisedY( self, y ):
 	# y -> angular speed
-	
-	MAX_DEFLECTION = self.HALF_CONTROL_BAR_WIDTH
+        maxAngularSpeed = self.spinMaxAngularSpeed.get_value()*math.pi/180.0    # from degrees to rad
 
         if self.controlActive:
-    
-            # Offset the input
-            y -= MAX_DEFLECTION
-
-            # Constrain the input
-            if y > MAX_DEFLECTION:
-                y = MAX_DEFLECTION
-            elif y < -MAX_DEFLECTION:
-                y = -MAX_DEFLECTION
 
             # Apply the dead zone
-            if y >= -self.HALF_DEAD_ZONE_WIDTH \
-                and x <= self.HALF_DEAD_ZONE_WIDTH:
+            if y >= -self.DEAD_ZONE and y <= self.DEAD_ZONE:
                 y = 0.0
 
-            self.normalisedAngularSpeed = y / MAX_DEFLECTION
+        self.normalisedAngularSpeed = y / self.RANGE
 
 #---------------------------------------------------------------------------
-    def onDepthSpeedControlButtonPressEvent( self, widget, event ):
+    def onScaleDepthSpeedValueChanged( self, widget, data = None ):
+        z = gtk.Range.get_value(widget);
+        self.updateNormalisedZ( z )
+        self.controlActive = True
+
+#---------------------------------------------------------------------------
+    def onScaleLinearSpeedValueChanged( self, widget, data = None ):
+
+        x = gtk.Range.get_value(widget);
+        self.updateNormalisedX( x )
+        self.controlActive = True
         
-        if event.button == 1:
-            self.updateNormalisedZ( event.z )
-            self.controlActive = True
-            self.viewZ.queue_draw()
-
 #---------------------------------------------------------------------------
-    def onDepthSpeedControlButtonReleaseEvent( self, widget, event ):
+    def onScaleAngularSpeedValueChanged( self, widget, data = None ):
+
+        y = gtk.Range.get_value(widget);
+        self.updateNormalisedY( y )
+        self.controlActive = True
         
-        if event.button == 1:
-            self.controlActive = False
-            self.viewZ.queue_draw()
-   
-#---------------------------------------------------------------------------
-    def onLinearSpeedControlButtonPressEvent( self, widget, event ):
-        
-        if event.button == 1:
-            self.updateNormalisedZ( event.x )
-            self.controlActive = True
-            self.viewXY.queue_draw()
-
-#---------------------------------------------------------------------------
-    def onLinearSpeedControlButtonReleaseEvent( self, widget, event ):
-        
-        if event.button == 1:
-            self.controlActive = False
-            self.viewXY.queue_draw()
-
-#---------------------------------------------------------------------------
-    def onAngSpeedControlButtonPressEvent( self, widget, event ):
-        
-        if event.button == 1:
-            self.updateNormalisedZ( event.y )
-            self.controlActive = True
-            self.viewXY.queue_draw()
-
-#---------------------------------------------------------------------------
-    def onAngSpeedControlButtonReleaseEvent( self, widget, event ):
-        
-        if event.button == 1:
-            self.controlActive = False
-            self.viewXY.queue_draw()
-
-
-#---------------------------------------------------------------------------
-    def onScaleLinearSpeedMoveSlider(self, range, scrolltype):
-        pass
-
-
-#---------------------------------------------------------------------------
-
-
-#---------------------------------------------------------------------------
-
-
-#---------------------------------------------------------------------------
-
-
 #---------------------------------------------------------------------------
     def update( self ):
     
         while 1:
 
-            # Pull data from Player if it's available
-            if self.playerClient.peek( 0 ):
+            # Update the compass value if needed
+            if self.playerCompass != None and self.playerClient.peek( 0 ):
                 self.playerClient.read()
              
-            # Get compass angle
-            #compassAngle = self.playerCompass.pose.pyaw
-            
-            # Call this to change the desired angle
-            #self.yawController.setDesiredAngle( angle )
-            
-            self.yawController.update()
+                # Get compass angle
+                radcompassAngle = self.playerCompass.pose.pyaw
+                degCompassAngle = radcompassAngle*180.0/math.pi    # from rad to degrees
+                self.lblCompassAngle.set_text( "{0:.2}".format( degCompassAngle ) )
+           
+            #self.yawController.update()
 
             maxDepthSpeed = self.spinMaxDepthSpeed.get_value()	    
             maxLinearSpeed = self.spinMaxLinearSpeed.get_value()
-            maxAngularSpeed = self.spinMaxAngularSpeed.get_value()*math.pi/180.0
+            maxAngularSpeed = self.spinMaxAngularSpeed.get_value()*math.pi/180.0    # from degrees to rad
 
             if self.controlActive:
-                newDepthSpeed = self.normalisedDepthSpeed*maxDepthSpeed
+                newDepthSpeed = -self.normalisedDepthSpeed*maxDepthSpeed
                 newLinearSpeed = self.normalisedLinearSpeed*maxLinearSpeed
                 newAngularSpeed = -self.normalisedAngularSpeed*maxAngularSpeed
             else:
@@ -297,11 +226,17 @@ class MainWindow:
             if newLinearSpeed != self.linearSpeed \
                 or newAngularSpeed != self.angularSpeed \
 		        or newDepthSpeed != self.depthSpeed:
-
+                 
                 # Send the new speed to player
                 self.playerPos3d.set_velocity( newLinearSpeed, 0.0, newDepthSpeed, # x, y, z
                                                0.0, 0.0, newAngularSpeed, # roll, pitch, yaw
                                                0 )   # State
+
+                if self.playerSimPos3d != None:
+                    self.playerSimPos3d.set_velocity( newLinearSpeed, 0.0, newDepthSpeed, # x, y, z
+                                                       0.0, 0.0, newAngularSpeed, # roll, pitch, yaw
+                                                       0 )   # State
+
                 # Store the speeds
                 self.depthSpeed = newDepthSpeed
                 self.linearSpeed = newLinearSpeed

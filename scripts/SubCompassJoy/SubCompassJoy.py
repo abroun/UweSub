@@ -10,7 +10,7 @@ import math
 from optparse import OptionParser
 
 import pygtk
-pygtk.require('2.0')
+pygtk.require('2.0')    # we want GTKv2
 import gtk
 import gobject
 from playerc import *
@@ -52,7 +52,7 @@ class MainWindow:
         self.spinMaxAngularSpeed.set_value( 30.0 )
 
         (self.CONTROL_AREA_WIDTH, self.CONTROL_AREA_HEIGHT) = self.dwgControlArea.get_size_request()
-        self.CONTROL_BOX_WIDTH = self.CONTROL_AREA_WIDTH*0.95
+        self.CONTROL_BOX_WIDTH = self.CONTROL_AREA_WIDTH
         self.HALF_CONTROL_BOX_WIDTH = self.CONTROL_BOX_WIDTH / 2.0
         self.DEAD_ZONE_WIDTH = self.CONTROL_AREA_WIDTH*0.0
         self.HALF_DEAD_ZONE_WIDTH = self.DEAD_ZONE_WIDTH / 2.0
@@ -113,7 +113,7 @@ class MainWindow:
         gtk.main()
         
     #---------------------------------------------------------------------------   
-    def showErrorMessage( self, msg ):
+    def showErrorMessage( self, msg ): 
 
         dialog = gtk.MessageDialog( parent=None, 
             flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
@@ -178,8 +178,8 @@ class MainWindow:
     def onDwgControlAreaMotionNotifyEvent( self, widget, event ):
 
         if self.controlActive:
-            self.updateNormalisedSpeeds( event.x, event.y )
-            self.dwgControlArea.queue_draw()
+           self.updateNormalisedSpeeds( event.x, event.y )
+           self.dwgControlArea.queue_draw()
 
     #---------------------------------------------------------------------------
     def onDwgControlAreaExposeEvent( self, widget, event ):
@@ -217,7 +217,7 @@ class MainWindow:
         widget.window.draw_rectangle( graphicsContext, filled=False,
             x=int( centreX - self.HALF_DEAD_ZONE_WIDTH ), 
             y=int( centreY - self.HALF_DEAD_ZONE_WIDTH ),
-            width=int( self.DEAD_ZONE_WIDTH ), 
+           width=int( self.DEAD_ZONE_WIDTH ), 
             height=int( self.DEAD_ZONE_WIDTH ) )
 
         # Draw the control arrow if needed
@@ -273,9 +273,11 @@ class MainWindow:
             maxAngularSpeed = self.spinMaxAngularSpeed.get_value()*math.pi/180.0
 
             if self.controlActive:
+                print "controlActive = True"
                 newForwardSpeed = self.normalisedForwardSpeed*maxForwardSpeed
                 newAngularSpeed = -self.normalisedAngularSpeed*maxAngularSpeed
             else:
+                print "controlActive = False"
                 newForwardSpeed = 0.0
                 newAngularSpeed = 0.0
 
@@ -283,16 +285,15 @@ class MainWindow:
                 or newAngularSpeed != self.angularSpeed:
 
                 # Send the new speed to player
-                self.playerPos3d.set_velocity( 
-                            newForwardSpeed, 0.0, 0.0, # x, y, z
-                            0.0, 0.0, newAngularSpeed, # roll, pitch, yaw
-                            0 )   # State
-                            
+                self.playerPos3d.set_velocity( newForwardSpeed, 0.0, 0.0, # x, y, z
+                                               0.0, 0.0, newAngularSpeed, # roll, pitch, yaw
+                                               0 )   # State
+                print self.otherPlayerPos3d                            
                 if self.otherPlayerPos3d != None:
-                    self.otherPlayerPos3d.set_velocity( 
-                            newForwardSpeed, 0.0, 0.0, # x, y, z
-                            0.0, 0.0, newAngularSpeed, # roll, pitch, yaw
-                            0 )   # State
+                    print "I am in"
+                    self.otherPlayerPos3d.set_velocity( newForwardSpeed, 0.0, 0.0, # x, y, z
+                                                        0.0, 0.0, newAngularSpeed, # roll, pitch, yaw
+                                                        0 )   # State
 
                 # Display the speeds
                 self.lblForwardSpeed.set_text( "{0:.2}".format( newForwardSpeed ) )
