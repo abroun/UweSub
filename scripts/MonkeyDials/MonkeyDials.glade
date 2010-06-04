@@ -3,7 +3,6 @@
   <requires lib="gtk+" version="2.16"/>
   <!-- interface-naming-policy project-wide -->
   <object class="GtkWindow" id="winMain">
-    <property name="height_request">200</property>
     <property name="resizable">False</property>
     <signal name="destroy" handler="onWinMainDestroy"/>
     <child>
@@ -19,7 +18,7 @@
                   <object class="GtkLabel" id="lblMaxLinearSpeed">
                     <property name="visible">True</property>
                     <property name="xalign">0.98000001907348633</property>
-                    <property name="label" translatable="yes">Max Linear Speed:</property>
+                    <property name="label" translatable="yes">Max Linear Speed (m/s):</property>
                   </object>
                   <packing>
                     <property name="position">0</property>
@@ -30,6 +29,7 @@
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="invisible_char">&#x2022;</property>
+                    <property name="adjustment">adjustment4</property>
                     <property name="digits">2</property>
                     <property name="numeric">True</property>
                   </object>
@@ -51,7 +51,7 @@
                   <object class="GtkLabel" id="lblMaxAngularSpeed">
                     <property name="visible">True</property>
                     <property name="xalign">0.98000001907348633</property>
-                    <property name="label" translatable="yes">Max Ang. Speed:</property>
+                    <property name="label" translatable="yes">Max Ang. Speed (deg/s):</property>
                   </object>
                   <packing>
                     <property name="position">0</property>
@@ -62,6 +62,7 @@
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="invisible_char">&#x2022;</property>
+                    <property name="adjustment">adjustment5</property>
                     <property name="digits">2</property>
                     <property name="numeric">True</property>
                   </object>
@@ -83,7 +84,7 @@
                   <object class="GtkLabel" id="lblMaxDepthSpeed">
                     <property name="visible">True</property>
                     <property name="xalign">0.98000001907348633</property>
-                    <property name="label" translatable="yes">Max Depth:</property>
+                    <property name="label" translatable="yes">Max Depth (m/s):</property>
                   </object>
                   <packing>
                     <property name="position">0</property>
@@ -94,6 +95,7 @@
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="invisible_char">&#x25CF;</property>
+                    <property name="adjustment">adjustment6</property>
                     <property name="digits">2</property>
                     <property name="numeric">True</property>
                   </object>
@@ -115,7 +117,7 @@
                 <child>
                   <object class="GtkLabel" id="lblLinearSpeedName">
                     <property name="visible">True</property>
-                    <property name="label" translatable="yes">Linear Speed:</property>
+                    <property name="label" translatable="yes">Linear Speed (%):</property>
                   </object>
                   <packing>
                     <property name="position">0</property>
@@ -123,16 +125,15 @@
                 </child>
                 <child>
                   <object class="GtkHScale" id="scaleLinearSpeed">
-                    <property name="width_request">100</property>
+                    <property name="width_request">200</property>
                     <property name="height_request">40</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="events">GDK_BUTTON1_MOTION_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_STRUCTURE_MASK</property>
                     <property name="no_show_all">True</property>
+                    <property name="adjustment">adjustment1</property>
                     <property name="show_fill_level">True</property>
-                    <signal name="button_press_event" handler="onLinearSpeedControlButtonPressEvent"/>
-                    <signal name="move_slider" handler="onScaleLinearSpeedMoveSlider"/>
-                    <signal name="button_release_event" handler="onLinearSpeedControlButtonReleaseEvent"/>
+                    <signal name="value_changed" handler="onScaleLinearSpeedValueChanged"/>
                   </object>
                   <packing>
                     <property name="position">1</property>
@@ -151,7 +152,7 @@
                 <child>
                   <object class="GtkLabel" id="lblAngularSpeedName">
                     <property name="visible">True</property>
-                    <property name="label" translatable="yes">Angular Speed:</property>
+                    <property name="label" translatable="yes">Angular Speed (%):</property>
                   </object>
                   <packing>
                     <property name="position">0</property>
@@ -159,13 +160,13 @@
                 </child>
                 <child>
                   <object class="GtkHScale" id="scaleAngularSpeed">
-                    <property name="width_request">100</property>
+                    <property name="width_request">200</property>
                     <property name="height_request">40</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
+                    <property name="adjustment">adjustment2</property>
                     <property name="show_fill_level">True</property>
-                    <signal name="button_press_event" handler="onAngSpeedControlButtonPressEvent"/>
-                    <signal name="button_release_event" handler="onAngSpeedControlButtonReleaseEvent"/>
+                    <signal name="value_changed" handler="onScaleAngularSpeedValueChanged"/>
                   </object>
                   <packing>
                     <property name="position">1</property>
@@ -184,7 +185,7 @@
                 <child>
                   <object class="GtkLabel" id="lblDepthSpeedName">
                     <property name="visible">True</property>
-                    <property name="label" translatable="yes">Depth Speed:</property>
+                    <property name="label" translatable="yes">Depth Speed (%):</property>
                   </object>
                   <packing>
                     <property name="position">0</property>
@@ -196,9 +197,9 @@
                     <property name="height_request">40</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
+                    <property name="adjustment">adjustment3</property>
                     <property name="show_fill_level">True</property>
-                    <signal name="button_press_event" handler="onDepthSpeedControlButtonPressEvent"/>
-                    <signal name="button_release_event" handler="onDepthSpeedControlButtonReleaseEvent"/>
+                    <signal name="value_changed" handler="onScaleDepthSpeedValueChanged"/>
                   </object>
                   <packing>
                     <property name="position">1</property>
@@ -210,6 +211,36 @@
                 <property name="position">5</property>
               </packing>
             </child>
+            <child>
+              <object class="GtkHBox" id="displayCompassYawAngle">
+                <property name="visible">True</property>
+                <child>
+                  <object class="GtkLabel" id="lblCompassAngleName">
+                    <property name="visible">True</property>
+                    <property name="xalign">0.98000001907348633</property>
+                    <property name="label" translatable="yes">Compass Yaw Angle:</property>
+                  </object>
+                  <packing>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="lblCompassAngle">
+                    <property name="visible">True</property>
+                    <property name="xpad">5</property>
+                    <property name="label" translatable="yes">0.0</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="padding">10</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="position">7</property>
+              </packing>
+            </child>
           </object>
           <packing>
             <property name="position">0</property>
@@ -217,5 +248,40 @@
         </child>
       </object>
     </child>
+  </object>
+  <object class="GtkAdjustment" id="adjustment1">
+    <property name="lower">-100</property>
+    <property name="upper">100</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+  </object>
+  <object class="GtkAdjustment" id="adjustment2">
+    <property name="lower">-100</property>
+    <property name="upper">100</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+  </object>
+  <object class="GtkAdjustment" id="adjustment3">
+    <property name="upper">100</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+  </object>
+  <object class="GtkAdjustment" id="adjustment4">
+    <property name="value">2.0000000002235172</property>
+    <property name="upper">5</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+  </object>
+  <object class="GtkAdjustment" id="adjustment5">
+    <property name="value">30</property>
+    <property name="upper">30</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+  </object>
+  <object class="GtkAdjustment" id="adjustment6">
+    <property name="value">2.0000000002235172</property>
+    <property name="upper">5</property>
+    <property name="step_increment">0.5</property>
+    <property name="page_increment">10</property>
   </object>
 </interface>
