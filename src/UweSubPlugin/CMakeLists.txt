@@ -11,6 +11,7 @@ INCLUDE_DIRECTORIES(
 SET( srcFiles 
     UweSubPlugin.cpp
     CompassDriver.cpp
+    DepthSensorDriver.cpp
     MotorDriver.cpp
     SonarDriver.cpp
     DataStructures/RollingBuffer.cpp )
@@ -26,7 +27,8 @@ SET_TARGET_PROPERTIES( uwesubplugin PROPERTIES PREFIX "" )
 
 TARGET_LINK_LIBRARIES( uwesubplugin
     ${global_link_libs}
-     RBIO )
+    common
+    RBIO )
 
 INSTALL( TARGETS uwesubplugin
         LIBRARY DESTINATION lib )

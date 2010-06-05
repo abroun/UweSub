@@ -7,6 +7,7 @@
 //------------------------------------------------------------------------------
 #include <stdio.h>
 #include "CompassDriver.h"
+#include "DepthSensorDriver.h"
 #include "MotorDriver.h"
 #include "SonarDriver.h"
 
@@ -17,6 +18,7 @@ extern "C"
     int player_driver_init( DriverTable* pTable )
     {
         CompassDriverRegister( pTable );
+        DepthSensorDriverRegister( pTable );
         MotorDriverRegister( pTable );
         SonarDriverRegister( pTable );
         return 0;
