@@ -290,7 +290,6 @@ class MainWindow:
                                                0 )   # State
                 print self.otherPlayerPos3d                            
                 if self.otherPlayerPos3d != None:
-                    print "I am in"
                     self.otherPlayerPos3d.set_velocity( newForwardSpeed, 0.0, 0.0, # x, y, z
                                                         0.0, 0.0, newAngularSpeed, # roll, pitch, yaw
                                                         0 )   # State

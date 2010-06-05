@@ -9,69 +9,72 @@ class YawControl:
     
     #---------------------------------------------------------------------------
     def __init__( self, playerPos3D, playerCompass, playerSimPos3D = None ):
+        
         # No desired angle to begin with so that the AUV doesn't just spin round
         self.desiredAngle = None
         
         self.playerPos3D = playerPos3D
         self.playerCompass = playerCompass
         self.playerSimPos3D = playerSimPos3D
+        
+        self.iState = 0.0
+        self.lastAngleError = 0.0
     
     #---------------------------------------------------------------------------
     def setDesiredAngle( self, angle ):
-        self.desiredAngle = angle
+        self.desiredAngle = angle   #rad
     
     #---------------------------------------------------------------------------
     # Updates the control loop and sends commands down to the position3D
     # interfaces if needed.
-    def update( self ):
+    def update( self, linearSpeed, depthSpeed ):
+
+        Kp = 2.0
+        Ki = 0.0
+        Kd = 5.0
+        iMax = math.pi
+        iMin = -math.pi
         
-        Kp = 1.0
-        Ki = 1.0
-        Kd = 1.0
-        iMax = 360
-        iMin = -360
-        lastAngleError = 0
-        
-        compassAngle = self.playerCompass.pose.pyaw
         if self.desiredAngle == None:
             # Cope with the case where DesiredAngle is not set
-            self.desiredAngle = compassAngle
-        
-        linearSpeed = 0.0        # m/s
-        print "control is called"
+            self.desiredAngle = radCompassAngle
+                
+        # Feedback from the Compass
+        radCompassAngle = self.playerCompass.pose.pyaw
+
         #---------------------------------------------------------------------------
-        # pidLoop for angular position
-       # loopFlag = True
-            
-        #while loopFlag:
-            #loopFlag = False
-            #angleError = self.desiredAngle - compassAngle
-            #pTerm = Kp*angleError
+        # PID loop
+
+        # Proportional
+        angleError = self.desiredAngle - radCompassAngle
+        #print angleError
+        pTerm = Kp*angleError
         
-            #iState +=angleError
-            #if iState > iMax:
-                #iState = iMax
-            #elif iState < iMin:
-                #iState = iMin
-            #iTerm = Ki*iState
+        # Integral
+        self.iState +=angleError
         
-            #dState = angleError - lastAngleError
-            #dTerm = Kd*dState
-            #lastAngleError = angleError
+        print "accumulating error ="
+        print self.iState
         
-         #   angularSpeed = pTerm + iTerm + dTerm
-        angularSpeed = 0.0
-         
-        depthSpeed = 0.0
-            
+        # Integral wind-up
+        if self.iState > iMax:
+            self.iState = iMax
+        elif self.iState < iMin:
+            self.iState = iMin
+        iTerm = Ki*self.iState
+        
+        # Derivative
+        dState = angleError - self.lastAngleError
+        dTerm = Kd*dState
+        self.lastAngleError = angleError
+    
+        angularSpeed = pTerm + iTerm + dTerm
+        
         # Send the new speed to player
         self.playerPos3D.set_velocity( linearSpeed, 0.0, depthSpeed, # x, y, z
                                        0.0, 0.0, angularSpeed, # roll, pitch, yaw
                                        0 )   # State
-                    
         if self.playerSimPos3D != None:
-            self.playerSimPos3D.set_velocity( linearSpeed, 0.0, 0.0, # x, y, z
+            self.playerSimPos3D.set_velocity( linearSpeed, 0.0, depthSpeed, # x, y, z
                                               0.0, 0.0, angularSpeed, # roll, pitch, yaw
                                               0 )   # State
-
-        
