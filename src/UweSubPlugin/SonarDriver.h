@@ -29,11 +29,16 @@
 #include <libplayercore/playercore.h>
 #include "Common.h"
 #include "DataStructures/RollingBuffer.h"
+#include "DataStructures/Micron.h"
+#include "DataStructures/microncmds.h"
 
 //------------------------------------------------------------------------------
 class SonarDriver : public ThreadedDriver
-{
+{ 
     typedef ThreadedDriver base;
+    
+    // member Micron class
+    private: Micron* pmicron;
     
     // Constructor/Destructor
     public: SonarDriver( ConfigFile* pConfigFile, int section );
@@ -55,6 +60,7 @@ class SonarDriver : public ThreadedDriver
     
     private: void ProcessData();
     
+   
     // Properties
     private: IntProperty mBufferSize;
     
@@ -65,6 +71,10 @@ class SonarDriver : public ThreadedDriver
     private: RollingBuffer mBuffer;
     
     private: static const U32 DEFAULT_BUFFER_SIZE;
+    
+    // globals for handling serial incoming
+    private: int remainingBytes;
+    private: char* bufhead;
 };
 
 //------------------------------------------------------------------------------
