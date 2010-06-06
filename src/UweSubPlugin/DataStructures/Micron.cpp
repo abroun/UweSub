@@ -18,17 +18,17 @@
 // Commands ends
 
 // Operation constants
- const char Micron::leftRegion = 0;  // 135 to 225 degrees
- const char Micron::frontRegion = 1; //45 to 135 degrees 
- const char Micron::rightRegion = 2; // -45 to 45 degrees
- const char Micron::rearLeftRegion = 3;  // 235 to 270 degrees
- const char Micron::rearRightRegion = 4; // 270 to 315 degrees
+ static const char Micron::leftRegion = 0;  // 135 to 225 degrees
+ static const char Micron::frontRegion = 1; //45 to 135 degrees 
+ static const char Micron::rightRegion = 2; // -45 to 45 degrees
+ static const char Micron::rearLeftRegion = 3;  // 235 to 270 degrees
+ static const char Micron::rearRightRegion = 4; // 270 to 315 degrees
 
 // alive constants
- const char Micron::alFalseAlive = 0;
- const char Micron::alNoParams=1;
- const char Micron::alParamsAck = 2;
- const char Micron::alInScan = 3;
+ static const char Micron::alFalseAlive = 0;
+ static const char Micron::alNoParams=1;
+ static const char Micron::alParamsAck = 2;
+ static const char Micron::alInScan = 3;
 
 // maximum number of lines constant
  const int Micron::MAX_LINES = 100;
@@ -44,15 +44,15 @@
  char* Micron::regionBins[Micron::MAX_LINES];
 
 // state constants
- const int Micron::stIdle = 0;
- const int Micron::stConnected = 1;
- const int Micron::stExpectAlive = 2;
- const int Micron::stAliveSonar = 3;
- const int Micron::stExpectHeadAlive = 4;
- const int Micron::stSendingData = 5;
- const int Micron::stExpectHeadData = 6;
- const int Micron::stExpectUserData = 7;
- const int Micron::stDataReady = 8;
+ static const int Micron::stIdle = 0;
+ static const int Micron::stConnected = 1;
+ static const int Micron::stExpectAlive = 2;
+ static const int Micron::stAliveSonar = 3;
+ static const int Micron::stExpectHeadAlive = 4;
+ static const int Micron::stSendingData = 5;
+ static const int Micron::stExpectHeadData = 6;
+ static const int Micron::stExpectUserData = 7;
+ static const int Micron::stDataReady = 8;
 
 
 // parametric constructor

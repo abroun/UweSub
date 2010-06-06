@@ -25,17 +25,17 @@ class Micron {
        // Commands ends
 
        // Operation constants
-       public: const char leftRegion;  // 135 to 225 degrees
-       public: const char frontRegion; //45 to 135 degrees 
-       public: const char rightRegion; // -45 to 45 degrees
-       public: const char rearLeftRegion;  // 235 to 270 degrees
-       public: const char rearRightRegion; // 270 to 315 degrees
+       public: static const char leftRegion;  // 135 to 225 degrees
+       public: static const char frontRegion; //45 to 135 degrees 
+       public: static const char rightRegion; // -45 to 45 degrees
+       public: static const char rearLeftRegion;  // 235 to 270 degrees
+       public: static const char rearRightRegion; // 270 to 315 degrees
 
        // alive constants (for evaluation of an mtAlive Message)
-       public: const char alFalseAlive;
-       public: const char alNoParams;
-       public: const char alParamsAck;
-       public: const char alInScan;
+       public: static const char alFalseAlive;
+       public: static const char alNoParams;
+       public: static const char alParamsAck;
+       public: static const char alInScan;
 
        // maximum number of lines constant
        private: const int MAX_LINES;
@@ -52,15 +52,15 @@ class Micron {
        public: char* regionBins[];
 
        // state constants
-       public: const int stIdle;
-       public: const int stConnected;
-       public: const int stExpectAlive;
-       public: const int stAliveSonar;
-       public: const int stExpectHeadAlive;
-       public: const int stSendingData;
-       public: const int stExpectHeadData;
-       public: const int stExpectUserData;
-       public: const int stDataReady;
+       public: static const int stIdle;
+       public: static const int stConnected;
+       public: static const int stExpectAlive;
+       public: static const int stAliveSonar;
+       public: static const int stExpectHeadAlive;
+       public: static const int stSendingData;
+       public: static const int stExpectHeadData;
+       public: static const int stExpectUserData;
+       public: static const int stDataReady;
   
      
   

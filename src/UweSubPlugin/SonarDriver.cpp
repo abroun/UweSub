@@ -69,7 +69,7 @@ SonarDriver::SonarDriver( ConfigFile* pConfigFile, int section )
     mBuffer.Init( mBufferSize.GetValue() );
     
     // KILL THE ALIVES RIGHT NOW!
-    pmicron->sendStopAlives();
+    pmicron->sendStopAlives(mpOpaque, this->InQueue);
 }
 
 //------------------------------------------------------------------------------
@@ -243,7 +243,7 @@ void SonarDriver::Main()
                     int len = pmicron->getRange()*100/pmicron->getResolution();
                     int j;
                     for (j=0; j<len; j++)
-                        printf("%i  | ",pmicron->regionBins[i][j];
+                        printf("%i  | ",pmicron->regionBins[i][j]);
                     printf("\n");
                 }
              pmicron->setState(Micron::stAliveSonar);
@@ -268,8 +268,8 @@ void SonarDriver::ProcessData()
     U32 numBytesToRead = mBuffer.GetNumBytesInBuffer(); // let's see what we 've got...
   
     if (remainingBytes==0) { // previous packet was fully read
-        if ((numBytesToRead==0)&&((pmicron->getState()==Micron::stSendingData)||(Micron::stExpectHeadData))) 
-            pmicron->sendHeadCommand(mpOpaque, this->InQueue); // no data in queue while scanning, must issue a sendData command
+        if ((numBytesToRead==0)&&((pmicron->getState()==Micron::stSendingData)||(pmicron->getState()==Micron::stExpectHeadData))) 
+            pmicron->sendHeadCommand(mpOpaque, this->InQueue, pmicron->getRegion()); // no data in queue while scanning, must issue a sendData command
               else if (numBytesToRead>=7) { // nead at least 7 bytes to determine the length of the packet
                         bufhead = (char*)malloc(7); // get the first 7 bytes
                         // reading first 7 bytes in the buffer_size
