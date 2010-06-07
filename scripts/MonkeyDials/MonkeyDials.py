@@ -152,8 +152,6 @@ class MainWindow:
         # y -> linear speed
         maxLinearSpeed = self.spinMaxLinearSpeed.get_value()
         
-        #print y
-        
         if self.controlActive:
  
              # Apply the dead zone
@@ -161,8 +159,6 @@ class MainWindow:
                 y = 0.0
 
         self.normalisedLinearSpeed = y / self.RANGE
-
-        #print self.normalisedLinearSpeed
         
 #---------------------------------------------------------------------------
     def updateNormalisedX( self, x ):
@@ -207,10 +203,14 @@ class MainWindow:
                 self.playerClient.read()
              
                 # Get compass angle
-                radcompassAngle = self.playerCompass.pose.pyaw
-                degCompassAngle = radcompassAngle*180.0/math.pi    # from rad to degrees
-                self.lblCompassAngle.set_text( "{0:.2}".format( degCompassAngle ) )
-           
+                radCompassAngle = self.playerCompass.pose.pyaw
+                # 0 < angle < 2*pi
+                while radCompassAngle >= 2*math.pi:
+                    radCompassAngle -= 2*math.pi
+            
+                degCompassAngle = radCompassAngle*180.0/math.pi    # from rad to degrees
+                self.lblCompassAngle.set_text( "{0:.3}".format( degCompassAngle ) )
+               
             maxDepthSpeed = self.spinMaxDepthSpeed.get_value()	    
             maxLinearSpeed = self.spinMaxLinearSpeed.get_value()
             maxAngularSpeed = self.spinMaxAngularSpeed.get_value()*math.pi/180.0    # from degrees to rad
@@ -218,7 +218,7 @@ class MainWindow:
             if self.controlActive:
                 newDepthSpeed = -self.normalisedDepthSpeed*maxDepthSpeed
                 if newDepthSpeed == 0.0:
-                    newDepthSpeed = 0.05     # positive boyancy - it can also fly after a while             
+                    newDepthSpeed = 0.05     # positive boyancy - it can also fly after a while ^o^            
                 newLinearSpeed = self.normalisedLinearSpeed*maxLinearSpeed
                 newAngularSpeed = self.normalisedAngularSpeed*maxAngularSpeed
             else:
@@ -226,23 +226,17 @@ class MainWindow:
                 newLinearSpeed = 0.0
                 newAngularSpeed = 0.0
             
-            DesiredYawAngle = self.spinDesiredYawAngle.get_value()*math.pi/180.0    # from degrees to rad        
-            self.yawController.setDesiredAngle( DesiredYawAngle )   # rad
+            newDesiredYawAngle = self.spinDesiredYawAngle.get_value()*math.pi/180.0    # from degrees to rad       
+            if radCompassAngle - newDesiredYawAngle < 0.0001 \
+                and radCompassAngle - newDesiredYawAngle> -0.0001:
+                self.yawController.iState = 0.0
+            self.yawController.setDesiredAngle( newDesiredYawAngle )   # rad
             self.yawController.update( newLinearSpeed, newDepthSpeed )         
+            
             
             if newLinearSpeed != self.linearSpeed \
                 or newAngularSpeed != self.angularSpeed \
 		        or newDepthSpeed != self.depthSpeed:
-            
-                ## Send the new speed to player
-                #self.playerPos3d.set_velocity( newLinearSpeed, 0.0, newDepthSpeed, # x, y, z
-                                               #0.0, 0.0, newAngularSpeed, # roll, pitch, yaw
-                                               #0 )   # State
-
-                #if self.playerSimPos3d != None:
-                    #self.playerSimPos3d.set_velocity( newLinearSpeed, 0.0, newDepthSpeed, # x, y, z
-                                                       #0.0, 0.0, newAngularSpeed, # roll, pitch, yaw
-                                                       #0 )   # State
 
                 # Store the speeds
                 self.depthSpeed = newDepthSpeed
