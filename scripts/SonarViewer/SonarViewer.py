@@ -75,10 +75,17 @@ class MainWindow:
                 print "Unable to connect to simulation:0. Assuming that we're talking to a real robot"
                 self.playerSim = None
             
-            # And for the camera
-            self.playerCamera = playerc_camera( self.playerClient, 0 )
-            if self.playerCamera.subscribe( PLAYERC_OPEN_MODE ) != 0:
+            # Speech interface is used to send debug messages
+            self.playerSpeech = playerc_speech( self.playerClient, 0 )
+            if self.playerSpeech.subscribe( PLAYERC_OPEN_MODE ) != 0:
+                print "Unable to connect to speech:0"
                 raise Exception( playerc_error_str() )
+            
+            # And for the camera
+            self.playerCamera = None
+            #self.playerCamera = playerc_camera( self.playerClient, 0 )
+            #if self.playerCamera.subscribe( PLAYERC_OPEN_MODE ) != 0:
+            #    raise Exception( playerc_error_str() )
 
             if self.playerClient.datamode( PLAYERC_DATAMODE_PULL ) != 0:
                 raise Exception( playerc_error_str() )
@@ -113,6 +120,10 @@ class MainWindow:
         dialog.set_title( "Error" )
         dialog.run()
         dialog.destroy()
+
+    #---------------------------------------------------------------------------
+    def onBtnTestClicked( self, widget, data = None ):
+        self.playerSpeech.say( "SCANRG" )
 
     #---------------------------------------------------------------------------
     def onDwgDisplayExposeEvent( self, widget, event ):
@@ -155,7 +166,10 @@ class MainWindow:
 
     #---------------------------------------------------------------------------
     def isNewFrameAvailable( self ):
-        return self.lastCameraFrameTime != self.playerCamera.info.datatime
+        if self.playerCamera == None:
+            return False
+        else:
+            return self.lastCameraFrameTime != self.playerCamera.info.datatime
 
     #---------------------------------------------------------------------------
     def update( self ):

@@ -164,7 +164,7 @@ class Micron {
     
     public: void setResolution(int resolution);
     public: int getResolution();
-    
+     
     public: void setRange(int range);
     public: int getRange();
     

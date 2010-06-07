@@ -19,6 +19,9 @@ class YawControl:
         
         self.iState = 0.0
         self.lastAngleError = 0.0
+        self.pTerm = 0.0
+        self.iTerm = 0.0
+        self.dTerm = 0.0
     
     #---------------------------------------------------------------------------
     def setDesiredAngle( self, angle ):
@@ -29,11 +32,11 @@ class YawControl:
     # interfaces if needed.
     def update( self, linearSpeed, depthSpeed ):
 
-        Kp = 2.0
-        Ki = 0.0
-        Kd = 5.0
-        iMax = math.pi
-        iMin = -math.pi
+        Kp = 0.01
+        Ki = 0.01
+        Kd = 0.02
+        iMax = 2.8
+        iMin = -2.8
         
         if self.desiredAngle == None:
             # Cope with the case where DesiredAngle is not set
@@ -41,34 +44,37 @@ class YawControl:
                 
         # Feedback from the Compass
         radCompassAngle = self.playerCompass.pose.pyaw
+        # 0 < angle < 2*pi
+        while radCompassAngle >= 2*math.pi:
+            radCompassAngle -= 2*math.pi
 
         #---------------------------------------------------------------------------
         # PID loop
 
         # Proportional
-        angleError = self.desiredAngle - radCompassAngle
+        angleError = self.desiredAngle - radCompassAngle    # rad
         #print angleError
-        pTerm = Kp*angleError
+        self.pTerm = Kp*angleError
         
         # Integral
         self.iState +=angleError
-        
-        print "accumulating error ="
-        print self.iState
         
         # Integral wind-up
         if self.iState > iMax:
             self.iState = iMax
         elif self.iState < iMin:
             self.iState = iMin
-        iTerm = Ki*self.iState
+        self.iTerm = Ki*self.iState
         
         # Derivative
         dState = angleError - self.lastAngleError
-        dTerm = Kd*dState
+        self.dTerm = Kd*dState
         self.lastAngleError = angleError
-    
-        angularSpeed = pTerm + iTerm + dTerm
+
+        angularSpeed = self.pTerm + self.iTerm + self.dTerm    # rad/s
+             
+        #print "accumulating error ="
+        #print self.iState
         
         # Send the new speed to player
         self.playerPos3D.set_velocity( linearSpeed, 0.0, depthSpeed, # x, y, z

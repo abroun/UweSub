@@ -161,23 +161,7 @@ int MotorDriver::ProcessMessage( QueuePointer& respQueue,
     {
         player_position3d_cmd_vel_t* pCmd = (player_position3d_cmd_vel_t*)pData;
         
-        /*F32 distx = (F32)pCmd->pos.px;
-        F32 disty = (F32)pCmd->pos.py;
-        F32 dist = sqrt(distx*distx + disty*disty);
-        // just for testing in a small pool
-        if ( dist > MAX_ABS_2D_DIST )
-        {
-            dist = MAX_ABS_2D_DIST;
-        }
-        else if ( dist < -MAX_ABS_2D_DIST )
-        {
-            dist = -MAX_ABS_2D_DIST;
-        }*/
-        
-        F32 speedx = (F32)pCmd->vel.px;
-       // F32 speedy = (F32)pCmd->vel.py;
-       // F32 linearSpeed = sqrt(speedx*speedx + speedy*speedy);
-        F32 linearSpeed = speedx;
+        F32 linearSpeed = (F32)pCmd->vel.px;
         if ( linearSpeed > MAX_ABS_LINEAR_SPEED )
         {
            linearSpeed = MAX_ABS_LINEAR_SPEED;
@@ -188,18 +172,17 @@ int MotorDriver::ProcessMessage( QueuePointer& respQueue,
         }
         
         F32 speedyaw = (F32)pCmd->vel.pyaw;
-        F32 angSpeed = speedyaw;
-        if ( angSpeed > MAX_ABS_ANG_SPEED )
+        if ( speedyaw > MAX_ABS_ANG_SPEED )
         {
-           angSpeed = MAX_ABS_ANG_SPEED;
+           speedyaw = MAX_ABS_ANG_SPEED;
         }
-        else if ( angSpeed < -MAX_ABS_ANG_SPEED )
+        else if ( speedyaw < -MAX_ABS_ANG_SPEED )
         {
-            angSpeed = -MAX_ABS_ANG_SPEED;
+            speedyaw = -MAX_ABS_ANG_SPEED;
         }
         
         // Calculate the PWM to output
-        F32 normalisedPWM = (angSpeed+MAX_ABS_ANG_SPEED)/(2.0f*MAX_ABS_ANG_SPEED);
+        F32 normalisedPWM = (speedyaw+MAX_ABS_ANG_SPEED)/(2.0f*MAX_ABS_ANG_SPEED);
         // or
         // F32 normalisedPWM = (linearSpeed+MAX_ABS_LINEAR_SPEED)/(2.0f*MAX_ABS_LINEAR_SPEED);
       
@@ -207,7 +190,7 @@ int MotorDriver::ProcessMessage( QueuePointer& respQueue,
         
         if ( mbInitialisedPWM )
         {
-            if (angSpeed<0)
+            if (speedyaw<0)
             {
                 pwm_SetPulse( LEFT_MOTOR_CHANNEL, PWM_FREQUENCY_US, pwmDuty );
                 //pwm_SetPulse( RIGHT_MOTOR_CHANNEL, PWM_FREQUENCY_US, pwmDuty/2 );
@@ -245,11 +228,12 @@ int MotorDriver::ProcessMessage( QueuePointer& respQueue,
         player_imu_data_state_t* pCompassData = (player_imu_data_state_t*)pData;
         
         mCompassAngle = pCompassData->pose.pyaw;
+        
         mbCompassAngleValid = true;
         mCompassAngleTimestamp = pHeader->timestamp;
+        
         return 0;
     }
-    
     
     printf( "Unhandled message\n" );
     return -1;
@@ -269,7 +253,15 @@ void MotorDriver::Main()
         if ( mbCompassAngleValid
             && mCompassAngleTimestamp != mLastDisplayedCompassAngleTimestamp )
         {
-            printf( "Current compass angle is %2.3f degrees\n", mCompassAngle*180.0f/M_PI );
+            // 0 < angle < 2*pi
+            F32 radCompassAngle = mCompassAngle;
+            while( radCompassAngle >= 2*M_PI)
+            {
+                radCompassAngle -= 2*M_PI;
+            }
+
+            F32 degCompassAngle = radCompassAngle*180.0f/M_PI;
+            printf( "Current compass angle is %2.3f degrees\n", degCompassAngle );
             mLastDisplayedCompassAngleTimestamp = mCompassAngleTimestamp;
         }
     }

@@ -60,7 +60,7 @@ class SonarDriver : public ThreadedDriver
     
     private: void ProcessData();
     
-   
+    
     // Properties
     private: IntProperty mBufferSize;
     

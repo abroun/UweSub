@@ -7,6 +7,7 @@ import sys
 import os.path
 import shutil
 import math
+from pylab import *
 from optparse import OptionParser
 
 import pygtk
@@ -37,6 +38,13 @@ class MainWindow:
         self.linearSpeed = 0.0
         self.angularSpeed = 0.0
         
+        self.arrayYawAngles = [ 0 ]
+        self.startGraph = False
+        
+        self.pTest = []
+        self.iTest = []
+        self.dTest = []
+
         self.connectToPlayer()
         self.yawController = YawControl( self.playerPos3d,
             self.playerCompass, self.playerSimPos3d )
@@ -152,8 +160,6 @@ class MainWindow:
         # y -> linear speed
         maxLinearSpeed = self.spinMaxLinearSpeed.get_value()
         
-        #print y
-        
         if self.controlActive:
  
              # Apply the dead zone
@@ -161,8 +167,6 @@ class MainWindow:
                 y = 0.0
 
         self.normalisedLinearSpeed = y / self.RANGE
-
-        #print self.normalisedLinearSpeed
         
 #---------------------------------------------------------------------------
     def updateNormalisedX( self, x ):
@@ -198,6 +202,28 @@ class MainWindow:
         self.controlActive = True
         
 #---------------------------------------------------------------------------
+    def onYawPosButtonClicked( self, button ):
+        time = len( self.arrayYawAngles )
+        figure(1)
+        plot(range( time ), self.arrayYawAngles)
+        ylabel('Yaw angle [deg/s]')
+        xlabel('Time')
+        hold()
+        show()
+
+#---------------------------------------------------------------------------
+    def onPitchPosButtonClicked( self, button ):
+        #time = len( self.arrayYawAngles )
+        #plot(range( time ), self.arrayPitchAngles)
+        ylabel('Pitch angle [deg/s]')
+        xlabel('Time')
+        show()
+
+#---------------------------------------------------------------------------
+    def onDepthPosButtonClicked( self, button ):
+        pass
+
+#---------------------------------------------------------------------------    
     def update( self ):
     
         while 1:
@@ -207,18 +233,23 @@ class MainWindow:
                 self.playerClient.read()
              
                 # Get compass angle
-                radcompassAngle = self.playerCompass.pose.pyaw
-                degCompassAngle = radcompassAngle*180.0/math.pi    # from rad to degrees
-                self.lblCompassAngle.set_text( "{0:.2}".format( degCompassAngle ) )
-           
+                radCompassAngle = self.playerCompass.pose.pyaw
+                # 0 < angle < 2*pi
+                while radCompassAngle >= 2*math.pi:
+                    radCompassAngle -= 2*math.pi
+
+                degCompassAngle = radCompassAngle*180.0/math.pi    # from rad to degrees
+                self.lblCompassAngle.set_text( "{0:.3}".format( degCompassAngle ) )    #print it on the GUI
+               
             maxDepthSpeed = self.spinMaxDepthSpeed.get_value()	    
-            maxLinearSpeed = self.spinMaxLinearSpeed.get_value()
+            maxLinearSpeed = self.spinMaxLinearSpeed.get_value() 
+            
             maxAngularSpeed = self.spinMaxAngularSpeed.get_value()*math.pi/180.0    # from degrees to rad
 
             if self.controlActive:
                 newDepthSpeed = -self.normalisedDepthSpeed*maxDepthSpeed
                 if newDepthSpeed == 0.0:
-                    newDepthSpeed = 0.05     # positive boyancy - it can also fly after a while             
+                    newDepthSpeed = 0.05     # positive boyancy - it can also fly after a while ^o^            
                 newLinearSpeed = self.normalisedLinearSpeed*maxLinearSpeed
                 newAngularSpeed = self.normalisedAngularSpeed*maxAngularSpeed
             else:
@@ -226,23 +257,33 @@ class MainWindow:
                 newLinearSpeed = 0.0
                 newAngularSpeed = 0.0
             
-            DesiredYawAngle = self.spinDesiredYawAngle.get_value()*math.pi/180.0    # from degrees to rad        
-            self.yawController.setDesiredAngle( DesiredYawAngle )   # rad
+            newDesiredYawAngle = self.spinDesiredYawAngle.get_value()*math.pi/180.0    # from degrees to rad       
+            
+            if degCompassAngle > 0.05:
+                self.startGraph = True
+            if self.startGraph:
+                self.arrayYawAngles.append( degCompassAngle)
+                self.pTest.append (self.yawController.pTerm)
+                self.dTest.append(self.yawController.pTerm)
+                if radCompassAngle - newDesiredYawAngle < 0.01 \
+                    and radCompassAngle - newDesiredYawAngle> -0.01:
+                    self.yawController.iState = 0.0
+                    #figure(2)
+                    #plot(range(len(self.pTest)),self.pTest,'r',\
+                         #range(len(self.iTest)),self.iTest,'k',\
+                         #range(len(self.dTest)),self.dTest,'m')
+                    #xlabel('Time')
+                    #ylabel('pTerm, iTerm & dTerm')
+                    #show()
+                    self.startGraph = False
+                
+            self.yawController.setDesiredAngle( newDesiredYawAngle )   # rad
             self.yawController.update( newLinearSpeed, newDepthSpeed )         
+            
             
             if newLinearSpeed != self.linearSpeed \
                 or newAngularSpeed != self.angularSpeed \
 		        or newDepthSpeed != self.depthSpeed:
-            
-                ## Send the new speed to player
-                #self.playerPos3d.set_velocity( newLinearSpeed, 0.0, newDepthSpeed, # x, y, z
-                                               #0.0, 0.0, newAngularSpeed, # roll, pitch, yaw
-                                               #0 )   # State
-
-                #if self.playerSimPos3d != None:
-                    #self.playerSimPos3d.set_velocity( newLinearSpeed, 0.0, newDepthSpeed, # x, y, z
-                                                       #0.0, 0.0, newAngularSpeed, # roll, pitch, yaw
-                                                       #0 )   # State
 
                 # Store the speeds
                 self.depthSpeed = newDepthSpeed

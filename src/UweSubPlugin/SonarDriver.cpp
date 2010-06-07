@@ -45,7 +45,7 @@ SonarDriver::SonarDriver( ConfigFile* pConfigFile, int section )
 {
     this->alwayson = true;
     
-    mpOpaque = NULL;
+    mpOpaque = NULL;  
     // We must have an opaque device
     if ( pConfigFile->ReadDeviceAddr( &mOpaqueID, section, "requires",
                        PLAYER_OPAQUE_CODE, -1, NULL ) != 0 )

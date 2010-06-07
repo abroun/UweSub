@@ -794,7 +794,7 @@ TritecPacket* Micron::convertBytes2Packet(char* msg) {
    tp->Terminator = msg[10+tp->MsgBytes]; // it should be a Line Feed (0x0A)
    // packet filled
    return tp;
-}
+} 
 
 // member variable methods
 void Micron::setState(int state) {
