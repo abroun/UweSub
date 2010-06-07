@@ -2,6 +2,8 @@
 #define MICRONCMDS_H
 
 #include <stdlib.h>
+#include <string.h>
+
 
 // Micron command codes
 typedef enum {
@@ -31,13 +33,37 @@ typedef enum {
         micronALIVE,            // following a reboot
         micronDATA_READY,        // region scanned
         micronMSGS_COUNT,        // response messages count
+        micronERROR,
         micronMSG_UNKNOWN       // to be used for an unknown message (unrecognized message)
 }micron_msg_t;
 
 // command strings
-static char micron_cmds[micronCMDS_COUNT][7];
+static const char micron_cmds[micronCMDS_COUNT][7] = {
+        "REBOOT",
+         "RFRONT",
+        "RRIGHT",
+         "RGLEFT",
+        "RRRGHT",
+         "RRLEFT",
+         "RESL05",
+         "RESL10",
+         "RESL20",
+         "RANG10",
+         "RANG20",
+         "RANG30",
+         "SCANRG",
+         "STREAM"
+};
 // response strings
-static char micron_msgs[micronMSGS_COUNT][7];
+// micron response message strings
+static const char micron_msgs[micronMSGS_COUNT][7] = {
+        "REGSET",
+        "RESSET",
+        "RANSET",
+        "MALIVE",
+        "DATRDY"
+};
+
 
 
 micron_cmd_t micronDecodeCommand(char* cmd);

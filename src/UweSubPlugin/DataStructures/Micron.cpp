@@ -18,68 +18,59 @@
 // Commands ends
 
 // Operation constants
- static const char Micron::leftRegion = 0;  // 135 to 225 degrees
- static const char Micron::frontRegion = 1; //45 to 135 degrees 
- static const char Micron::rightRegion = 2; // -45 to 45 degrees
- static const char Micron::rearLeftRegion = 3;  // 235 to 270 degrees
- static const char Micron::rearRightRegion = 4; // 270 to 315 degrees
+ const char Micron::leftRegion = 0;  // 135 to 225 degrees
+ const char Micron::frontRegion = 1; //45 to 135 degrees 
+ const char Micron::rightRegion = 2; // -45 to 45 degrees
+ const char Micron::rearLeftRegion = 3;  // 235 to 270 degrees
+ const char Micron::rearRightRegion = 4; // 270 to 315 degrees
 
 // alive constants
- static const char Micron::alFalseAlive = 0;
- static const char Micron::alNoParams=1;
- static const char Micron::alParamsAck = 2;
- static const char Micron::alInScan = 3;
+ const char Micron::alFalseAlive = 0;
+ const char Micron::alNoParams=1;
+ const char Micron::alParamsAck = 2;
+ const char Micron::alInScan = 3;
 
 // maximum number of lines constant
- const int Micron::MAX_LINES = 100;
-// class members
- int Micron::state;
-	int Micron::range;
-	int Micron::resolution;
-	int Micron::ADlow;
-	int Micron::ADspan;
+ //const int Micron::MAX_LINES = 100;
 
- char Micron::currentRegion;
- int Micron::scannedlines;
- char* Micron::regionBins[Micron::MAX_LINES];
 
 // state constants
- static const int Micron::stIdle = 0;
- static const int Micron::stConnected = 1;
- static const int Micron::stExpectAlive = 2;
- static const int Micron::stAliveSonar = 3;
- static const int Micron::stExpectHeadAlive = 4;
- static const int Micron::stSendingData = 5;
- static const int Micron::stExpectHeadData = 6;
- static const int Micron::stExpectUserData = 7;
- static const int Micron::stDataReady = 8;
+ const int Micron::stIdle = 0;
+ const int Micron::stConnected = 1;
+ const int Micron::stExpectAlive = 2;
+ const int Micron::stAliveSonar = 3;
+ const int Micron::stExpectHeadAlive = 4;
+ const int Micron::stSendingData = 5;
+ const int Micron::stExpectHeadData = 6;
+ const int Micron::stExpectUserData = 7;
+ const int Micron::stDataReady = 8;
 
 
 // parametric constructor
 Micron::Micron(int range, int resolution, int ADlow, int ADspan) {
             
-    this::range = range;
-    this::resolution = resolution;
-    this::ADlow = ADlow;
-    this::ADspan = ADspan;
+    Micron::range = range;
+    Micron::resolution = resolution;
+    Micron::ADlow = ADlow;
+    Micron::ADspan = ADspan;
     
     // setting regionBins lines to NULL
-    for (int i=0; i<MAX_LINES; i++) 
-	regionBins[i] = NULL;
+    for (int i=0; i<MAX_LINES; i++) regionBins[i] = NULL;
+    // setting state and selected region to scan
     state = stIdle;
     currentRegion = frontRegion;
 }
 
 // default values constructor
 Micron::Micron() {
-    this::range = 20; // 20 m standard range
-    this::resolution = 5; // 5 cm standard resolution
-    this::ADlow = 40;     // 40 dB standard AD low limit
-    this::ADspan = 24;    // 24 dB  standard AD span
-
+    Micron::range = 20; // 20 m standard range
+    Micron::resolution = 5; // 5 cm standard resolution
+    Micron::ADlow = 40;     // 40 dB standard AD low limit
+    Micron::ADspan = 24;    // 24 dB  standard AD span
+   
     // setting regionBins lines to NULL
     for (int i=0; i<MAX_LINES; i++) 
-	this::regionBins[i] = NULL;
+            Micron::regionBins[i] = NULL;
    
     state = stAliveSonar; // starting from alive state. Assumming Sonar connected and powered
     currentRegion = frontRegion;
@@ -120,12 +111,13 @@ void Micron::sendStopAlives(Device* theOpaque, QueuePointer inqueue) {
        // sending the packet
        player_opaque_data_t mData;
        mData.data_count = len;
-       mData.data = (void*)salraw;
+       mData.data = (uint8_t*)salraw;
        
-       theOpaque->PuMsg(inqueue, PLAYER_MSGTYPE_CMD, PLAYER_OPAQUE_CMD_DATA, &mData, 0, NULL); 
+       
+       theOpaque->PutMsg(inqueue, PLAYER_MSGTYPE_CMD, PLAYER_OPAQUE_CMD_DATA, &mData, 0, NULL); 
         // Data sent
         // Now disposing packet and raw data
-        free(salpack);
+        disposePacket(salpack);
         free(salraw);
         // changing state
         state = stAliveSonar; // Sonar should be alive
@@ -141,12 +133,12 @@ void Micron::sendReboot(Device* theOpaque, QueuePointer inqueue) {
         // sending the data
         player_opaque_data_t mData;
         mData.data_count = len;
-        mData.data = (void*)rbraw;
+        mData.data = (uint8_t*)rbraw;
 
         theOpaque->PutMsg( inqueue,  PLAYER_MSGTYPE_CMD, PLAYER_OPAQUE_CMD_DATA, &mData, 0, NULL); 
         // Data sent
 	    // Now disposing packet and raw data
-	    free(rbpack);
+	    disposePacket(rbpack);
         free(rbraw);
         // changing state
          state = stExpectAlive; // waiting for an alive answer
@@ -163,12 +155,12 @@ void Micron::sendBBUser(Device* theOpaque, QueuePointer inqueue) {
          // send the data
          player_opaque_data_t mData;
          mData.data_count = len;
-         mData.data = (void*)rawbb;
+         mData.data = (uint8_t*)rawbb;
 
         theOpaque->PutMsg( inqueue,  PLAYER_MSGTYPE_CMD, PLAYER_OPAQUE_CMD_DATA, &mData, 0, NULL);
         // Data sent
         // disposing packet and raw data 
-        free(bbpack);
+        disposePacket(bbpack);
         free(rawbb);
         // changing state
         state = stExpectUserData;
@@ -186,12 +178,12 @@ void Micron::sendVersion(Device* theOpaque, QueuePointer inqueue) {
        // send the data
        player_opaque_data_t mData;
        mData.data_count = len;
-       mData.data = (void*)svraw;
+       mData.data = (uint8_t*)svraw;
 
        theOpaque->PutMsg( inqueue,  PLAYER_MSGTYPE_CMD, PLAYER_OPAQUE_CMD_DATA, &mData, 0, NULL);
        // data sent
        // disposing the packet and raw data
-       free(svpack);
+       disposePacket(svpack);
        free(svraw);
        // changing state
        state = stExpectAlive; // waiting for an alive answer
@@ -200,7 +192,7 @@ void Micron::sendVersion(Device* theOpaque, QueuePointer inqueue) {
 // this function sends an mtHeadCommand
 void Micron::sendHeadCommand(Device* theOpaque, QueuePointer inqueue, char region) {
        // creating the head packet
-       TritecPacket* headpack = makeHead(this::range, region, this::resolution, this::ADlow, this::ADspan);
+       TritecPacket* headpack = makeHead(range, region, resolution, ADlow, ADspan);
        // retrieving length
        int len = packetLength(headpack);
        // converting to raw data
@@ -210,20 +202,20 @@ void Micron::sendHeadCommand(Device* theOpaque, QueuePointer inqueue, char regio
        // disposing old region if not null
        for (int i=0; i<MAX_LINES; i++)
           if (regionBins[i]!=NULL) {
- 		free(regionBins[i]);
-	        regionBins[i] = NULL;
-	  }
+                free(regionBins[i]);
+                regionBins[i] = NULL;
+            }
        // initializing scannedlines
        scannedlines = 0;
        // sending Command
        player_opaque_data_t mData;
        mData.data_count = len;
-       mData.data = (void*)headraw;
+       mData.data = (uint8_t*)headraw;
 
        theOpaque->PutMsg( inqueue,  PLAYER_MSGTYPE_CMD, PLAYER_OPAQUE_CMD_DATA, &mData, 0, NULL);
        // data sent
        // disposing the packet and raw data
-       free(headpack);
+       disposePacket(headpack);
        free(headraw);
        // changing state
        
@@ -241,12 +233,12 @@ void Micron::sendData(Device* theOpaque, QueuePointer inqueue) {
             // sending packet
             player_opaque_data_t mData;
             mData.data_count = len;
-            mData.data = (void*)sdraw;
+            mData.data = (uint8_t*)sdraw;
 
             theOpaque->PutMsg( inqueue,  PLAYER_MSGTYPE_CMD, PLAYER_OPAQUE_CMD_DATA, &mData, 0, NULL);
             // data sent
             // disposing packet and raw data
-            free(sdpack);
+            disposePacket(sdpack);
             free(sdraw);
             // changing state
             state = stExpectHeadData; // waiting for head data to arrive
@@ -282,9 +274,6 @@ void Micron::transitionAction(TritecPacket* pack, Device* theOpaque, QueuePointe
                case stAliveSonar: 
                             state = stAliveSonar; // must be alive
                             break;
-               case stIdle:
-                            state = stAliveSonar;
-                            break;
                case stDataReady: // nothing
                             break;
                }
@@ -296,7 +285,7 @@ void Micron::transitionAction(TritecPacket* pack, Device* theOpaque, QueuePointe
                                 state = stAliveSonar;
                             break;
                     case stConnected: // connected and may get an automatic alive
-                                sendStopAlives(); // killing alives just in case
+                                sendStopAlives(theOpaque, inqueue); // killing alives just in case
                             break;
                     case stExpectHeadAlive: // waiting on an alive response to a head command (unlikely to happen)
                                 state = stSendingData; // we are now clear to request data
@@ -330,7 +319,7 @@ void Micron::transitionAction(TritecPacket* pack, Device* theOpaque, QueuePointe
                             // clear the incoming buffer or do nothing
                             break;
                         case stAliveSonar: // it's alive but we are getting alives.
-                            sendStopAlives(); // kill the alives
+                            sendStopAlives(theOpaque, inqueue); // kill the alives
                             break;
                         case stDataReady: 
                             // killing alives
@@ -388,12 +377,12 @@ void Micron::transitionAction(TritecPacket* pack, Device* theOpaque, QueuePointe
 
         
 
-static int Micron::packetLength(TritecPacket* tp) {
+int Micron::packetLength(TritecPacket* tp) {
      int binlength = tp->MsgLength[0] + tp->MsgLength[1]*256;
      return 5 + binlength + 1; // first 5 bytes + messagelength+line feed
 }
 
-static char* Micron::convertPacket2Bytes(TritecPacket* tp) {
+char* Micron::convertPacket2Bytes(TritecPacket* tp) {
             int rawlen = packetLength(tp);
             char* rawmsg = (char*)malloc(rawlen);
             // now filling the raw bytes array
@@ -424,8 +413,20 @@ static char* Micron::convertPacket2Bytes(TritecPacket* tp) {
 }
 
 
+// packet disposal
+void Micron::disposePacket(TritecPacket* pack) {
+    // disposing the hex length string
+    free(pack->HexMsgLength);
+    // disposing the length bytes
+    free(pack->MsgLength);
+    // disposing the messagelength
+    free(pack->Msg);
+    // now disposing the packet
+    free(pack);
+}
+
         
-static TritecPacket* Micron::makeSendBBUser() {
+TritecPacket* Micron::makeSendBBUser() {
        
     TritecPacket* bbpack = (TritecPacket*)malloc(sizeof(TritecPacket));
     
@@ -451,7 +452,7 @@ static TritecPacket* Micron::makeSendBBUser() {
 }
 
 
-static TritecPacket* Micron::makeReboot() {
+TritecPacket* Micron::makeReboot() {
      TritecPacket* rbpack = (TritecPacket*)malloc(sizeof(TritecPacket));
      
      rbpack->Header = (char)'@';
@@ -475,7 +476,7 @@ static TritecPacket* Micron::makeReboot() {
      return rbpack;
 }
 
-static TritecPacket* Micron::makeSendVersion() {
+TritecPacket* Micron::makeSendVersion() {
       TritecPacket* sverpack = (TritecPacket*)malloc(sizeof(TritecPacket));
        
       sverpack->Header = (char)'@';
@@ -500,7 +501,7 @@ static TritecPacket* Micron::makeSendVersion() {
 }
 
 
-static TritecPacket* Micron::makeStopAlives() {
+TritecPacket* Micron::makeStopAlives() {
       
       TritecPacket* salpack = (TritecPacket*)malloc(sizeof(TritecPacket));
 
@@ -527,19 +528,19 @@ static TritecPacket* Micron::makeStopAlives() {
 
 
 
-static char* Micron::unwrapHeadData(TritecPacket* hdatapack, int& datalen, int& headofs) {
+char* Micron::unwrapHeadData(TritecPacket* hdatapack, int& datalen, int& headofs) {
       
     datalen = hdatapack->Msg[32] + 256 * hdatapack->Msg[33];
     headofs = hdatapack->Msg[21] + 245 * hdatapack->Msg[22];
     int i;
     char* bins = (char*)malloc(datalen);
     for (i = 0; i < datalen; i++)
-                bins[i] = hdatapack.Msg[34 + i];
+                bins[i] = hdatapack->Msg[34 + i];
     return bins;
 }
 
 
-static TritecPacket* Micron::makeSendData() {
+TritecPacket* Micron::makeSendData() {
             
    TritecPacket* sdatapack = new TritecPacket();
     
@@ -569,7 +570,7 @@ static TritecPacket* Micron::makeSendData() {
 }
 
 
-static int Micron::validateAlive(TritecPacket* alivepack) {
+int Micron::validateAlive(TritecPacket* alivepack) {
     
   int status;
   char headinfo;
@@ -589,7 +590,7 @@ static int Micron::validateAlive(TritecPacket* alivepack) {
 
 
 // specify resolution in cms, range in meters
-static TritecPacket* Micron::makeHead(int range, char region, int resolution, int ADlow, int ADspan) {
+TritecPacket* Micron::makeHead(int range, char region, int resolution, int ADlow, int ADspan) {
      
   TritecPacket* headpack = (TritecPacket*)malloc(sizeof(TritecPacket));
   headpack->Header = (char)'@';
@@ -660,27 +661,27 @@ static TritecPacket* Micron::makeHead(int range, char region, int resolution, in
   headpack->Msg[26] = (char)((drange >> 8) & 0xFF); // range in dm, high byte
 
   int leftlim = 0, rightlim = 0;
-  if (region == Micron.frontRegion) 
+  if (region == Micron::frontRegion) 
   {
        leftlim = 2400;
        rightlim = 4000;
    } 
-    else if (region == Micron.rightRegion)
+    else if (region == Micron::rightRegion)
             {
                 leftlim = 400;
                 rightlim = 5600;
             }
-	      else if (region == Micron.rearLeftRegion)
+	      else if (region == Micron::rearLeftRegion)
 		{
 		  leftlim = 0;
 		  rightlim = 800;
 		}
-		else if (region == Micron.rearRightRegion)
+		else if (region == Micron::rearRightRegion)
 		  {
 		    leftlim = 5600;
 		    rightlim = 6399;
 		  }
-		   else if (region == Micron.leftRegion)
+		   else if (region == Micron::leftRegion)
 		      {
 			leftlim = 800;
 			rightlim = 2400;
@@ -762,7 +763,7 @@ static TritecPacket* Micron::makeHead(int range, char region, int resolution, in
  }
 
 
-static TritecPacket* Micron::convertBytes2Packet(char* msg) {
+TritecPacket* Micron::convertBytes2Packet(char* msg) {
       
   TritecPacket* tp = (TritecPacket*)malloc(sizeof(TritecPacket));
   //copying header
@@ -797,51 +798,51 @@ static TritecPacket* Micron::convertBytes2Packet(char* msg) {
 
 // member variable methods
 void Micron::setState(int state) {
-    this::state = state;
+    Micron::state = state;
 }
 
 int Micron::getState() {
-    return this::state;
+    return state;
 }
     
 void Micron::setRegion(char region) {
-    this::currentRegion = region;
+    Micron::currentRegion = region;
 }
 
 char Micron::getRegion() {
-    return this::currentRegion;
+    return Micron::currentRegion;
 }
     
 void Micron::setResolution(int resolution) {
-    this::resolution = resolution;
+    Micron::resolution = resolution;
 }
 
 int Micron::getResolution() {
-    return this::resolution;
+    return resolution;
 }
 
 void Micron::setRange(int range) {
-    this::range = range;
+    Micron::range = range;
 }
 
 int Micron::getRange() {
-    return this::range;
+    return range;
 }
     
 void Micron::setADlow(int adlow) {
-    this::ADlow = adlow;
+    Micron::ADlow = adlow;
 }
 
 int Micron::getADlow() {
-    return this::ADlow;
+    return ADlow;
 }
     
 void Micron::setADspan(int adspan) {
-    this::ADspan = adspan;
+    ADspan = adspan;
 }
 
-void Micron::getADspan() {
-    return this::ADspan;
+int Micron::getADspan() {
+    return ADspan;
 }
     // member variable methods done
 

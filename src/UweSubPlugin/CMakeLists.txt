@@ -14,7 +14,9 @@ SET( srcFiles
     DepthSensorDriver.cpp
     MotorDriver.cpp
     SonarDriver.cpp
-    DataStructures/RollingBuffer.cpp )
+    DataStructures/RollingBuffer.cpp
+    DataStructures/Micron.cpp
+    DataStructures/microncmds.cpp )
 
 LINK_DIRECTORIES( 
     ${global_link_dirs}

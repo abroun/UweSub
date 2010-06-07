@@ -11,16 +11,16 @@
 class Micron {
 
        // Tritec Protocol Command Constants
-       private: const char mtVersionData; // Version reply by the micron
-       private: const char mtHeadData; // Head data reply by the micron
-       private: const char mtAlive;    // Alive reply by the micron
-       private: const char mtBBUserData; // User data reply by the micron
-       private: const char mtReBoot; // Reboot sonar
-       private: const char mtHeadCommand; // configure the micron for scanning
-       private: const char mtSendVersion;  // request parameters from micron
-       private: const char mtSendBBUser; // request user data from micron
-       private: const char mtSendData;   // request half/full duplex data from micron
-       private: const char mtStopAlive; // forces micron to stop sedning repeated alive msgs
+       private: static const char mtVersionData; // Version reply by the micron
+       private: static const char mtHeadData; // Head data reply by the micron
+       private: static const char mtAlive;    // Alive reply by the micron
+       private: static const char mtBBUserData; // User data reply by the micron
+       private: static const char mtReBoot; // Reboot sonar
+       private: static const char mtHeadCommand; // configure the micron for scanning
+       private: static const char mtSendVersion;  // request parameters from micron
+       private: static const char mtSendBBUser; // request user data from micron
+       private: static const char mtSendData;   // request half/full duplex data from micron
+       private: static const char mtStopAlive; // forces micron to stop sedning repeated alive msgs
         
        // Commands ends
 
@@ -38,7 +38,7 @@ class Micron {
        public: static const char alInScan;
 
        // maximum number of lines constant
-       private: const int MAX_LINES;
+       private: static const int MAX_LINES=100;
 	
        // class members
        private: int state;
@@ -49,7 +49,7 @@ class Micron {
 
        public: char currentRegion;
        public: int scannedlines;
-       public: char* regionBins[];
+       public: char* regionBins[MAX_LINES];
 
        // state constants
        public: static const int stIdle;
@@ -78,6 +78,9 @@ class Micron {
          
         // ******** The following functions send packages to the micron via a designated channel (use of opaque)******
         
+       // send BB user Data 
+       public: void sendBBUser(Device* theOpaque, QueuePointer inqueue);
+        
         // this function kills the constant alive messages from the micron
         public: void sendStopAlives(Device* theOpaque, QueuePointer inqueue); 
         
@@ -105,7 +108,7 @@ class Micron {
         private: void addScanLine(char* line);
         
 	    // this function changes internal state
-        public: void transitionAction(TritecPacket* pack);
+        public: void transitionAction(TritecPacket* pack, Device* theOpaque, QueuePointer inqueue);
 
         // ************************ State and Data Handling functions ends here **************************
         
@@ -117,6 +120,9 @@ class Micron {
 	
 	    // This function makes a packet out of raw bytes
         public: static TritecPacket* convertBytes2Packet(char* msg);
+        
+        // This function disposes a tritech Packet
+        public: static void disposePacket(TritecPacket* pack);
 
 	// ************************* Methods that create micron command packets ********************	
 
@@ -134,6 +140,9 @@ class Micron {
 	
 	     // mtHeadData command packet. specify resolution in cms, range in meters
         public: static TritecPacket* makeHead(int range, char region, int resolution, int ADlow, int ADspan);
+        
+        // An mtSendBBUser command packet
+        public: static TritecPacket* makeSendBBUser();
 	// **************************** Command Packets Methods ends here ********************************
 
 
@@ -163,7 +172,7 @@ class Micron {
     public: int getADlow();
     
     public: void setADspan(int adspan);
-    public: void getADspan();
+    public: int getADspan();
     // member variable methods done
 
 	    

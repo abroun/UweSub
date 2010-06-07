@@ -55,8 +55,7 @@ SonarDriver::SonarDriver( ConfigFile* pConfigFile, int section )
         return;
     }
     
-    // creating the micron object
-    pmicron = new Micron(); // default values constructor (range 20m, resolution 5cms)
+    
     
     
     // initializing serial incoming handling globals
@@ -68,8 +67,7 @@ SonarDriver::SonarDriver( ConfigFile* pConfigFile, int section )
 
     mBuffer.Init( mBufferSize.GetValue() );
     
-    // KILL THE ALIVES RIGHT NOW!
-    pmicron->sendStopAlives(mpOpaque, this->InQueue);
+    
 }
 
 //------------------------------------------------------------------------------
@@ -120,7 +118,13 @@ int SonarDriver::MainSetup()
     //delete [] buffer;
     //buffer = NULL;
 
-    PLAYER_WARN( "Sonar driver ready" );
+    PLAYER_WARN( "Sonar driver ready. Talking to Micron" );
+    
+    // creating the micron object
+    pmicron = new Micron(); // default values constructor (range 20m, resolution 5cms)
+    
+    // KILL THE ALIVES RIGHT NOW!
+    pmicron->sendStopAlives(mpOpaque, this->InQueue);
 
     return 0;
 }
@@ -247,11 +251,14 @@ void SonarDriver::Main()
                     printf("\n");
                 }
              pmicron->setState(Micron::stAliveSonar);
-        }
+        } else if (pmicron->getState() == Micron::stAliveSonar) {
+                 printf("scan?\n");
+            //if (char ch=getchar()=='y') pmicron->sendHeadCommand(mpOpaque, this->InQueue, pmicron->frontRegion);
+            }
                     
             
         // Wait for messages to arrive
-        base::Wait();
+        //base::Wait();
         
         base::ProcessMessages();
         
@@ -269,7 +276,7 @@ void SonarDriver::ProcessData()
   
     if (remainingBytes==0) { // previous packet was fully read
         if ((numBytesToRead==0)&&((pmicron->getState()==Micron::stSendingData)||(pmicron->getState()==Micron::stExpectHeadData))) 
-            pmicron->sendHeadCommand(mpOpaque, this->InQueue, pmicron->getRegion()); // no data in queue while scanning, must issue a sendData command
+            pmicron->sendData(mpOpaque, this->InQueue); // no data in queue while scanning, must issue a sendData command
               else if (numBytesToRead>=7) { // nead at least 7 bytes to determine the length of the packet
                         bufhead = (char*)malloc(7); // get the first 7 bytes
                         // reading first 7 bytes in the buffer_size
@@ -281,9 +288,8 @@ void SonarDriver::ProcessData()
             char* buffer = (char*)malloc(totalbytes);
             char* rembuffer = (char*)malloc(remainingBytes);
             // now reading remaining bytes as estimated using the packet header
-            // going one-by-one
-            for (i=0; i<remainingBytes; i++)
-                    mBuffer.ReadBytes((U8*)(&rembuffer[i]), 1);
+            // going altogether
+            mBuffer.ReadBytes((U8*)rembuffer, remainingBytes);
         
             // tailoring bufhead and rembuffer into buffer
         
@@ -301,6 +307,6 @@ void SonarDriver::ProcessData()
             free(rembuffer);
             free(buffer);
             // done
-            pmicron->transitionAction(pack);   // change internal state and act
+            pmicron->transitionAction(pack, mpOpaque, this->InQueue);   // change internal state and act
          }
 }

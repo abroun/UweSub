@@ -1,35 +1,6 @@
 
 #include "microncmds.h"
 
-// command strings
-static char micron_cmds[micronCMDS_COUNT][7] = {
-        [micronREBOOT] = "REBOOT",
-        [micronSET_REGION_FRONT] = "RFRONT",
-        [micronSET_REGION_RIGHT] = "RRIGHT",
-        [micronSET_REGION_LEFT] =  "RGLEFT",
-        [micronSET_REGION_REAR_RIGHT] = "RRRGHT",
-        [micronSET_REGION_REAR_LEFT] = "RRLEFT",
-        [micronSET_RESOLUTION5] = "RESL05",
-        [micronSET_RESOLUTION10] = "RESL10",
-        [micronSET_RESOLUTION20] = "RESL20",
-        [micronSET_RANGE10] = "RANG10",
-        [micronSET_RANGE20] = "RANG20",
-        [micronSET_RANGE30] = "RANG30",
-        [micronSCAN_REGION] = "SCANRG",
-        [micronSTREAM_REGION_DATA] = "STREAMD"
-};
-
-// micron response message strings
-static char micron_msgs[micronMSGS_COUNT][7] = {
-        [micronREGION_SET] = "REGSET",
-        [micronRESOLUTION_SET] = "RESSET",
-        [micronRANGE_SET] = "RANSET",
-        [micronALIVE] = "MALIVE",
-        [micronDATA_READY] = "DATRDY",
-        [micronERROR] = "MERROR"
-};
-
-
 
 
 // string to command code
