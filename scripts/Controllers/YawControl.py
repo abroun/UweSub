@@ -20,6 +20,7 @@ class YawControl:
         self.iState = 0.0
         self.lastAngleError = 0.0
         self.pTerm = 0.0
+        self.iTerm = 0.0
         self.dTerm = 0.0
     
     #---------------------------------------------------------------------------
@@ -31,11 +32,11 @@ class YawControl:
     # interfaces if needed.
     def update( self, linearSpeed, depthSpeed ):
 
-        Kp = 0.1
-        Ki = 0.0
-        Kd = 1.0
-        iMax = 2*math.pi
-        iMin = -2*math.pi
+        Kp = 0.01
+        Ki = 0.01
+        Kd = 0.02
+        iMax = 2.8
+        iMin = -2.8
         
         if self.desiredAngle == None:
             # Cope with the case where DesiredAngle is not set
@@ -63,14 +64,14 @@ class YawControl:
             self.iState = iMax
         elif self.iState < iMin:
             self.iState = iMin
-        iTerm = Ki*self.iState
+        self.iTerm = Ki*self.iState
         
         # Derivative
         dState = angleError - self.lastAngleError
         self.dTerm = Kd*dState
         self.lastAngleError = angleError
 
-        angularSpeed = self.pTerm + iTerm + self.dTerm    # rad/s
+        angularSpeed = self.pTerm + self.iTerm + self.dTerm    # rad/s
              
         #print "accumulating error ="
         #print self.iState

@@ -42,6 +42,7 @@ class MainWindow:
         self.startGraph = False
         
         self.pTest = []
+        self.iTest = []
         self.dTest = []
 
         self.connectToPlayer()
@@ -264,16 +265,17 @@ class MainWindow:
                 self.arrayYawAngles.append( degCompassAngle)
                 self.pTest.append (self.yawController.pTerm)
                 self.dTest.append(self.yawController.pTerm)
-                if radCompassAngle - newDesiredYawAngle < 0.001 \
-                    and radCompassAngle - newDesiredYawAngle> -0.001:
+                if radCompassAngle - newDesiredYawAngle < 0.01 \
+                    and radCompassAngle - newDesiredYawAngle> -0.01:
                     self.yawController.iState = 0.0
+                    #figure(2)
+                    #plot(range(len(self.pTest)),self.pTest,'r',\
+                         #range(len(self.iTest)),self.iTest,'k',\
+                         #range(len(self.dTest)),self.dTest,'m')
+                    #xlabel('Time')
+                    #ylabel('pTerm, iTerm & dTerm')
+                    #show()
                     self.startGraph = False
-                    figure(2)
-                    plot(range(len(self.pTest)),self.pTest,'r')
-                    hold(True)
-                    plot(range(len(self.dTest)),self.dTest,'b')
-                    xlabel('Time')
-                    ylabel('pTerm & dTerm')
                 
             self.yawController.setDesiredAngle( newDesiredYawAngle )   # rad
             self.yawController.update( newLinearSpeed, newDepthSpeed )         
