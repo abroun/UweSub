@@ -19,6 +19,8 @@ class YawControl:
         
         self.iState = 0.0
         self.lastAngleError = 0.0
+        self.pTerm = 0.0
+        self.dTerm = 0.0
     
     #---------------------------------------------------------------------------
     def setDesiredAngle( self, angle ):
@@ -29,9 +31,9 @@ class YawControl:
     # interfaces if needed.
     def update( self, linearSpeed, depthSpeed ):
 
-        Kp = 3.0
+        Kp = 0.1
         Ki = 0.0
-        Kd = 5.0
+        Kd = 1.0
         iMax = 2*math.pi
         iMin = -2*math.pi
         
@@ -51,7 +53,7 @@ class YawControl:
         # Proportional
         angleError = self.desiredAngle - radCompassAngle    # rad
         #print angleError
-        pTerm = Kp*angleError
+        self.pTerm = Kp*angleError
         
         # Integral
         self.iState +=angleError
@@ -65,13 +67,13 @@ class YawControl:
         
         # Derivative
         dState = angleError - self.lastAngleError
-        dTerm = Kd*dState
+        self.dTerm = Kd*dState
         self.lastAngleError = angleError
-    
-        angularSpeed = pTerm + iTerm + dTerm    # rad/s
+
+        angularSpeed = self.pTerm + iTerm + self.dTerm    # rad/s
              
-        print "accumulating error ="
-        print self.iState
+        #print "accumulating error ="
+        #print self.iState
         
         # Send the new speed to player
         self.playerPos3D.set_velocity( linearSpeed, 0.0, depthSpeed, # x, y, z
