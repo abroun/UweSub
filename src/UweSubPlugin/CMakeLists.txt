@@ -13,15 +13,10 @@ SET( srcFiles
     CompassDriver.cpp
     DepthSensorDriver.cpp
     MotorDriver.cpp
-<<<<<<< HEAD
     SonarDriver.cpp
     DataStructures/RollingBuffer.cpp
     DataStructures/Micron.cpp
     DataStructures/microncmds.cpp ) 
-=======
-#    SonarDriver.cpp
-    DataStructures/RollingBuffer.cpp )
->>>>>>> baea7d6f723462e3bc5d2a1e74f6675fffe13479
 
 LINK_DIRECTORIES( 
     ${global_link_dirs}

@@ -9,7 +9,7 @@
 #include "CompassDriver.h"
 #include "DepthSensorDriver.h"
 #include "MotorDriver.h"
-//#include "SonarDriver.h"
+#include "SonarDriver.h"
 
 //------------------------------------------------------------------------------
 // Need the extern to avoid C++ name-mangling
@@ -20,7 +20,7 @@ extern "C"
         CompassDriverRegister( pTable );
         DepthSensorDriverRegister( pTable );
         MotorDriverRegister( pTable );
-//        SonarDriverRegister( pTable );
+        SonarDriverRegister( pTable );
         return 0;
     }
 }
