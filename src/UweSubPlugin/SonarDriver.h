@@ -40,6 +40,8 @@ class SonarDriver : public ThreadedDriver
     // member Micron class
     private: Micron* pmicron;
     
+   
+    
     // Constructor/Destructor
     public: SonarDriver( ConfigFile* pConfigFile, int section );
     public: virtual ~SonarDriver();
@@ -74,7 +76,7 @@ class SonarDriver : public ThreadedDriver
     
     // globals for handling serial incoming
     private: int remainingBytes;
-    private: char* bufhead;
+    private: U8 bufhead[7];
 };
 
 //------------------------------------------------------------------------------

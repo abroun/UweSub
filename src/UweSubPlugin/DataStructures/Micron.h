@@ -4,6 +4,8 @@
 
 #include "TritecPacket.h"
 #include <stdlib.h>
+#include <stdio.h>
+#include "../../Common.h"
 #include <libplayercore/playercore.h>
 
 
@@ -11,31 +13,31 @@
 class Micron {
 
        // Tritec Protocol Command Constants
-       private: static const char mtVersionData; // Version reply by the micron
-       private: static const char mtHeadData; // Head data reply by the micron
-       private: static const char mtAlive;    // Alive reply by the micron
-       private: static const char mtBBUserData; // User data reply by the micron
-       private: static const char mtReBoot; // Reboot sonar
-       private: static const char mtHeadCommand; // configure the micron for scanning
-       private: static const char mtSendVersion;  // request parameters from micron
-       private: static const char mtSendBBUser; // request user data from micron
-       private: static const char mtSendData;   // request half/full duplex data from micron
-       private: static const char mtStopAlive; // forces micron to stop sedning repeated alive msgs
+       private: static const U8 mtVersionData; // Version reply by the micron
+       private: static const U8 mtHeadData; // Head data reply by the micron
+       private: static const U8 mtAlive;    // Alive reply by the micron
+       private: static const U8 mtBBUserData; // User data reply by the micron
+       private: static const U8 mtReBoot; // Reboot sonar
+       private: static const U8 mtHeadCommand; // configure the micron for scanning
+       private: static const U8 mtSendVersion;  // request parameters from micron
+       private: static const U8 mtSendBBUser; // request user data from micron
+       private: static const U8 mtSendData;   // request half/full duplex data from micron
+       private: static const U8 mtStopAlive; // forces micron to stop sedning repeated alive msgs
         
        // Commands ends
 
        // Operation constants
-       public: static const char leftRegion;  // 135 to 225 degrees
-       public: static const char frontRegion; //45 to 135 degrees 
-       public: static const char rightRegion; // -45 to 45 degrees
-       public: static const char rearLeftRegion;  // 235 to 270 degrees
-       public: static const char rearRightRegion; // 270 to 315 degrees
+       public: static const U8 leftRegion;  // 135 to 225 degrees
+       public: static const U8 frontRegion; //45 to 135 degrees 
+       public: static const U8 rightRegion; // -45 to 45 degrees
+       public: static const U8 rearLeftRegion;  // 235 to 270 degrees
+       public: static const U8 rearRightRegion; // 270 to 315 degrees
 
        // alive constants (for evaluation of an mtAlive Message)
-       public: static const char alFalseAlive;
-       public: static const char alNoParams;
-       public: static const char alParamsAck;
-       public: static const char alInScan;
+       public: static const U8 alFalseAlive;
+       public: static const U8 alNoParams;
+       public: static const U8 alParamsAck;
+       public: static const U8 alInScan;
 
        // maximum number of lines constant
        private: static const int MAX_LINES=100;
@@ -47,9 +49,9 @@ class Micron {
                 int ADlow;
                 int ADspan;
 
-       public: char currentRegion;
+       public: U8 currentRegion;
        public: int scannedlines;
-       public: char* regionBins[MAX_LINES];
+       public: U8* regionBins[MAX_LINES];
 
        // state constants
        public: static const int stIdle;
@@ -94,7 +96,7 @@ class Micron {
       
 
         // this function sends an mtHeadCommand
-        public: void sendHeadCommand(Device* theOpaque, QueuePointer inqueue ,char region);
+        public: void sendHeadCommand(Device* theOpaque, QueuePointer inqueue ,U8 region);
         
 
         // this functions sends a sendData command
@@ -105,7 +107,7 @@ class Micron {
         // **************************** Internal Class State and Data Handling ************************** 
           
         // this function expands the current region array of bins
-        private: void addScanLine(char* line);
+        private: void addScanLine(U8* line);
         
 	    // this function changes internal state
         public: void transitionAction(TritecPacket* pack, Device* theOpaque, QueuePointer inqueue);
@@ -116,10 +118,10 @@ class Micron {
         public: static int packetLength(TritecPacket* tp);
         
         // This function converts a packet to a raw bytes message
-	    public: static char* convertPacket2Bytes(TritecPacket* tp);
+	    public: static U8* convertPacket2Bytes(TritecPacket* tp);
 	
 	    // This function makes a packet out of raw bytes
-        public: static TritecPacket* convertBytes2Packet(char* msg);
+        public: static TritecPacket* convertBytes2Packet(U8* msg);
         
         // This function disposes a tritech Packet
         public: static void disposePacket(TritecPacket* pack);
@@ -139,7 +141,7 @@ class Micron {
 	    public: static TritecPacket* makeSendData();
 	
 	     // mtHeadData command packet. specify resolution in cms, range in meters
-        public: static TritecPacket* makeHead(int range, char region, int resolution, int ADlow, int ADspan);
+        public: static TritecPacket* makeHead(int range, U8 region, int resolution, int ADlow, int ADspan);
         
         // An mtSendBBUser command packet
         public: static TritecPacket* makeSendBBUser();
@@ -149,7 +151,7 @@ class Micron {
 	// ******************************** Packet Handling methods **************************************
 
 	// This function returns a scanned line as an array of characters from a HeadData packet        
-	public: static char* unwrapHeadData(TritecPacket* hdatapack, int& datalen, int& headofs);
+	public: static U8* unwrapHeadData(TritecPacket* hdatapack, int& datalen, int& headofs);
         
 	// This function recognizes the type of an alive message returned by the micron
         public: static int validateAlive(TritecPacket* alivepack);
@@ -159,8 +161,8 @@ class Micron {
     public: void setState(int state);
     public: int getState();
     
-    public: void setRegion(char region);
-    public: char getRegion();
+    public: void setRegion(U8 region);
+    public: U8 getRegion();
     
     public: void setResolution(int resolution);
     public: int getResolution();
@@ -173,6 +175,8 @@ class Micron {
     
     public: void setADspan(int adspan);
     public: int getADspan();
+    
+    public: void printState();
     // member variable methods done
 
 	    

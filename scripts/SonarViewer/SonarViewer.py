@@ -46,6 +46,7 @@ class MainWindow:
         
         self.window = builder.get_object( "winMain" )
         self.dwgDisplay = builder.get_object( "dwgDisplay" )
+        self.textentry = builder.get_object( "entry1")        
         builder.connect_signals( self )
         
         self.window.show()
@@ -123,7 +124,7 @@ class MainWindow:
 
     #---------------------------------------------------------------------------
     def onBtnTestClicked( self, widget, data = None ):
-        self.playerSpeech.say( "SCANRG" )
+        self.playerSpeech.say( self.textentry.get_text() )
 
     #---------------------------------------------------------------------------
     def onDwgDisplayExposeEvent( self, widget, event ):

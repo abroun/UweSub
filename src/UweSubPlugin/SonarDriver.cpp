@@ -45,6 +45,8 @@ SonarDriver::SonarDriver( ConfigFile* pConfigFile, int section )
 {
     this->alwayson = true;
     
+    
+    
     mpOpaque = NULL;  
     // We must have an opaque device
     if ( pConfigFile->ReadDeviceAddr( &mOpaqueID, section, "requires",
@@ -60,7 +62,6 @@ SonarDriver::SonarDriver( ConfigFile* pConfigFile, int section )
     
     // initializing serial incoming handling globals
     remainingBytes = 0;
-    bufhead = NULL;
     
     // Read options from the configuration file
     RegisterProperty( "buffer_size", &mBufferSize, pConfigFile, section );
@@ -161,6 +162,8 @@ int SonarDriver::ProcessMessage( QueuePointer& respQueue,
     }
     else if ( Message::MatchMessage(pHeader, PLAYER_MSGTYPE_CMD, PLAYER_SPEECH_CMD_SAY, this->device_addr ) )
     { // Handling message from the client
+    
+        
         player_speech_cmd* pCmd = (player_speech_cmd*)pData;
         
         printf( "Micron command received %s\n", pCmd->string );
@@ -251,14 +254,12 @@ void SonarDriver::Main()
                     printf("\n");
                 }
              pmicron->setState(Micron::stAliveSonar);
-        } else if (pmicron->getState() == Micron::stAliveSonar) {
-                 printf("scan?\n");
-            //if (char ch=getchar()=='y') pmicron->sendHeadCommand(mpOpaque, this->InQueue, pmicron->frontRegion);
-            }
-                    
+        } 
+        // print the state
+       pmicron->printState();         
             
         // Wait for messages to arrive
-        //base::Wait();
+        base::Wait();
         
         base::ProcessMessages();
         
@@ -270,43 +271,46 @@ void SonarDriver::Main()
 void SonarDriver::ProcessData()
 {
     int i;
-    // wait a bit
-    for (i=0;i<10000; i++);
+    
     U32 numBytesToRead = mBuffer.GetNumBytesInBuffer(); // let's see what we 've got...
   
+  do {
     if (remainingBytes==0) { // previous packet was fully read
-        if ((numBytesToRead==0)&&((pmicron->getState()==Micron::stSendingData)||(pmicron->getState()==Micron::stExpectHeadData))) 
+        if ((numBytesToRead==0)&&(pmicron->getState()==Micron::stSendingData)) 
             pmicron->sendData(mpOpaque, this->InQueue); // no data in queue while scanning, must issue a sendData command
               else if (numBytesToRead>=7) { // nead at least 7 bytes to determine the length of the packet
-                        bufhead = (char*)malloc(7); // get the first 7 bytes
-                        // reading first 7 bytes in the buffer_size
-                        mBuffer.ReadBytes((U8*)bufhead, 7);    
-                        remainingBytes = (int)bufhead[5] + (int)bufhead[6] * 256 - 2+1; // get the length of the rest of the message
+                        // get the first 7 bytes
+                        // reading first 7 bytes in bufhead
+                        mBuffer.ReadBytes(bufhead, 7);    
+                        remainingBytes = bufhead[5] + bufhead[6] * 256 - 2+1; // get the length of the rest of the message
                     }
-    } else if (numBytesToRead>=remainingBytes) { // it's time to get the remaining packet
+    } else if (numBytesToRead >= remainingBytes) { // it's time to get the remaining packet(s)
             int totalbytes = remainingBytes + 7; // calculate total length
-            char* buffer = (char*)malloc(totalbytes);
-            char* rembuffer = (char*)malloc(remainingBytes);
+            U8 buffer[totalbytes];
+            U8 rembuffer[remainingBytes];
             // now reading remaining bytes as estimated using the packet header
             // going altogether
-            mBuffer.ReadBytes((U8*)rembuffer, remainingBytes);
+            mBuffer.ReadBytes(rembuffer, remainingBytes);
         
             // tailoring bufhead and rembuffer into buffer
         
             for (i=0; i<totalbytes; i++)
-                 if (i<=6) buffer[i] = bufhead[i];
+                 if (i<7) buffer[i] = bufhead[i];
                       else buffer[i] = rembuffer[i-7];
                         // now handling the message
+            printf ("Received a package. Will now handle it");
             TritecPacket* pack = Micron::convertBytes2Packet(buffer);
             
             // clearing remaining bytes
             remainingBytes = 0;
-            // disposing allocated space
-            free(bufhead);
-            bufhead = NULL;
-            free(rembuffer);
-            free(buffer);
             // done
             pmicron->transitionAction(pack, mpOpaque, this->InQueue);   // change internal state and act
-         }
+            // disposing the packet
+            Micron::disposePacket(pack);
+        }
+            
+        numBytesToRead = mBuffer.GetNumBytesInBuffer();
+    } while (numBytesToRead  > remainingBytes);
+           
+         
 }
