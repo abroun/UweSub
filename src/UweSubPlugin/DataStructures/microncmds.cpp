@@ -35,7 +35,6 @@ micron_msg_t micronDecodeMsg(char* msg) {
             else if (strcmp(msg, micron_msgs[micronRANGE_SET])==0) code = micronRANGE_SET;
                 else if (strcmp(msg, micron_msgs[micronALIVE])==0) code = micronALIVE;
                     else if (strcmp(msg, micron_msgs[micronDATA_READY])==0) code = micronDATA_READY;
-                        else if (strcmp(msg, micron_msgs[micronERROR])==0) code = micronERROR;
                             else code = micronMSG_UNKNOWN;
                 
     return code;

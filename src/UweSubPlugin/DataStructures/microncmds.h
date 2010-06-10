@@ -7,7 +7,7 @@
 
 // Micron command codes
 typedef enum {
-        micronREBOOT,               // Reboot the sonar
+        micronREBOOT=0,               // Reboot the sonar
         micronSET_REGION_FRONT,     // Set current region to FRONT (45 to 135 degrees)
         micronSET_REGION_RIGHT,      // set current region to RIGHT (-45 to 45 degrees)
         micronSET_REGION_LEFT,       // set current region to LEFT (135 to 225 degrees)
@@ -27,19 +27,18 @@ typedef enum {
        
 // micron responses
 typedef enum {
-        micronREGION_SET,       // new region accepted 
+        micronREGION_SET=0,       // new region accepted 
         micronRESOLUTION_SET,   // Resolution value accepted 
         micronRANGE_SET,        // new range value accepted
         micronALIVE,            // following a reboot
         micronDATA_READY,        // region scanned
         micronMSGS_COUNT,        // response messages count
-        micronERROR,
         micronMSG_UNKNOWN       // to be used for an unknown message (unrecognized message)
 }micron_msg_t;
 
 // command strings
 static const char micron_cmds[micronCMDS_COUNT][7] = {
-        "REBOOT",
+         "REBOOT",
          "RFRONT",
         "RRIGHT",
          "RGLEFT",

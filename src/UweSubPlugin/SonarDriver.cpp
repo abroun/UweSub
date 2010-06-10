@@ -63,6 +63,7 @@ SonarDriver::SonarDriver( ConfigFile* pConfigFile, int section )
     // initializing serial incoming handling globals
     remainingBytes = 0;
     
+    
     // Read options from the configuration file
     RegisterProperty( "buffer_size", &mBufferSize, pConfigFile, section );
 
@@ -76,7 +77,7 @@ SonarDriver::~SonarDriver()
 {
     mBuffer.Deinit();
     // destroy pmicron
-    delete pmicron;
+    
 }
 
 //------------------------------------------------------------------------------
@@ -126,6 +127,8 @@ int SonarDriver::MainSetup()
     
     // KILL THE ALIVES RIGHT NOW!
     pmicron->sendStopAlives(mpOpaque, this->InQueue);
+    
+    
 
     return 0;
 }
@@ -137,7 +140,10 @@ void SonarDriver::MainQuit()
     PLAYER_WARN( "Sonar driver shutting down");
 
     mpOpaque->Unsubscribe( this->InQueue );
-
+    
+    // destroy pmicron
+    delete pmicron;
+    
     PLAYER_WARN( "Sonar driver has been shutdown" );
 }
 
@@ -146,6 +152,9 @@ void SonarDriver::MainQuit()
 int SonarDriver::ProcessMessage( QueuePointer& respQueue,
                                 player_msghdr* pHeader, void* pData )
 {   
+    
+    char micronresp[7];
+    
     if ( Message::MatchMessage(pHeader, PLAYER_MSGTYPE_DATA, PLAYER_OPAQUE_DATA_STATE, mOpaqueID ) )
     {
         player_opaque_data_t* pOpaqueData = (player_opaque_data_t*)pData;
@@ -172,58 +181,240 @@ int SonarDriver::ProcessMessage( QueuePointer& respQueue,
         if (thecmd!=micronUNRECOGNIZED) 
           switch(thecmd) {
             case micronREBOOT: // reboot the sonardriver
+                   
                     pmicron->sendReboot(mpOpaque, this->InQueue);
-                    pmicron->reset();
-                    // acknowledge
+                    
+                    // must allow a little bit of time (6sec) the sonar to initialize
+                    time_t starttime, endtime;
+                    time(&starttime);
+                    do {
+                        time(&endtime);
+                    } while (endtime-starttime<6);
+                    // most probably sonar 's fine
+                    
+                    // Now killing the alives
+                    pmicron->sendStopAlives(mpOpaque, this->InQueue);
+                    
+                    // set default values for micron members */
+                    pmicron->reset(); 
+                    // acknowledge to interested parties
+                     strcpy(micronresp, micron_msgs[micronALIVE]);
+                     // sending message to all interested parties (queuepointer = NULL) that data is ready
+                     Publish(device_addr,               // device address of this SonarDriver instance
+                             PLAYER_MSGTYPE_RESP_ACK,  // Message type is a response to a previous request
+                             PLAYER_MSGTYPE_DATA,      // Message subtype is a data string response (see microncmds.h)
+                             (void*)micronresp,        // the string
+                              0,                        // deprecated size parameter. Set to 0.
+                              NULL,                     // timestamp parameter is NULL. Current time will be used 
+                              true                      // copy the data 
+                              );
                     break;
             case micronSET_REGION_FRONT: // select front region for next scan
                     pmicron->setRegion(Micron::frontRegion);
                     // acknowledge
+                     strcpy(micronresp, micron_msgs[micronREGION_SET]);
+                     // sending message to all interested parties (queuepointer = NULL) that data is ready
+                     Publish(device_addr,               // device address of this SonarDriver instance
+                             PLAYER_MSGTYPE_RESP_ACK,  // Message type is a response to a previous request
+                             PLAYER_MSGTYPE_DATA,      // Message subtype is a data string response (see microncmds.h)
+                             (void*)micronresp,        // the string
+                              0,                        // deprecated size parameter. Set to 0.
+                              NULL,                     // timestamp parameter is NULL. Current time will be used 
+                              true                      // copy the data 
+                              );
                     break;
             case micronSET_REGION_RIGHT: // select right region for next scan
                     pmicron->setRegion(Micron::rightRegion);
                     // acknowledge
+                    
+                     strcpy(micronresp, micron_msgs[micronREGION_SET]);
+                     // sending message to all interested parties (queuepointer = NULL) that data is ready
+                     Publish(device_addr,               // device address of this SonarDriver instance
+                             PLAYER_MSGTYPE_RESP_ACK,  // Message type is a response to a previous request
+                             PLAYER_MSGTYPE_DATA,      // Message subtype is a data string response (see microncmds.h)
+                             (void*)micronresp,        // the string
+                              0,                        // deprecated size parameter. Set to 0.
+                              NULL,                     // timestamp parameter is NULL. Current time will be used 
+                              true                      // copy the data 
+                              );
                     break;
             case micronSET_REGION_LEFT: // select left region for next scan
                     pmicron->setRegion(Micron::leftRegion);
                     //acknowledge
+                    
+                     strcpy(micronresp, micron_msgs[micronREGION_SET]);
+                     // sending message to all interested parties (queuepointer = NULL) that data is ready
+                     Publish(device_addr,               // device address of this SonarDriver instance
+                             PLAYER_MSGTYPE_RESP_ACK,  // Message type is a response to a previous request
+                             PLAYER_MSGTYPE_DATA,      // Message subtype is a data string response (see microncmds.h)
+                             (void*)micronresp,        // the string
+                              0,                        // deprecated size parameter. Set to 0.
+                              NULL,                     // timestamp parameter is NULL. Current time will be used 
+                              true                      // copy the data 
+                              );
                     break;
             case micronSET_REGION_REAR_RIGHT: // select rear right region for next scan
                     pmicron->setRegion(Micron::rearRightRegion);
                     //acknowledge
+                    
+                     strcpy(micronresp, micron_msgs[micronREGION_SET]);
+                     // sending message to all interested parties (queuepointer = NULL) that data is ready
+                     Publish(device_addr,               // device address of this SonarDriver instance
+                             PLAYER_MSGTYPE_RESP_ACK,  // Message type is a response to a previous request
+                             PLAYER_MSGTYPE_DATA,      // Message subtype is a data string response (see microncmds.h)
+                             (void*)micronresp,        // the string
+                              0,                        // deprecated size parameter. Set to 0.
+                              NULL,                     // timestamp parameter is NULL. Current time will be used 
+                              true                      // copy the data 
+                              );
                     break;
              case micronSET_REGION_REAR_LEFT: // select rear left region for next scan
                     pmicron->setRegion(Micron::rearLeftRegion);
                     //acknowledge
+                    
+                     strcpy(micronresp, micron_msgs[micronREGION_SET]);
+                     // sending message to all interested parties (queuepointer = NULL) that data is ready
+                     Publish(device_addr,               // device address of this SonarDriver instance
+                             PLAYER_MSGTYPE_RESP_ACK,  // Message type is a response to a previous request
+                             PLAYER_MSGTYPE_DATA,      // Message subtype is a data string response (see microncmds.h)
+                             (void*)micronresp,        // the string
+                              0,                        // deprecated size parameter. Set to 0.
+                              NULL,                     // timestamp parameter is NULL. Current time will be used 
+                              true                      // copy the data 
+                              );
                     break;
              case micronSET_RESOLUTION5: // set resolution to 5cms (bin size)
                     pmicron->setResolution(5);
                     //acknowledge
+                    
+                     strcpy(micronresp, micron_msgs[micronRESOLUTION_SET]);
+                     // sending message to all interested parties (queuepointer = NULL) that data is ready
+                     Publish(device_addr,               // device address of this SonarDriver instance
+                             PLAYER_MSGTYPE_RESP_ACK,  // Message type is a response to a previous request
+                             PLAYER_MSGTYPE_DATA,      // Message subtype is a data string response (see microncmds.h)
+                             (void*)micronresp,        // the string
+                              0,                        // deprecated size parameter. Set to 0.
+                              NULL,                     // timestamp parameter is NULL. Current time will be used 
+                              true                      // copy the data 
+                              );
                     break;
              case micronSET_RESOLUTION10: // set resolution to 10cms (bin size)
                     pmicron->setResolution(10);
                     // acknowledge
+                    
+                     strcpy(micronresp, micron_msgs[micronRESOLUTION_SET]);
+                     // sending message to all interested parties (queuepointer = NULL) that data is ready
+                     Publish(device_addr,               // device address of this SonarDriver instance
+                             PLAYER_MSGTYPE_RESP_ACK,  // Message type is a response to a previous request
+                             PLAYER_MSGTYPE_DATA,      // Message subtype is a data string response (see microncmds.h)
+                             (void*)micronresp,        // the string
+                              0,                        // deprecated size parameter. Set to 0.
+                              NULL,                     // timestamp parameter is NULL. Current time will be used 
+                              true                      // copy the data 
+                              );
                     break;
              case micronSET_RESOLUTION20: // set resolution to 20cms (bin size)
                     pmicron->setResolution(20);
                     // acknowledge
+                    
+                     strcpy(micronresp, micron_msgs[micronRESOLUTION_SET]);
+                     // sending message to all interested parties (queuepointer = NULL) that data is ready
+                     Publish(device_addr,               // device address of this SonarDriver instance
+                             PLAYER_MSGTYPE_RESP_ACK,  // Message type is a response to a previous request
+                             PLAYER_MSGTYPE_DATA,      // Message subtype is a data string response (see microncmds.h)
+                             (void*)micronresp,        // the string
+                              0,                        // deprecated size parameter. Set to 0.
+                              NULL,                     // timestamp parameter is NULL. Current time will be used 
+                              true                      // copy the data 
+                              );
                     break;
              case micronSET_RANGE10: // set range to 10 meters
                     pmicron->setRange(10);
                     // acknowledge
+                    
+                     strcpy(micronresp, micron_msgs[micronRANGE_SET]);
+                     // sending message to all interested parties (queuepointer = NULL) that data is ready
+                     Publish(device_addr,               // device address of this SonarDriver instance
+                             PLAYER_MSGTYPE_RESP_ACK,  // Message type is a response to a previous request
+                             PLAYER_MSGTYPE_DATA,      // Message subtype is a data string response (see microncmds.h)
+                             (void*)micronresp,        // the string
+                              0,                        // deprecated size parameter. Set to 0.
+                              NULL,                     // timestamp parameter is NULL. Current time will be used 
+                              true                      // copy the data 
+                              );
                     break;
              case micronSET_RANGE20: // set range to 20 meters
                     pmicron->setRange(20);
                     //acknowledge
+                    
+                     strcpy(micronresp, micron_msgs[micronRANGE_SET]);
+                     // sending message to all interested parties (queuepointer = NULL) that data is ready
+                     Publish(device_addr,               // device address of this SonarDriver instance
+                             PLAYER_MSGTYPE_RESP_ACK,  // Message type is a response to a previous request
+                             PLAYER_MSGTYPE_DATA,      // Message subtype is a data string response (see microncmds.h)
+                             (void*)micronresp,        // the string
+                              0,                        // deprecated size parameter. Set to 0.
+                              NULL,                     // timestamp parameter is NULL. Current time will be used 
+                              true                      // copy the data 
+                              );
                     break;
              case micronSET_RANGE30: // set range to 30 meters
                     pmicron->setRange(30);
                     // acknlwledge
+                    
+                     strcpy(micronresp, micron_msgs[micronRANGE_SET]);
+                     // sending message to all interested parties (queuepointer = NULL) that data is ready
+                     Publish(device_addr,               // device address of this SonarDriver instance
+                             PLAYER_MSGTYPE_RESP_ACK,  // Message type is a response to a previous request
+                             PLAYER_MSGTYPE_DATA,      // Message subtype is a data string response (see microncmds.h)
+                             (void*)micronresp,        // the string
+                              0,                        // deprecated size parameter. Set to 0.
+                              NULL,                     // timestamp parameter is NULL. Current time will be used 
+                              true                      // copy the data 
+                              );
                     break;
              case micronSCAN_REGION: // scan the selected region
+                    // flushing serial buffer
+                    flushSerialBuffer();
+                    // clearing any data in the regionBins array
+                    pmicron->clearRegionBins();
+                    // now sending head command
                     pmicron->sendHeadCommand(mpOpaque, this->InQueue, pmicron->currentRegion);
-                    // acknowledge
+                    pmicron->sendData(mpOpaque, this->InQueue);
+                    
+                    // The command is not acknowledged here. If all goes well, a micronDATA_READY
+                    // should be published shortly
+                    
                     break;
+             case micronSTREAM_REGION_DATA: // stream region data available so far
+                 int i, j;
+                 int linelength = pmicron->getRange()*100/pmicron->getResolution();
+                 int linecount=0;
+                 // counting region lines 
+                 for (i=0; i<Micron::MAX_LINES; i++) 
+                     linecount += (pmicron->regionBins[i]!=NULL) ? 1 : 0;
+                 // done. now creating a local array to copy the data
+                 if (linecount>0) {
+                     U8* regionCopy[linelength];
+                     // copying the data 
+                     for (i=0; i<linecount; i++)
+                        for (j=0; j<linelength; j++)  
+                             regionCopy[i][j] = pmicron->regionBins[i][j];
+                      // region has been copied. Now publishing the data
+                      
+                      // sending message to all interested parties (queuepointer = NULL) that data is ready
+                      Publish(device_addr,               // device address of this SonarDriver instance
+                              PLAYER_MSGTYPE_DATA,      // Message type is a response to a previous request
+                              PLAYER_MSGTYPE_DATA,      // Message subtype is a data string response (see microncmds.h)
+                              (void*)regionCopy,        // the string
+                               0,                        // deprecated size parameter. Set to 0.
+                               NULL,                     // timestamp parameter is NULL. Current time will be used 
+                               true                      // copy the data 
+                               );
+                       // disposing area data 
+                       pmicron->clearRegionBins();
+                 }
+             
         } // end switch
                     
             
@@ -243,8 +434,21 @@ void SonarDriver::Main()
     {
         // checking for a Data Ready condition
         if (pmicron->getState()==Micron::stDataReady) {
+      
+            char micronresp[7];
+            strcpy(micronresp, micron_msgs[micronDATA_READY]);
+            // sending message to all interested parties (queuepointer = NULL) that data is ready
+            Publish(device_addr,               // device address of this SonarDriver instance
+                    PLAYER_MSGTYPE_RESP_ACK,  // Message type is a response to a previous request
+                    PLAYER_MSGTYPE_DATA,      // Message subtype is a data string response (see microncmds.h)
+                    (void*)micronresp,        // the string
+                    0,                        // deprecated size parameter. Set to 0.
+                    NULL,                     // timestamp parameter is NULL. Current time will be used 
+                    true                      // copy the data 
+                    );
+            
+            /* ******************************* dumping data loop. Use for debugging purposes ***************************
             int i;
-            // dumping data
             for (i=0; i<100; i++)
                 if (pmicron->regionBins[i]!=NULL) {
                     int len = pmicron->getRange()*100/pmicron->getResolution();
@@ -253,13 +457,16 @@ void SonarDriver::Main()
                         printf("%i  | ",pmicron->regionBins[i][j]);
                     printf("\n");
                 }
+            
+            */
+            // returning to a casual alive state but region data remain allocated until a micronSTREAM_REGION_DATA request
              pmicron->setState(Micron::stAliveSonar);
         } 
-        // print the state
-       pmicron->printState();         
-            
+        
+        
         // Wait for messages to arrive
         base::Wait();
+       
         
         base::ProcessMessages();
         
@@ -270,21 +477,24 @@ void SonarDriver::Main()
 //------------------------------------------------------------------------------
 void SonarDriver::ProcessData()
 {
-    int i;
+ int i;
     
-    U32 numBytesToRead = mBuffer.GetNumBytesInBuffer(); // let's see what we 've got...
+ U32 numBytesToRead = mBuffer.GetNumBytesInBuffer(); // let's see what we 've got...
+ 
+ 
   
   do {
     if (remainingBytes==0) { // previous packet was fully read
-        if ((numBytesToRead==0)&&(pmicron->getState()==Micron::stSendingData)) 
+       /*if ((numBytesToRead==0)&&(pmicron->getState()==Micron::stSendingData)) 
             pmicron->sendData(mpOpaque, this->InQueue); // no data in queue while scanning, must issue a sendData command
-              else if (numBytesToRead>=7) { // nead at least 7 bytes to determine the length of the packet
+              else */ if (numBytesToRead>=7) { // nead at least 7 bytes to determine the length of the packet
                         // get the first 7 bytes
                         // reading first 7 bytes in bufhead
-                        mBuffer.ReadBytes(bufhead, 7);    
-                        remainingBytes = bufhead[5] + bufhead[6] * 256 - 2+1; // get the length of the rest of the message
+                        mBuffer.ReadBytes(bufhead, 7); 
+                        if (bufhead[0]!=(U8)'@') flushSerialBuffer();
+                            else remainingBytes = bufhead[5] + bufhead[6] * 256 - 2+1; // get the length of the rest of the message
                     }
-    } else if (numBytesToRead >= remainingBytes) { // it's time to get the remaining packet(s)
+     } else if (numBytesToRead >= remainingBytes) { // it's time to get the remaining packet(s)
             int totalbytes = remainingBytes + 7; // calculate total length
             U8 buffer[totalbytes];
             U8 rembuffer[remainingBytes];
@@ -310,7 +520,22 @@ void SonarDriver::ProcessData()
         }
             
         numBytesToRead = mBuffer.GetNumBytesInBuffer();
-    } while (numBytesToRead  > remainingBytes);
+        
+} while ((numBytesToRead  >= remainingBytes)&&(remainingBytes>0));
            
          
+}
+
+
+void SonarDriver::flushSerialBuffer()
+{
+  U32 numBytesToRead;
+  if (numBytesToRead = mBuffer.GetNumBytesInBuffer() > 0)  {
+  
+    U8* dummy = new U8[numBytesToRead];
+  
+    mBuffer.ReadBytes(dummy, numBytesToRead);
+  
+    delete [] dummy;
+  }
 }

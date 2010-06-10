@@ -56,7 +56,9 @@ class SonarDriver : public ThreadedDriver
     public: virtual int ProcessMessage( QueuePointer& respQueue, 
                                         player_msghdr* pHeader, 
                                         void* pData );
-                                        
+    
+    // clear residual data in the Rolling buffer
+    public: void flushSerialBuffer();
     // The main routine of the thread
     private: virtual void Main();
     
@@ -77,6 +79,7 @@ class SonarDriver : public ThreadedDriver
     // globals for handling serial incoming
     private: int remainingBytes;
     private: U8 bufhead[7];
+    
 };
 
 //------------------------------------------------------------------------------

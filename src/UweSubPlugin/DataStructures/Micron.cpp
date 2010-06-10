@@ -79,7 +79,7 @@ Micron::~Micron() {
   // disposing scannedlines  
   int i;
   for (i=0; i<scannedlines; i++)
-      if (regionBins[i]!=NULL) free(regionBins[i]);
+      if (regionBins[i]!=NULL) delete [] regionBins[i];
 }
 
 
@@ -89,7 +89,7 @@ void Micron::reset() {
     int i;
     for (i=0; i<MAX_LINES; i++) 
         if (regionBins[i]!=NULL) {
-            free(regionBins[i]);
+            delete [] regionBins[i];
             regionBins[i] = NULL;
         }
     // setting current region to frontRegion
@@ -116,7 +116,7 @@ void Micron::sendStopAlives(Device* theOpaque, QueuePointer inqueue) {
         // Data sent
         // Now disposing packet and raw data
         disposePacket(salpack);
-        free(salraw);
+        delete [] salraw;
         // changing state
         state = stAliveSonar; // Sonar should be alive
 }
@@ -137,7 +137,7 @@ void Micron::sendReboot(Device* theOpaque, QueuePointer inqueue) {
         // Data sent
 	    // Now disposing packet and raw data
 	    disposePacket(rbpack);
-        free(rbraw);
+        delete [] rbraw;
         // changing state
          state = stExpectAlive; // waiting for an alive answer
 }
@@ -159,7 +159,7 @@ void Micron::sendBBUser(Device* theOpaque, QueuePointer inqueue) {
         // Data sent
         // disposing packet and raw data 
         disposePacket(bbpack);
-        free(rawbb);
+        delete [] rawbb;
         // changing state
         state = stExpectUserData;
 }
@@ -182,7 +182,7 @@ void Micron::sendVersion(Device* theOpaque, QueuePointer inqueue) {
        // data sent
        // disposing the packet and raw data
        disposePacket(svpack);
-       free(svraw);
+       delete [] svraw;
        // changing state
        state = stExpectAlive; // waiting for an alive answer
 }
@@ -200,7 +200,7 @@ void Micron::sendHeadCommand(Device* theOpaque, QueuePointer inqueue, U8 region)
        // disposing old region if not null
        for (int i=0; i<MAX_LINES; i++)
           if (regionBins[i]!=NULL) {
-                free(regionBins[i]);
+                delete [] regionBins[i];
                 regionBins[i] = NULL;
             }
        // initializing scannedlines
@@ -214,7 +214,7 @@ void Micron::sendHeadCommand(Device* theOpaque, QueuePointer inqueue, U8 region)
        // data sent
        // disposing the packet and raw data
        disposePacket(headpack);
-       free(headraw);
+       delete [] headraw;
        // changing state
        
        state = stSendingData; // it should be stExpectHeadAlive but nobody knows....
@@ -237,15 +237,31 @@ void Micron::sendData(Device* theOpaque, QueuePointer inqueue) {
             // data sent
             // disposing packet and raw data
             disposePacket(sdpack);
-            free(sdraw);
+            delete [] sdraw;
             // changing state
             state = stExpectHeadData; // waiting for head data to arrive
         }
 
+
+// this function clears regionBins and scannedlines
+void Micron::clearRegionBins()
+{
+    int i;
+    for (i=0; i<MAX_LINES; i++)
+        if (regionBins[i]!=NULL) {
+            delete [] regionBins[i];
+            regionBins[i] = NULL;
+        }
+   scannedlines = 0;
+}
+
 // this function expands the current region array of bins
-void Micron::addScanLine(U8* line) {
+void Micron::addScanLine(U8* line, int len) {
          
-         regionBins[scannedlines - 1] = line;
+         regionBins[scannedlines - 1] = new U8[len];
+         for (int i=0; i<len; i++) regionBins[i] = regionBins[i];
+         
+         delete [] line;
 }
 
 // this functions changes state according to the response from the sonar
@@ -254,7 +270,8 @@ void Micron::transitionAction(TritecPacket* pack, Device* theOpaque, QueuePointe
 
         int datalen=0, headofs=0;
         U8* linebins = NULL;
-
+        //for (int d =0; d<10000; d++);
+        
         switch(cmd) {
 	      case mtBBUserData: // received an answer to a sendBBUserCommand
              switch(state) {
@@ -284,6 +301,7 @@ void Micron::transitionAction(TritecPacket* pack, Device* theOpaque, QueuePointe
                             break;
                     case stConnected: // connected and may get an automatic alive
                                 sendStopAlives(theOpaque, inqueue); // killing alives just in case
+                                state = stAliveSonar;
                             break;
                     case stExpectHeadAlive: // waiting on an alive response to a head command (unlikely to happen)
                                 state = stSendingData; // we are now clear to request data
@@ -339,16 +357,26 @@ void Micron::transitionAction(TritecPacket* pack, Device* theOpaque, QueuePointe
                             linebins = unwrapHeadData(pack, datalen, headofs);
                             scannedlines++;
                             printf ("Data unwrapped.Scanned Lines: %i\n",scannedlines );
-                            addScanLine(linebins);
+                            addScanLine(linebins, datalen);
                             
                             if ((currentRegion==rearLeftRegion)||(currentRegion==rearRightRegion)) {
                                 if (scannedlines==50) state = stDataReady;
-                                    else if (scannedlines % 2 ==0) state = stSendingData;
+                                    else if (scannedlines % 2 ==0) {
+                                        
+                                        Micron::sendData(theOpaque, inqueue); 
+                                        for (int d=0; d<20000; d++);
+                                        state = stSendingData; // not needed as sendData() takes care...
+                                    }
                                         else state = stExpectHeadData;
                             } else {
                                 if (scannedlines==100) state = stDataReady;
-                                    else if (scannedlines % 2 == 0) state = stSendingData;
-                                            else state = stExpectHeadData;
+                                    else if (scannedlines % 2 == 0) {
+                                        
+                                        Micron::sendData(theOpaque, inqueue);
+                                        for (int d=0; d<20000; d++);
+                                        state = stSendingData; // not needed as sendData() takes care...
+                                    }   
+                                     else state = stExpectHeadData;
                             }
                             break;
                         case stSendingData: // in the case we receive a second head data (full duplex)
@@ -356,15 +384,25 @@ void Micron::transitionAction(TritecPacket* pack, Device* theOpaque, QueuePointe
                             scannedlines++;
                             printf("Data unwrapped. Scanned lines: %i\n",scannedlines);
                             // adding line to the region array
-                            addScanLine(linebins);
+                            addScanLine(linebins, datalen);
                             
                             if ((currentRegion==rearLeftRegion)||(currentRegion==rearRightRegion)) {
                                 if (scannedlines == 50) state = stDataReady;
-                                    else if (scannedlines % 2 ==0) state = stSendingData;
-                                        else state = stExpectHeadData;
+                                    else if (scannedlines % 2 ==0) {
+                                        
+                                        Micron::sendData(theOpaque, inqueue);
+                                        for (int d=0; d<20000; d++);
+                                        state = stSendingData; // not needed as sendData() takes care...
+                                    }
+                                     else state = stExpectHeadData;
                             } else {
                                 if (scannedlines == 100) state = stDataReady;
-                                    else if (scannedlines % 2 ==0) state = stSendingData;
+                                    else if (scannedlines % 2 ==0) {
+                                        
+                                        Micron::sendData(theOpaque, inqueue);
+                                        for (int d=0; d<20000; d++);
+                                        state = stSendingData; // not needed as sendData() takes care...
+                                    }
                                         else state = stExpectHeadData;
                             }
                             break;
@@ -382,13 +420,13 @@ void Micron::transitionAction(TritecPacket* pack, Device* theOpaque, QueuePointe
         
 
 int Micron::packetLength(TritecPacket* tp) {
-     int binlength = tp->MsgLength[0] + tp->MsgLength[1]*256;
+     int binlength = tp->MsgLength[0] + (tp->MsgLength[1])*256;
      return 5 + binlength + 1; // first 5 bytes + messagelength+line feed
 }
 
 U8* Micron::convertPacket2Bytes(TritecPacket* tp) {
             int rawlen = packetLength(tp);
-            U8* rawmsg = (U8*)malloc(rawlen);
+            U8* rawmsg = new U8[rawlen];
             // now filling the raw bytes array
             rawmsg[0] = tp->Header;
             // hex length
@@ -420,33 +458,33 @@ U8* Micron::convertPacket2Bytes(TritecPacket* tp) {
 // packet disposal
 void Micron::disposePacket(TritecPacket* pack) {
     // disposing the hex length string
-    free(pack->HexMsgLength);
+    delete [] pack->HexMsgLength;
     // disposing the length bytes
-    free(pack->MsgLength);
+    delete [] pack->MsgLength;
     // disposing the messagelength
-    free(pack->Msg);
+    delete [] pack->Msg;
     // now disposing the packet
-    free(pack);
+    delete  pack;
 }
 
         
 TritecPacket* Micron::makeSendBBUser() {
        
-    TritecPacket* bbpack = (TritecPacket*)malloc(sizeof(TritecPacket));
+    TritecPacket* bbpack = new TritecPacket();
     
     bbpack->Header = (U8)'@';
-    bbpack->HexMsgLength = (U8*)malloc(4);
+    bbpack->HexMsgLength = new U8[4];
     bbpack->HexMsgLength[0] = 0x30;
     bbpack->HexMsgLength[1] = 0x30;
     bbpack->HexMsgLength[2] = 0x30;
     bbpack->HexMsgLength[3] = 0x38;
-    bbpack->MsgLength = (U8*)malloc(2);
+    bbpack->MsgLength = new U8[2];
     bbpack->MsgLength[0] = 8;
     bbpack->MsgLength[1] = 0;
     bbpack->TxNdeID = 255;
     bbpack->RxNdeID = 2;
     bbpack->MsgBytes = 3;
-    bbpack->Msg = (U8*)malloc(3);
+    bbpack->Msg = new U8[3];
     bbpack->Msg[0] = mtSendBBUser;
     bbpack->Msg[1] = 0x80;
     bbpack->Msg[2] = 2;
@@ -457,21 +495,21 @@ TritecPacket* Micron::makeSendBBUser() {
 
 
 TritecPacket* Micron::makeReboot() {
-     TritecPacket* rbpack = (TritecPacket*)malloc(sizeof(TritecPacket));
+     TritecPacket* rbpack = new TritecPacket();
      
      rbpack->Header = (U8)'@';
-     rbpack->HexMsgLength = (U8*)malloc(4);
+     rbpack->HexMsgLength = new U8[4];
      rbpack->HexMsgLength[0] = (U8)'0';
      rbpack->HexMsgLength[1] = (U8)'0';
      rbpack->HexMsgLength[2] = (U8)'0';
      rbpack->HexMsgLength[3] = (U8)'8';
-     rbpack->MsgLength = (U8*)malloc(2);
+     rbpack->MsgLength = new U8[2];
      rbpack->MsgLength[0] = 8;
      rbpack->MsgLength[1] = 0;
      rbpack->TxNdeID = 255;
      rbpack->RxNdeID = 2;
      rbpack->MsgBytes = 3;
-     rbpack->Msg = (U8*)malloc(3);
+     rbpack->Msg = new U8[3];
      rbpack->Msg[0] = mtReBoot;
      rbpack->Msg[1] = 0x80;
      rbpack->Msg[2] = 2;
@@ -481,21 +519,21 @@ TritecPacket* Micron::makeReboot() {
 }
 
 TritecPacket* Micron::makeSendVersion() {
-      TritecPacket* sverpack = (TritecPacket*)malloc(sizeof(TritecPacket));
+      TritecPacket* sverpack = new TritecPacket();
        
       sverpack->Header = (U8)'@';
-      sverpack->HexMsgLength = (U8*)malloc(4);
+      sverpack->HexMsgLength = new U8[4];
       sverpack->HexMsgLength[0] = (U8)'0';
       sverpack->HexMsgLength[1] = (U8)'0';
       sverpack->HexMsgLength[2] = (U8)'0';
       sverpack->HexMsgLength[3] = (U8)'8';
-      sverpack->MsgLength = (U8*)malloc(2);
+      sverpack->MsgLength = new U8[2];
       sverpack->MsgLength[0] = 8;
       sverpack->MsgLength[1] = 0;
       sverpack->TxNdeID = 255; // pc is transmitter
       sverpack->RxNdeID = 2;   // micron is the receiver
       sverpack->MsgBytes = 3;   // 3 bytes message payload
-      sverpack->Msg = (U8*)malloc(3);
+      sverpack->Msg = new U8[3];
       sverpack->Msg[0] = mtSendVersion;
       sverpack->Msg[1] = 0x80;
       sverpack->Msg[2] = 2;
@@ -507,21 +545,21 @@ TritecPacket* Micron::makeSendVersion() {
 
 TritecPacket* Micron::makeStopAlives() {
       
-      TritecPacket* salpack = (TritecPacket*)malloc(sizeof(TritecPacket));
+      TritecPacket* salpack = new TritecPacket();
 
       salpack->Header = (U8)'@';
-      salpack->HexMsgLength = (U8*)malloc(4);
+      salpack->HexMsgLength = new U8[4];
       salpack->HexMsgLength[0] = 0x30;
       salpack->HexMsgLength[1] = 0x30;
       salpack->HexMsgLength[2] = 0x30;
       salpack->HexMsgLength[3] = 0x38;
-      salpack->MsgLength = (U8*)malloc(2);
+      salpack->MsgLength = new U8[2];
       salpack->MsgLength[0] = 8;
       salpack->MsgLength[1] = 0;
       salpack->TxNdeID = 255;
       salpack->RxNdeID = 2;
       salpack->MsgBytes = 3;
-      salpack->Msg = (U8*)malloc(3);
+      salpack->Msg = new U8[3];
       salpack->Msg[0] = mtStopAlive;
       salpack->Msg[1] = 0x80;
       salpack->Msg[2] = 2;
@@ -535,9 +573,9 @@ TritecPacket* Micron::makeStopAlives() {
 U8* Micron::unwrapHeadData(TritecPacket* hdatapack, int& datalen, int& headofs) {
       
     datalen = hdatapack->Msg[32] + 256 * hdatapack->Msg[33];
-    headofs = hdatapack->Msg[21] + 245 * hdatapack->Msg[22];
+    headofs = hdatapack->Msg[21] + 256 * hdatapack->Msg[22];
     int i;
-    U8* bins = (U8*)malloc(datalen);
+    U8* bins = new U8[datalen];
     for (i = 0; i < datalen; i++)
                 bins[i] = hdatapack->Msg[34 + i];
     return bins;
@@ -549,18 +587,18 @@ TritecPacket* Micron::makeSendData() {
    TritecPacket* sdatapack = new TritecPacket();
     
    sdatapack->Header = (U8)'@';
-   sdatapack->HexMsgLength = (U8*)malloc(4);
+   sdatapack->HexMsgLength = new U8[4];
    sdatapack->HexMsgLength[0] = 0x30;
    sdatapack->HexMsgLength[1] = 0x30;
    sdatapack->HexMsgLength[2] = 0x30;
    sdatapack->HexMsgLength[3] = 0x43;
-   sdatapack->MsgLength = (U8*)malloc(2);
+   sdatapack->MsgLength = new U8[2];
    sdatapack->MsgLength[0] = 0x0C;
    sdatapack->MsgLength[1] = 0x00;
    sdatapack->TxNdeID = 255;
    sdatapack->RxNdeID = 2;
    sdatapack->MsgBytes = 7;
-   sdatapack->Msg = (U8*)malloc(7);
+   sdatapack->Msg = new U8[7];
    sdatapack->Msg[0] = mtSendData;
    sdatapack->Msg[1] = 0x80;
    sdatapack->Msg[2] = 2;
@@ -596,30 +634,30 @@ int Micron::validateAlive(TritecPacket* alivepack) {
 // specify resolution in cms, range in meters
 TritecPacket* Micron::makeHead(int range, U8 region, int resolution, int ADlow, int ADspan) {
      
-  TritecPacket* headpack = (TritecPacket*)malloc(sizeof(TritecPacket));
+  TritecPacket* headpack = new TritecPacket();
   headpack->Header = (U8)'@';
-  headpack->HexMsgLength = (U8*)malloc(4);
+  headpack->HexMsgLength = new U8[4];
   headpack->HexMsgLength[0] = 0x30; //0
   headpack->HexMsgLength[1] = 0x30; //0
   headpack->HexMsgLength[2] = 0x34;
   headpack->HexMsgLength[3] = 0x43;
 
-  headpack->MsgLength = (U8*)malloc(2);
+  headpack->MsgLength = new U8[2];
   headpack->MsgLength[0] = 76; //76 bytes
   headpack->MsgLength[1] = 0;
   headpack->TxNdeID = 255; //pc 
   headpack->RxNdeID = 2; //  micron id
   headpack->MsgBytes = 71; // 55 bytes left
   // creating the message array
-  headpack->Msg = (U8*)malloc(71);
+  headpack->Msg = new U8[71];
   // now filling the message array
   headpack->Msg[0] = mtHeadCommand; // command id
   headpack->Msg[1] = 0x80;
   headpack->Msg[2] = 2;
-  headpack->Msg[3] = 0x01; // NOT including channel params 
+  headpack->Msg[3] = 0x1D; // NOT including channel params 
   // configuring Head Control now
   // low byte
-  headpack->Msg[4] = 0x85;
+  headpack->Msg[4] = 0x05;
   // bit 0:     1  ADC 8-bit
   // bit 1:     0  Sector Scan
   // bit 2:     1  for right scan, 0 for left scan (here set 1 orginally for masking)
@@ -627,7 +665,7 @@ TritecPacket* Micron::makeHead(int range, U8 region, int resolution, int ADlow, 
   // bit 4:     0  motor enabled (makes no difference in the micron)
   // bit 5:     0  sonar transmitter enabled
   // bit 6:     0  always
-  // bit 7:     1  high Frequency channel
+  // bit 7:     0  low Frequency channel
 
   // high byte
   headpack->Msg[5] = 0x23;
@@ -769,17 +807,17 @@ TritecPacket* Micron::makeHead(int range, U8 region, int resolution, int ADlow, 
 
 TritecPacket* Micron::convertBytes2Packet(U8* msg) {
       
-  TritecPacket* tp = (TritecPacket*)malloc(sizeof(TritecPacket));
+  TritecPacket* tp = new TritecPacket();
   //copying header
   tp->Header = msg[0];
   // copying hex message length string
-  tp->HexMsgLength = (U8*)malloc(4);
+  tp->HexMsgLength = new U8[4];
   tp->HexMsgLength[0] = msg[1];
   tp->HexMsgLength[1] = msg[2];
   tp->HexMsgLength[2] = msg[3];
   tp->HexMsgLength[3] = msg[4];
   //copying binary value of message length
-  tp->MsgLength = (U8*)malloc(2);
+  tp->MsgLength = new U8[2];
   tp->MsgLength[0] = msg[5];  // low char comes first
   tp->MsgLength[1] = msg[6];
   // copying sender id
@@ -789,13 +827,13 @@ TritecPacket* Micron::convertBytes2Packet(U8* msg) {
   // copying actual message bytes (including command)
   tp->MsgBytes = msg[9]; // may not remaining bytes in responses!
   // now copying message
-  int msgrawlen = tp->MsgLength[0]+256*tp->MsgLength[1]-2;
-  tp->Msg = (U8*)malloc(msgrawlen);
+  int msgpayldlen = tp->MsgLength[0]+256*(tp->MsgLength[1])-5; // just the message payload (start at command code)
+  tp->Msg = new U8[msgpayldlen];
   int i;
-  for (i = 0; i < msgrawlen-10; i++)
+  for (i = 0; i < msgpayldlen; i++)
        tp->Msg[i] = msg[10 + i];
    // message copied
-   tp->Terminator = msg[10+tp->MsgBytes]; // it should be a Line Feed (0x0A)
+   tp->Terminator = msg[10+msgpayldlen]; // it should be a Line Feed (0x0A)
    // packet filled
    return tp;
 } 

@@ -5,6 +5,7 @@
 #include "TritecPacket.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <time.h>
 #include "../../Common.h"
 #include <libplayercore/playercore.h>
 
@@ -40,7 +41,7 @@ class Micron {
        public: static const U8 alInScan;
 
        // maximum number of lines constant
-       private: static const int MAX_LINES=100;
+       public: static const int MAX_LINES=100;
 	
        // class members
        private: int state;
@@ -107,10 +108,13 @@ class Micron {
         // **************************** Internal Class State and Data Handling ************************** 
           
         // this function expands the current region array of bins
-        private: void addScanLine(U8* line);
+        private: void addScanLine(U8* line, int len);
         
 	    // this function changes internal state
-        public: void transitionAction(TritecPacket* pack, Device* theOpaque, QueuePointer inqueue);
+        public: virtual void transitionAction(TritecPacket* pack, Device* theOpaque, QueuePointer inqueue);
+        
+        // this function clears the regionBins array ONLY and resets scannedlines to zero
+        public: void clearRegionBins();
 
         // ************************ State and Data Handling functions ends here **************************
         
