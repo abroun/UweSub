@@ -1,7 +1,7 @@
-﻿
+﻿ 
 #ifndef MICRON_H
 #define MICRON_H
-
+ 
 #include "TritecPacket.h"
 #include <stdlib.h>
 #include <stdio.h>

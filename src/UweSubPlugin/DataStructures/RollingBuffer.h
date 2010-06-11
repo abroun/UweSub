@@ -2,7 +2,7 @@
 // File: RollingBuffer.h
 // Desc: A simple rolling buffer implemented using a fixed size array
 //------------------------------------------------------------------------------
-
+ 
 //------------------------------------------------------------------------------
 #ifndef ROLLING_BUFFER_H
 #define ROLLING_BUFFER_H

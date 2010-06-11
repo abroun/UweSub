@@ -2,7 +2,7 @@
 #include "Micron.h"
 
 
-
+ 
 // Tritec Protocol Command Constants
  const U8 Micron::mtVersionData = 1; // Version reply by the micron
  const U8 Micron::mtHeadData = 2; // Head data reply by the micron

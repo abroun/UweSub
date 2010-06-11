@@ -2,7 +2,7 @@
 // File: SonarDriver.cpp
 // Desc: A driver for controlling a Tritech Micron Sonar
 //------------------------------------------------------------------------------
-
+ 
 //------------------------------------------------------------------------------
 #include <stdio.h>
 #include <assert.h>

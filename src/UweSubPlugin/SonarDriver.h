@@ -3,7 +3,7 @@
 // Desc: A driver for controlling a Tritech Micron Sonar
 //
 // Usage Example:
-//
+// 
 //  driver
 //  (
 //    name "sonardriver"
