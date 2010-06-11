@@ -258,7 +258,7 @@ void Micron::clearRegionBins()
 // this function expands the current region array of bins
 void Micron::addScanLine(U8* line, int len) {
          
-         U32 maxlinelength = ((currentRegion == rearLeftRegion) || (currentRegion==rearRightRegion)) ? 50 : 100;
+         U32 maxlinelength = range*100/resolution;
          regionBins[scannedlines - 1] = new U8[maxlinelength];
          U32 j;
          
