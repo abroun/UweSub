@@ -26,6 +26,8 @@ from SubControllerConfig import SubControllerConfig
 #-------------------------------------------------------------------------------
 class MainWindow:
     
+    IMAGE_SCALE = 1.0
+    
     #---------------------------------------------------------------------------
     def __init__( self, config = SubControllerConfig() ):
     
@@ -34,7 +36,7 @@ class MainWindow:
         self.outputSequence = None
         self.outputFilename = None
         self.displayPixBuf = None
-        self.lastCameraFrameTime = 0.0
+        self.lastSonarFrameTime = 0.0
         self.frameNumber = 0
 
         self.connectToPlayer()
@@ -70,24 +72,11 @@ class MainWindow:
             if self.playerClient.connect() != 0:
                 raise Exception( playerc_error_str() )
 
-            # Create a proxy for simulation:0
-            self.playerSim = playerc_simulation( self.playerClient, 0 )
-            if self.playerSim.subscribe( PLAYERC_OPEN_MODE ) != 0:
-                print "Unable to connect to simulation:0. Assuming that we're talking to a real robot"
-                self.playerSim = None
-            
-            # Speech interface is used to send debug messages
-            self.playerSpeech = playerc_speech( self.playerClient, 0 )
-            if self.playerSpeech.subscribe( PLAYERC_OPEN_MODE ) != 0:
-                print "Unable to connect to speech:0"
+            # Create a proxy for micronsonar:0
+            self.playerSonar = playerc_micronsonar( self.playerClient, 0 )
+            if self.playerSonar.subscribe( PLAYERC_OPEN_MODE ) != 0:
                 raise Exception( playerc_error_str() )
             
-            # And for the camera
-            self.playerCamera = None
-            #self.playerCamera = playerc_camera( self.playerClient, 0 )
-            #if self.playerCamera.subscribe( PLAYERC_OPEN_MODE ) != 0:
-            #    raise Exception( playerc_error_str() )
-
             if self.playerClient.datamode( PLAYERC_DATAMODE_PULL ) != 0:
                 raise Exception( playerc_error_str() )
         
@@ -124,7 +113,7 @@ class MainWindow:
 
     #---------------------------------------------------------------------------
     def onBtnTestClicked( self, widget, data = None ):
-        self.playerSpeech.say( self.textentry.get_text() )
+        self.playerSonar.say( self.textentry.get_text() )
 
     #---------------------------------------------------------------------------
     def onDwgDisplayExposeEvent( self, widget, event ):
@@ -167,10 +156,10 @@ class MainWindow:
 
     #---------------------------------------------------------------------------
     def isNewFrameAvailable( self ):
-        if self.playerCamera == None:
+        if self.playerSonar == None:
             return False
         else:
-            return self.lastCameraFrameTime != self.playerCamera.info.datatime
+            return self.lastSonarFrameTime != self.playerSonar.info.datatime
 
     #---------------------------------------------------------------------------
     def update( self ):
@@ -180,20 +169,25 @@ class MainWindow:
                 self.playerClient.read()
 
                 if self.isNewFrameAvailable():
-                    cameraFrameTime = self.playerCamera.info.datatime
-
-                    if self.playerCamera.compression != PLAYER_CAMERA_COMPRESS_RAW:
-                        self.playerCamera.decompress()
-            
-                    if self.playerCamera.compression != PLAYER_CAMERA_COMPRESS_RAW:
-                        print "Error: Unable to decompress frame"
-                        sys.exit( -1 )
+                    sonarFrameTime = self.playerSonar.info.datatime
 
                     # Give the image to OpenCV as a very inefficient way to
-                    # save it as a jpeg
-                    rgbImage = cv.CreateImageHeader( ( self.playerCamera.width, self.playerCamera.height ), cv.IPL_DEPTH_8U, 3 )       
-                    cv.SetData( rgbImage, self.playerCamera.image[:self.playerCamera.image_count], self.playerCamera.width*3 )
+                    # convert to RGB
+                    grayImage = cv.CreateImageHeader( ( self.playerSonar.width, self.playerSonar.height ), cv.IPL_DEPTH_8U, 1 )       
+                    cv.SetData( grayImage, self.playerSonar.image[:self.playerSonar.image_count], self.playerSonar.width )
+        
+                    rgbImage = cv.CreateImage( ( self.playerSonar.width, self.playerSonar.height ), cv.IPL_DEPTH_8U, 3 )
+                    cv.CvtColor( grayImage, rgbImage, cv.CV_GRAY2RGB )
 
+                    if self.IMAGE_SCALE != 1.0:
+                        scaledImage = cv.CreateImage( 
+                            ( int( rgbImage.width*self.IMAGE_SCALE ), 
+                             int ( rgbImage.height*self.IMAGE_SCALE ) ), 
+                            rgbImage.depth, rgbImage.nChannels )
+                    
+                        cv.Resize( rgbImage, scaledImage )
+                        rgbImage = scaledImage
+        
                     # Display the image
                     self.displayPixBuf = gtk.gdk.pixbuf_new_from_data( 
                         rgbImage.tostring(), 
@@ -209,7 +203,7 @@ class MainWindow:
                         self.dwgDisplay.set_size_request( rgbImage.width, rgbImage.height )
 
                     self.dwgDisplay.queue_draw()
-                    self.lastCameraFrameTime = cameraFrameTime
+                    self.lastSonarFrameTime = sonarFrameTime
                 
             yield True
             

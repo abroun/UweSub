@@ -12,8 +12,22 @@ from sshConnection import sshConnection
 # Please add files to be transfered to this list
 # Environment variables can only be used in the source file names (left hand side)
 FILE_TRANSFER_LIST = [
-    # Libraries
+    # UweSub Libraries
     ( "${HOME}/dev/install/lib/uwesubplugin.so", "/home/uwesub/dev/install/lib/uwesubplugin.so" ),
+    # Player Libraries
+    ( "${HOME}/dev/install/lib/liblodo.so.3.0.1", "/home/uwesub/dev/install/lib/liblodo.so.3.0.1" ),
+    ( "${HOME}/dev/install/lib/liblododriver.so.3.0.1", "/home/uwesub/dev/install/lib/liblododriver.so.3.0.1" ),
+    ( "${HOME}/dev/install/lib/libplayerc.so.3.0.1", "/home/uwesub/dev/install/lib/libplayerc.so.3.0.1" ),
+    ( "${HOME}/dev/install/lib/libplayerc++.so.3.0.1", "/home/uwesub/dev/install/lib/libplayerc++.so.3.0.1" ),
+    ( "${HOME}/dev/install/lib/libplayercommon.so.3.0.1", "/home/uwesub/dev/install/lib/libplayercommon.so.3.0.1" ),
+    ( "${HOME}/dev/install/lib/libplayercore.so.3.0.1", "/home/uwesub/dev/install/lib/libplayercore.so.3.0.1" ),
+    ( "${HOME}/dev/install/lib/libplayerdrivers.so.3.0.1", "/home/uwesub/dev/install/lib/libplayerdrivers.so.3.0.1" ),
+    ( "${HOME}/dev/install/lib/libplayerinterface.so.3.0.1", "/home/uwesub/dev/install/lib/libplayerinterface.so.3.0.1" ),
+    ( "${HOME}/dev/install/lib/libplayerjpeg.so.3.0.1", "/home/uwesub/dev/install/lib/libplayerjpeg.so.3.0.1" ),
+    ( "${HOME}/dev/install/lib/libplayertcp.so.3.0.1", "/home/uwesub/dev/install/lib/libplayertcp.so.3.0.1" ),
+    ( "${HOME}/dev/install/lib/libplayerudp.so.3.0.1", "/home/uwesub/dev/install/lib/libplayerudp.so.3.0.1" ),
+    ( "${HOME}/dev/install/lib/libpmap.so.3.0.1", "/home/uwesub/dev/install/lib/libpmap.so.3.0.1" ),
+    ( "${HOME}/dev/install/lib/libwavefront_standalone.so.3.0.1", "/home/uwesub/dev/install/lib/libwavefront_standalone.so.3.0.1" ),
     # Scripts
     ( "${HOME}/dev/uwe/UweSub/scripts/SubController.py", 
         "/home/uwesub/dev/uwe/UweSub/scripts/SubController.py" ),
