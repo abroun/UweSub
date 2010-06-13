@@ -916,6 +916,88 @@ void Micron::printState() {
 // member variable methods done
 
 
+// ********************************* Sonar Image hadnling methods ***********************************
+
+// the following method populates a 2D grid map (1cmx1cm cells) array using a cone of sonar data 
+// amap is an array of 1cmx1cm grid cells. Recommended minimum size is 2*arange*100+1
+// specify startangle and endangle in degrees in counter-clockwise fashion
+// arange in meters, aresolution in centimeters
+// (ipos, jpos) is the position of the micron in amap. recommended (arange*100+1, arange*100+1).
+void Micron::polar2Cartesian(U8* amap[], U32 aresolution, U8 arange, U8* abins[], 
+                             U32 startangle, U32 endangle, U32 ipos, U32 jpos)  {
+    
+    
+    F32 theta;
+    U32 r, c;
+    U32 rows = (endangle-startangle)*9/10; // rows of the abins array
+    U32 cols = arange*100/aresolution; // length of the line in cms
+    // must start from the ending angle since the micron scans from left to right
+    for (r = 0; r< rows; r++) {
+        // ontaining the corresponding angle in rads
+        theta = ((F32)endangle - r*0.9)*M_PI/180;
+        for (c=0; c<cols; c++) {
+            // computing bin coordinates of the point on which diagonals cross (bin is a rectangle)
+            U32 binCX = (F32)c*aresolution*cos(theta);
+            U32 binCY = (F32)c*aresolution*sin(theta);
+            // now finding the dimensions of the bin for the given position
+            U32 binSizeX = (F32)aresolution*abs(cos(theta));
+            U32 binSizeY = (F32)aresolution*abs(sin(theta));
+            // now computing the coordinates of the bin in the map array, 
+            // given that micron is "sitting" at (ipos, jpos)
+            U32 bini = ipos + (U32)binCY - (U32)binSizeY/2;
+            U32 binj = jpos + (U32)binCX - (U32)binSizeX/2;
+            // now filling the rectangular area. obviously there will be certain overlappings but it is ok
+            for (int k=0; k<binSizeY; k++)
+                for (int l=0; l<binSizeX; l++)
+                    amap[bini+k][binj+l] = abins[r][c];
+        }
+        // Rectangular grid map updated
+    } 
+}
+
+// Map Normalization. This method normalizes the entire map by convolving with the 2D normal distribution
+// sigma is the square root of standard deviation or diaspora. A value of 2 will suffice
+void Micron::mapNormalization(U8* amap[], U32 dim, F32 sigma) {
+    
+    F32 Kernel[5][5]; // Gaussian Kernel matrix 5x5
+    int i, j, r, c, rows=dim, cols=dim, resultcols, resultrows;
+    
+    F32 sum;
+    // initializing convolution kernel
+    for (i=-2; i<=2; i++)
+        for (j=-2; j<=2; j++) 
+            Kernel[i+2][j+2] = exp(-(i*i+j*j)/(2*sigma*sigma))/(2*M_PI*sigma*sigma);
+    // done
+    
+    // computing dimensions of the resulting array following a convolution
+    resultcols = cols; // normally the dimmension is N-m+1... Here we demand convolution result to be of same dimension
+    resultrows = rows; // convoluted image rows
+    // allocating space for the result image array 
+    U8 result[resultrows][resultcols];
+    // ************ main loop ***************
+    for (r=0; r<resultrows; r++) 
+        for (c=0; c<resultcols; c++) {
+            sum =0;
+            // convolving
+            for (i=0; i<5; i++)
+                for (j=0; j<5; j++) 
+                    if ((r+i > 0)&&(c+j>0)&&(r+i<rows)&&(c+j<cols)) // index inside the array
+                        sum += Kernel[i][j]*amap[r+i][c+j];
+             // convolution result stored in sum now. 
+            result[r][c] = (U8)sum;
+        }
+    //**********  main loop ends ***************
+    
+    // now updating the map
+    for (r=0; r<rows; r++)
+        for (c=0; c<cols; c++) 
+             amap[r][c] = result[r][c];
+    
+
+}
+
+
+
 
             
      

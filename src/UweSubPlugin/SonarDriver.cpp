@@ -410,7 +410,7 @@ int SonarDriver::ProcessMessage( QueuePointer& respQueue,
                       Publish(device_addr,               // device address of this SonarDriver instance
                               PLAYER_MSGTYPE_DATA,      // Message type is a response to a previous request
                               PLAYER_MSGTYPE_DATA,      // Message subtype is a data string response (see microncmds.h)
-                              (void*)regionCopy,        // the string
+                              (void*)regionCopy,        // copy of bin array 
                                0,                        // deprecated size parameter. Set to 0.
                                NULL,                     // timestamp parameter is NULL. Current time will be used 
                                true                      // copy the data 
