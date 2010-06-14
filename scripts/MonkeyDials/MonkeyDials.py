@@ -41,9 +41,9 @@ class MainWindow:
         self.arrayYawAngles = [ 0 ]
         self.startGraph = False
         
-        self.pTest = []
-        self.iTest = []
-        self.dTest = []
+        self.yawpTest = []
+        self.yawiTest = []
+        self.yawdTest = []
 
         self.connectToPlayer()
         self.yawController = YawControl( self.playerPos3d,
@@ -61,7 +61,7 @@ class MainWindow:
         self.depthSpeed = builder.get_object( "scaleDepthSpeed" )
         self.linearSpeed = builder.get_object( "scaleLinearSpeed" )
         self.angularSpeed = builder.get_object( "scaleAngularSpeed" )
-        self.lblCompassAngle = builder.get_object( "lblCompassAngle" )
+        self.lblCompassYawAngle = builder.get_object( "lblCompassAngle" )
 
         self.spinMaxDepthSpeed.set_value( 2.0 )
         self.spinMaxLinearSpeed.set_value( 2.0 )
@@ -208,7 +208,7 @@ class MainWindow:
         plot(range( time ), self.arrayYawAngles)
         ylabel('Yaw angle [deg/s]')
         xlabel('Time')
-        hold()
+        #hold()
         show()
 
 #---------------------------------------------------------------------------
@@ -233,13 +233,13 @@ class MainWindow:
                 self.playerClient.read()
              
                 # Get compass angle
-                radCompassAngle = self.playerCompass.pose.pyaw
+                radCompassYawAngle = self.playerCompass.pose.pyaw
                 # 0 < angle < 2*pi
-                while radCompassAngle >= 2*math.pi:
-                    radCompassAngle -= 2*math.pi
+                while radCompassYawAngle >= 2*math.pi:
+                    radCompassYawAngle -= 2*math.pi
 
-                degCompassAngle = radCompassAngle*180.0/math.pi    # from rad to degrees
-                self.lblCompassAngle.set_text( "{0:.3}".format( degCompassAngle ) )    #print it on the GUI
+                degCompassYawAngle = radCompassYawAngle*180.0/math.pi    # from rad to degrees
+                self.lblCompassYawAngle.set_text( "{0:.3}".format( degCompassYawAngle ) )    #print it on the GUI
                
             maxDepthSpeed = self.spinMaxDepthSpeed.get_value()	    
             maxLinearSpeed = self.spinMaxLinearSpeed.get_value() 
@@ -259,26 +259,27 @@ class MainWindow:
             
             newDesiredYawAngle = self.spinDesiredYawAngle.get_value()*math.pi/180.0    # from degrees to rad       
             
-            if degCompassAngle > 0.05:
+            if degCompassYawAngle > 0.05:
                 self.startGraph = True
             if self.startGraph:
-                self.arrayYawAngles.append( degCompassAngle)
-                self.pTest.append (self.yawController.pTerm)
-                self.dTest.append(self.yawController.pTerm)
-                if radCompassAngle - newDesiredYawAngle < 0.01 \
-                    and radCompassAngle - newDesiredYawAngle> -0.01:
+                self.arrayYawAngles.append( degCompassYawAngle)
+                self.yawpTest.append (self.yawController.yawpTerm)
+                self.yawdTest.append(self.yawController.yawdTerm)
+                if radCompassYawAngle - newDesiredYawAngle < 0.01 \
+                    and radCompassYawAngle - newDesiredYawAngle> -0.01:
                     self.yawController.iState = 0.0
+                    
                     #figure(2)
-                    #plot(range(len(self.pTest)),self.pTest,'r',\
-                         #range(len(self.iTest)),self.iTest,'k',\
-                         #range(len(self.dTest)),self.dTest,'m')
+                    #plot(range(len(self.yawpTest)),self.pTest,'r',\
+                         #range(len(self.yawiTest)),self.iTest,'k',\
+                         #range(len(self.yawdTest)),self.dTest,'m')
                     #xlabel('Time')
-                    #ylabel('pTerm, iTerm & dTerm')
+                    #ylabel('yaw pTerm, yaw iTerm & yaw dTerm')
                     #show()
                     self.startGraph = False
                 
-            self.yawController.setDesiredAngle( newDesiredYawAngle )   # rad
-            self.yawController.update( newLinearSpeed, newDepthSpeed )         
+            self.yawController.setDesiredState( newDesiredPitchAngle, newDesiredYawAngle, newDepth )   # rad
+            self.yawController.update( newLinearSpeed )         
             
             
             if newLinearSpeed != self.linearSpeed \
