@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
+#include <math.h>
 #include "../../Common.h"
 #include <libplayercore/playercore.h>
 
@@ -182,6 +183,7 @@ class Micron {
     
     public: void printState();
     // member variable methods done
+    
 
 	    
  }; // class definition ends here 
