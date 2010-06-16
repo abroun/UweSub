@@ -23,7 +23,7 @@ class Utils
     
     //--------------------------------------------------------------------------
     // Attempt at a cross platform 'nanosleep'
-    public: static void Sleep( HighPrecisionTime& time );
+    public: static void Sleep( const HighPrecisionTime& time );
 };
 
 #endif // UTILS_H

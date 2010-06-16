@@ -26,7 +26,7 @@ from SubControllerConfig import SubControllerConfig
 #-------------------------------------------------------------------------------
 class MainWindow:
     
-    IMAGE_SCALE = 2.0
+    IMAGE_SCALE = 1.0
     
     #---------------------------------------------------------------------------
     def __init__( self, config = SubControllerConfig() ):

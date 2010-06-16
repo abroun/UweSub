@@ -17,7 +17,7 @@ S32 Utils::stricmp( const char* s1, const char* s2 )
 }
 
 //------------------------------------------------------------------------------
-void Utils::Sleep( HighPrecisionTime& time )
+void Utils::Sleep( const HighPrecisionTime& time )
 {
     timespec requestedTime;
     requestedTime.tv_sec = time.mSeconds;
