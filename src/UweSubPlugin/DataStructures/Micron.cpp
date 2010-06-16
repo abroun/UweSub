@@ -42,15 +42,22 @@
  const int Micron::stExpectHeadData = 6;
  const int Micron::stExpectUserData = 7;
  const int Micron::stDataReady = 8;
-
+ 
+const F32 Micron::DEFAULT_GAIN = 0.1f;
+const S32 Micron::MAX_SONAR_ANGLE = 6400;  // In 1/16 Grads
+const S32 Micron::SONAR_STEP_ANGLE = 16; // In 1/16 Grads
+const S32 Micron::MIN_RANGE = 2;
+const S32 Micron::MAX_RANGE = 100;
+const S32 Micron::MIN_AD_INTERVAL = 5;  // In units of 640ns
 
 // parametric constructor
 Micron::Micron(int range, int resolution, int ADlow, int ADspan) {
             
     Micron::range = range;
     Micron::resolution = resolution;
-    Micron::ADlow = ADlow;
-    Micron::ADspan = ADspan;
+    Micron::mADlow = ADlow;
+    Micron::mADspan = ADspan;
+    setGain( DEFAULT_GAIN );
     
     // setting regionBins lines to NULL
     for (int i=0; i<MAX_LINES; i++) regionBins[i] = NULL;
@@ -63,8 +70,9 @@ Micron::Micron(int range, int resolution, int ADlow, int ADspan) {
 Micron::Micron() {
     Micron::range = 20; // 20 m standard range
     Micron::resolution = 5; // 5 cm standard resolution
-    Micron::ADlow = 40;     // 40 dB standard AD low limit
-    Micron::ADspan = 24;    // 24 dB  standard AD span
+    Micron::mADlow = 40;     // 40 dB standard AD low limit
+    Micron::mADspan = 24;    // 24 dB  standard AD span
+    setGain( DEFAULT_GAIN );
    
     // setting regionBins lines to NULL
     for (int i=0; i<MAX_LINES; i++) 
@@ -188,9 +196,12 @@ void Micron::sendVersion(Device* theOpaque, QueuePointer inqueue) {
 }
 
 // this function sends an mtHeadCommand
-void Micron::sendHeadCommand(Device* theOpaque, QueuePointer inqueue, U8 region) {
+void Micron::sendHeadCommand(Device* theOpaque, QueuePointer inqueue) {
+    
        // creating the head packet
-       TritecPacket* headpack = makeHead(range, region, resolution, ADlow, ADspan);
+       TritecPacket* headpack = makeHead( range, numBins, 
+        startAngle, endAngle, mADlow, mADspan, &mCurScanSettings )
+  
        // retrieving length
        int len = packetLength(headpack);
        // converting to raw data
@@ -636,8 +647,12 @@ int Micron::validateAlive(TritecPacket* alivepack) {
 
 
 // specify resolution in cms, range in meters
-TritecPacket* Micron::makeHead(int range, U8 region, int resolution, int ADlow, int ADspan) {
-     
+TritecPacket* Micron::makeHead( int range, int resolution, 
+                                int startAngle, int endAngle,
+                                int ADlow, int ADspan, ScanSettings* pScanSettingsOut )
+{
+    ScanSettings scanSettings;
+    
   TritecPacket* headpack = new TritecPacket();
   headpack->Header = (U8)'@';
   headpack->HexMsgLength = new U8[4];
@@ -705,45 +720,24 @@ TritecPacket* Micron::makeHead(int range, U8 region, int resolution, int ADlow, 
   int drange = range * 10;
   headpack->Msg[25] = (U8)(drange & 0xFF); // range in decimeters, low byte
   headpack->Msg[26] = (U8)((drange >> 8) & 0xFF); // range in dm, high byte
-
-  int leftlim = 0, rightlim = 0;
-  if (region == Micron::frontRegion) 
-  {
-       leftlim = 2400;
-       rightlim = 4000;
-   } 
-    else if (region == Micron::rightRegion)
-            {
-                leftlim = 400;
-                rightlim = 5600;
-            }
-	      else if (region == Micron::rearLeftRegion)
-		{
-		  leftlim = 0;
-		  rightlim = 800;
-		}
-		else if (region == Micron::rearRightRegion)
-		  {
-		    leftlim = 5600;
-		    rightlim = 6399;
-		  }
-		   else if (region == Micron::leftRegion)
-		      {
-                leftlim = 800;
-                rightlim = 2400;
-		      }
+  
+  scanSettings.mStartAngle = startAngle;
+  scanSettings.mEndAngle = endAngle;
         
-   headpack->Msg[27] = (U8)(leftlim & 0xFF);
-   headpack->Msg[28] = (U8)((leftlim >> 8) & 0xFF);
-   headpack->Msg[29] = (U8)(rightlim & 0xFF);
-   headpack->Msg[30] = (U8)((rightlim >> 8) & 0xFF);
+   headpack->Msg[27] = (U8)(startAngle & 0xFF);
+   headpack->Msg[28] = (U8)((startAngle >> 8) & 0xFF);
+   headpack->Msg[29] = (U8)(endAngle & 0xFF);
+   headpack->Msg[30] = (U8)((endAngle >> 8) & 0xFF);
 
    // calculating AdLow and AdSpan
    headpack->Msg[31] = (U8)(ADspan * 255 / 80); // AD span in range 0-255
    headpack->Msg[32] = (U8)(ADlow * 255 / 80); // AD low in range 0-255
 
-   headpack->Msg[33] = 0x54; // initial gain for channel #1
-   headpack->Msg[34] = 0x54; // initial gain for channel #2
+   const U8 MAX_GAIN = 210;
+   U8 gain = (U8)(mGain * MAX_GAIN);
+   
+   headpack->Msg[33] = gain; // initial gain for channel #1
+   headpack->Msg[34] = gain; // initial gain for channel #2
 
    headpack->Msg[35] = 0x5A; // channel 1 slope low char, ignored
    headpack->Msg[36] = 0x00; // channel 1 slope high char, ignored
@@ -752,20 +746,28 @@ TritecPacket* Micron::makeHead(int range, U8 region, int resolution, int ADlow, 
    headpack->Msg[38] = 0x00; // channel 2 slope high byte, ignored
 
    headpack->Msg[39] = 0x20; // 3.2 usec motor step time
-   headpack->Msg[40] = 16; // 16 steps. For a 90 degree region, we get 100 lines 0.9 degrees apart
+   headpack->Msg[40] = SONAR_STEP_ANGLE; // In 1/16 Grads
+   
+   scanSettings.mStepAngle = SONAR_STEP_ANGLE;
 
+   scanSettings.mRange = range;
+   scanSettings.mNumBins = numBins;
+   
+   
    // ******** now caculating AD interval and Number of Bins **************
-   int Nbins = range*100/resolution;
-   double pingtime = 2 * range * 1000 / 1.5; // in usec
-   double bintime = pingtime / Nbins;
-   int ADinterval = (bintime/64)*100;
+   S32 ADInterval = calculateADInterval( range, numBins );
+   
+   if ( ADInterval < MIN_AD_INTERVAL )
+   {
+       fprintf( stderr, "Error: Unable to make AD interval small enough\n" );
+       ADInterval = MIN_AD_INTERVAL;
+   }
 
+   headpack->Msg[41] = (U8)(ADInterval & 0xFF); // AD interval low byte. 
+   headpack->Msg[42] = (U8)((ADInterval >> 8) & 0xFF);  // AD interval high byte
 
-   headpack->Msg[41] = (U8)(ADinterval & 0xFF); // AD interval low byte. 
-   headpack->Msg[42] = (U8)((ADinterval >> 8) & 0xFF);  // AD interval high byte
-
-   headpack->Msg[43] = (U8)(Nbins & 0xFF); // Number of Bins Low byte
-   headpack->Msg[44] = (U8)((Nbins >> 8) & 0xFF); // Number of Bins high byte
+   headpack->Msg[43] = (U8)(numBins & 0xFF); // Number of Bins Low byte
+   headpack->Msg[44] = (U8)((numBins >> 8) & 0xFF); // Number of Bins high byte
 
     // **************** done with numebr of Bins and AD Interval ***********
 
@@ -804,6 +806,11 @@ TritecPacket* Micron::makeHead(int range, U8 region, int resolution, int ADlow, 
 
     // ********************** Message Done ******************
     headpack->Terminator = 0x0A; // Line feed at end of packet
+
+    if ( NULL != pScanSettingsOut )
+    {
+        *pScanSettingsOut = scanSettings;
+    }
 
     return headpack;
  }
@@ -851,12 +858,57 @@ int Micron::getState() {
     return state;
 }
     
-void Micron::setRegion(U8 region) {
-    Micron::currentRegion = region;
+void Micron::setRegion(eRegion region) 
+{
+    switch ( region )
+    {
+        case eR_Front:
+        {
+            setAngleRange( 2400, 4000 );
+            break;
+        }
+        case eR_Right:
+        {
+            setAngleRange( 400, 5600 );
+            break;
+        }
+        case eR_RearLeft:
+        {
+            setAngleRange( 0, 800 );
+            break;
+        }
+        case eR_RearRight:
+        {
+            setAngleRange( 5600, 0 );
+            break;
+        }
+        case eR_Left:
+        {
+            setAngleRange( 800, 2400 );
+            break;
+        }
+        default:
+        {
+            assert( false && "Unhandled region encountered" );
+        }
+    }
 }
 
-U8 Micron::getRegion() {
-    return Micron::currentRegion;
+void Micron::setAngleRange( S32 startAngle, S32 endAngle )
+{
+    mStartAngle = startAngle % MAX_SONAR_ANGLE;
+    mEndAngle = endAngle % MAX_SONAR_ANGLE;
+  
+    S32 angleDiff = mEndAngle - mStartAngle;
+    while ( angleDiff < 0 )   // Get the difference as a +ve value
+    {
+        angleDiff += MAX_SONAR_ANGLE;
+    }
+    
+    // This bit of code makes sure that the step angle exactly divides the
+    // difference between mStartAngle and mEndAngle
+    int numRays = angleDiff / SONAR_STEP_ANGLE;
+    mEndAngle = (mStartAngle + numRays*SONAR_STEP_ANGLE)%MAX_SONAR_ANGLE;
 }
     
 void Micron::setResolution(int resolution) {
@@ -864,31 +916,81 @@ void Micron::setResolution(int resolution) {
 }
 
 int Micron::getResolution() {
-    return resolution;
+    return (mRange * 100) / mNumBins;
 }
 
-void Micron::setRange(int range) {
-    Micron::range = range;
+void Micron::setNumBins( S32 numBins )
+{
+    if ( numBins < MIN_NUM_BINS )
+    {
+        numBins = MIN_NUM_BINS;
+    }
+    if ( numBins > MAX_NUM_BINS )
+    {
+        numBins = MAX_NUM_BINS;
+    }
+    
+    if ( calculateADInterval( mRange, numBins ) >= MIN_AD_INTERVAL )
+    {
+        // The AD interval is achievable
+        mNumBins = numBins;
+    }
+}
+
+void Micron::setRange(int range) 
+{    
+    if ( range < MIN_RANGE )
+    {
+        range = MIN_RANGE;
+    }
+    if ( range > MAX_RANGE )
+    {
+        range = MAX_RANGE;
+    }
+    
+    if ( calculateADInterval( range, mNumBins ) >= MIN_AD_INTERVAL )
+    {
+        // The AD interval is achievable
+        mRange = range;
+    }
 }
 
 int Micron::getRange() {
-    return range;
+    return mRange;
 }
     
 void Micron::setADlow(int adlow) {
-    Micron::ADlow = adlow;
+    Micron::mADlow = adlow;
 }
 
 int Micron::getADlow() {
-    return ADlow;
+    return mADlow;
 }
     
 void Micron::setADspan(int adspan) {
-    ADspan = adspan;
+    mADspan = adspan;
 }
 
 int Micron::getADspan() {
-    return ADspan;
+    return mADspan;
+}
+
+void Micron::setGain( F32 gain )
+{
+    mGain = gain;
+    if ( mGain < 0.0f )
+    {
+        mGain = 0.0f;
+    }
+    else if ( mGain > 1.0f )
+    {
+        mGain = 1.0f;
+    }
+}
+
+F32 Micron::getGain() const
+{
+    return mGain;
 }
     
 void Micron::printState() {
@@ -913,6 +1015,13 @@ void Micron::printState() {
     }
     printf ("\n"); 
 } 
+
+S32 Micron::calculateADInterval( S32 range, S32 numBins )
+{
+    double pingtime = 2 * range / 1500; // in millisec
+    double bintime = pingtime / numBins;
+    return (S32)(bintime/640.0);
+}
 // member variable methods done
 
 

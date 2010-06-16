@@ -472,15 +472,7 @@ void SonarDriver::ProcessData()
 
 void SonarDriver::flushSerialBuffer()
 {
-  U32 numBytesToRead;
-  if (numBytesToRead = mBuffer.GetNumBytesInBuffer() > 0)  {
-  
-    U8* dummy = new U8[numBytesToRead];
-  
-    mBuffer.ReadBytes(dummy, numBytesToRead);
-  
-    delete [] dummy;
-  }
+    mBuffer.Clear();
 }
 
 

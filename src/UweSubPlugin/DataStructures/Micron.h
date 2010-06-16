@@ -11,9 +11,34 @@
 #include <libplayercore/playercore.h>
 
 
+
     
 class Micron {
 
+    public: struct ScanSettings
+    {
+        S32 mRange;         // In metres
+        S32 mStartAngle;    // In 1/16 Grads
+        S32 mEndAngle;      // In 1/16 Grads
+        S32 mNumBins;
+        S32 mStepAngle;      // In 1/16 Grads
+    };
+    
+    public: struct Ray
+    {
+        U8 mBins[ MAX_NUM_BINS ];
+        U16 mNumBins;
+    };
+    
+    public: struct ScanData
+    {
+        // Clears out all data
+        void clear();
+        
+        Ray mRays[ MAX_SONAR_ANGLE/SONAR_STEP_ANGLE ];
+        ScanSettings mSettings; // The settings used for this scan
+    };
+    
        // Tritec Protocol Command Constants
        private: static const U8 mtVersionData; // Version reply by the micron
        private: static const U8 mtHeadData; // Head data reply by the micron
@@ -29,12 +54,15 @@ class Micron {
        // Commands ends
 
        // Operation constants
-       public: static const U8 leftRegion;  // 135 to 225 degrees
-       public: static const U8 frontRegion; //45 to 135 degrees 
-       public: static const U8 rightRegion; // -45 to 45 degrees
-       public: static const U8 rearLeftRegion;  // 235 to 270 degrees
-       public: static const U8 rearRightRegion; // 270 to 315 degrees
-
+       public: enum eRegion
+       {
+           eR_Left,         // 135 to 225 degrees
+           eR_Front,        //45 to 135 degrees 
+           eR_Right,        // -45 to 45 degrees
+           eR_RearLeft,     // 235 to 270 degrees
+           eR_RearRight     // 270 to 315 degrees
+       };
+       
        // alive constants (for evaluation of an mtAlive Message)
        public: static const U8 alFalseAlive;
        public: static const U8 alNoParams;
@@ -43,15 +71,26 @@ class Micron {
 
        // maximum number of lines constant
        public: static const int MAX_LINES=100;
+       public: static const F32 DEFAULT_GAIN;
+       public: static const S32 MAX_SONAR_ANGLE;  // In 1/16 Grads
+       public: static const S32 SONAR_STEP_ANGLE; // In 1/16 Grads
+       public: static const S32 MIN_NUM_BINS = 1;
+       public: static const S32 MAX_NUM_BINS = 1500;
+       public: static const S32 MIN_RANGE;
+       public: static const S32 MAX_RANGE;
+       public: static const S32 MIN_AD_INTERVAL;  // In units of 640ns
 	
        // class members
        private: int state;
-                int range;
-                int resolution;
-                int ADlow;
-                int ADspan;
+                S32 mRange;
+                S32 mNumBins;
+                S32 mADlow;
+                S32 mADspan;
+                F32 mGain;    // Gain from 0.0 to 1.0
+                F32 mStartAngle;
+                F32 mEndAngle;
+                ScanSettings mCurScanSettings;    // Details about the current scan
 
-       public: U8 currentRegion;
        public: int scannedlines;
        public: U8* regionBins[MAX_LINES];
 
@@ -98,7 +137,7 @@ class Micron {
       
 
         // this function sends an mtHeadCommand
-        public: void sendHeadCommand(Device* theOpaque, QueuePointer inqueue ,U8 region);
+        public: void sendHeadCommand( Device* theOpaque, QueuePointer inqueue );
         
 
         // this functions sends a sendData command
@@ -145,8 +184,13 @@ class Micron {
 	     // mtSendData command packet
 	    public: static TritecPacket* makeSendData();
 	
-	     // mtHeadData command packet. specify resolution in cms, range in meters
-        public: static TritecPacket* makeHead(int range, U8 region, int resolution, int ADlow, int ADspan);
+	     // mtHeadData command packet.
+         // Warning: No real checking is done on routines arguments to check
+         // that it's valid, data is simply packed up. Therefore it should
+         // only be used with extreme care by code outside the Micron class
+        public: static TritecPacket* makeHead( int range, S32 numBins, 
+            int startAngle, int endAngle,
+            int ADlow, int ADspan, ScanSettings* pScanSettingsOut = NULL );
         
         // An mtSendBBUser command packet
         public: static TritecPacket* makeSendBBUser();
@@ -166,11 +210,15 @@ class Micron {
     public: void setState(int state);
     public: int getState();
     
-    public: void setRegion(U8 region);
-    public: U8 getRegion();
+    public: void setRegion(eRegion region);
+    public: void setAngleRange( S32 startAngle, S32 endAngle );
+    public: void getStartAngle() const { return mStartAngle; }
+    public: void getEndAngle() const { return mEndAngle; }
     
     public: void setResolution(int resolution);
-    public: int getResolution();
+    public: int getResoultion();
+    public: void setNumBins( S32 numBins );
+    public: S32 getNumBins() const { return mNumBins; }
      
     public: void setRange(int range);
     public: int getRange();
@@ -181,7 +229,12 @@ class Micron {
     public: void setADspan(int adspan);
     public: int getADspan();
     
+    public: void setGain( F32 gain );
+    public: F32 getGain() const;
+    
     public: void printState();
+    
+    private: S32 calculateADInterval( S32 range, S32 numBins );
     // member variable methods done
     
 
