@@ -445,15 +445,46 @@ void SonarDriver::Main()
             
             // Build up the data struct
             player_micronsonar_data_t data;
-            data.width = maxPixelRange;
-            data.height = maxPixelRange;
+            //data.width = maxPixelRange;
+            U32 dim = 2*pmicron->getRange()*100/pmicron->getResolution()+1;
+            data.width = dim;
+            //data.height = maxPixelRange;
+            data.height = dim;
             data.bpp = 8;
             data.format = PLAYER_MICRONSONAR_FORMAT_MONO8;
             data.image_count = data.width*data.height;
             data.image = new U8[ data.image_count ];
             memset( data.image, 127, data.image_count );    // Clear image
             
-            F32 angleIncrement = (F32)M_PI/(2.0f*(F32)Micron::MAX_LINES);
+            U32 r, c;
+            U32 resol = pmicron->getResolution();
+            U32 rang = pmicron->getRange();
+            
+            U8* tempmatrix[data.width];
+            
+            for (r=0; r<dim; r++) {
+                tempmatrix[r] = new U8[dim];
+                for (c=0; c<dim; c++) 
+                    tempmatrix[r][c] = 0;
+            }
+                    
+           
+            
+            SonarDriver::polar2Cartesian(tempmatrix, resol, rang, pmicron->regionBins, 
+                             45, 135, rang*100/resol+1, rang*100/resol+1);
+                             
+            //SonarDriver::mapNormalization(tempmatrix, 2*pmicron->getRange()*100/resol+1, 0.8);
+            
+           // SonarDriver::mapAutothreshold(tempmatrix, 2*pmicron->getRange()*100/resol+1, 60);
+            
+            for (r=0; r<data.width; r++) 
+                for (c=0; c<data.width; c++)
+                    data.image[r*data.width+c] = tempmatrix[r][c];
+            
+                
+            
+            /*
+            F32 angleIncrement = (F32)M_PI*0.9/180;
             
             // Copy the data into the buffer
             // For now determine a pixel by interpolating between the 4 closest readings
@@ -491,12 +522,19 @@ void SonarDriver::Main()
                         }
                     }
                 }
+                
             }
+            */
 
             // Write data to the client (through the server)
             base::Publish( this->device_addr,
                 PLAYER_MSGTYPE_DATA, PLAYER_MICRONSONAR_DATA_STATE, &data );
             delete [] data.image;
+            
+            // disposing tempmatrix
+            for (r=0; r<dim; r++)
+                delete [] tempmatrix[r];
+            delete [] tempmatrix;
             
             // ******************************* dumping data loop. Use for debugging purposes ***************************
             /*int i;
@@ -599,13 +637,14 @@ void SonarDriver::flushSerialBuffer()
 // specify startangle and endangle in degrees in counter-clockwise fashion
 // arange in meters, aresolution in centimeters
 // (ipos, jpos) is the position of the micron in amap. recommended (arange*100, arange*100).
-void SonarDriver::polar2Cartesian(U8* amap[], U32 aresolution, U8 arange, U8* abins[], 
+void SonarDriver::polar2Cartesian(U8** amap, U32 aresolution, U32 arange, U8** abins, 
                              U32 startangle, U32 endangle, U32 ipos, U32 jpos)  {
     
-    
+    // retrieving dimension of the map (each bin is a pixel)
+    U32 dim = 2*arange*100/aresolution+1;
     F32 theta;
     U32 r, c;
-    U32 rows = (endangle-startangle)*9/10; // rows of the abins array (lines are 0.9 degrees apart)
+    U32 rows = (endangle-startangle)*10/9; // rows of the abins array (lines are 0.9 degrees apart)
     U32 cols = arange*100/aresolution; // length of the line in cms
     // must start from the ending angle since the micron scans from left to right
     for (r = 0; r< rows; r++) {
@@ -613,19 +652,32 @@ void SonarDriver::polar2Cartesian(U8* amap[], U32 aresolution, U8 arange, U8* ab
         theta = ((F32)endangle - r*0.9)*M_PI/180;
         for (c=0; c<cols; c++) {
             // computing bin coordinates of the point on which diagonals cross (bin is a rectangle)
-            U32 binCX = (F32)c*aresolution*cos(theta);
-            U32 binCY = (F32)c*aresolution*sin(theta);
+            F32 binCX = (F32)(c*1.0)*cos(theta);
+            F32 binCY = (F32)(c*1.0)*sin(theta);
             // now finding the dimensions of the bin for the given position
-            U32 binWidth = (F32)aresolution*abs(cos(theta));
-            U32 binHeight = (F32)aresolution*abs(sin(theta));
+            
+            // F32 binWidth = (F32)abs((1.0*aresolution)*cos(theta));
+            // F32 binHeight = (F32)abs((1.0*aresolution)*sin(theta));
             // now computing the coordinates of the bin in the map array, 
             // given that micron is "sitting" at (ipos, jpos)
-            U32 bini = ipos + (U32)binCY - (U32)binHeight/2;
-            U32 binj = jpos + (U32)binCX - (U32)binWidth/2;
+            // U32 bini = ipos + (U32)(binCY - binHeight/2.0);
+            // U32 binj = jpos + (U32)(binCX - binWidth/2.0);
+            U32 bini = ipos +(U32)binCY;
+            U32 binj = jpos + (U32)binCX;
             // now filling the rectangular area. obviously there will be certain overlappings but it is ok
-            for (int k=0; k<binHeight; k++)
-                for (int l=0; l<binWidth; l++)
-                    amap[bini+k][binj+l] = abins[r][c];
+            // U32 bw_int= (U32)binWidth;
+            // U32 bh_int = (U32)binHeight;
+            amap[bini][binj] = abins[r][c];
+            /*
+            int k, l;
+            for (k=-(bh_int/2); (S32)k<=(S32)(bh_int/2); k++) 
+            {   
+                for (l=-(bw_int/2); (S32)l<=(S32)(bw_int/2); l++) {
+                    if ((bini+k>0)&&(bini+k<2*arange*100/aresolution+1)&&
+                        (binj+l>0) && (binj+l<2*arange*100/aresolution+1)) amap[bini+k][binj+l] = abins[r][c];
+                }
+            }
+            */
         }
         // Rectangular grid map updated
     } 
@@ -676,20 +728,16 @@ void SonarDriver::mapNormalization(U8* amap[], U32 dim, F32 sigma) {
 // Unfortunately, autothreshold will not work since it will depend on the environment around the robot.
 // if, for example, the environment is relatively clear, the autothreshold will produce misinterpretations
 // by assigning a 255 value to low noise findings.
-U8** SonarDriver::mapAutothreshold(U8* amap[], U32 dim, U8 threshold) {
+void SonarDriver::mapAutothreshold(U8* amap[], U32 dim, U8 threshold) {
     U32 i, j;
     
-    // allocating the resulting array
-    U8** result= new U8*[dim];
-    for (i=0; i<dim; i++)
-        result[i] = new U8[dim];
-    // result array allocated. DISPOSE THE SAME WAY!
+    
     
      // now thresholding...
      for (i=0; i<dim; i++)
          for (j=0; j<dim; j++)
-             result[i][j] = (amap[i][j] < threshold) ? 0 : 255;
+             amap[i][j] = (amap[i][j] < threshold) ? 0 : 255;
      // done
      
-     return result;
+     
 }

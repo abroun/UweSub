@@ -15,7 +15,7 @@
  const U8 Micron::mtSendData = 25;   // request half/full duplex data from micron
  const U8 Micron::mtStopAlive = 0x42; // forces micron to stop sedning repeated alive msgs
         
-// Commands ends
+// Commands ends 
 
 // Operation constants
  const U8 Micron::leftRegion = 0;  // 135 to 225 degrees

@@ -26,7 +26,7 @@ from SubControllerConfig import SubControllerConfig
 #-------------------------------------------------------------------------------
 class MainWindow:
     
-    IMAGE_SCALE = 1.0
+    IMAGE_SCALE = 2.0
     
     #---------------------------------------------------------------------------
     def __init__( self, config = SubControllerConfig() ):
@@ -203,6 +203,12 @@ class MainWindow:
                         self.dwgDisplay.set_size_request( rgbImage.width, rgbImage.height )
 
                     self.dwgDisplay.queue_draw()
+                    
+                    # Also write out image
+                    bgrImage = cv.CreateImage( ( self.playerSonar.width, self.playerSonar.height ), cv.IPL_DEPTH_8U, 3 )
+                    cv.CvtColor( grayImage, bgrImage, cv.CV_GRAY2BGR )
+                    cv.SaveImage( "sonar.png", bgrImage )
+                    
                     self.lastSonarFrameTime = sonarFrameTime
                 
             yield True
