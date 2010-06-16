@@ -39,10 +39,10 @@ const U32 MotorDriver::MIN_DUTY_CYCLE_US = 1000;
 const U32 MotorDriver::MAX_DUTY_CYCLE_US = 2000;
 const U32 MotorDriver::ZERO_DUTY_CYCLE_US = (MIN_DUTY_CYCLE_US + MAX_DUTY_CYCLE_US)/2;
 
-const U32 MotorDriver::RIGHT_MOTOR_CHANNEL = 1;    // 01
-const U32 MotorDriver::LEFT_MOTOR_CHANNEL = 2;     // 10
-const U32 MotorDriver::FRONT_MOTOR_CHANNEL = 3;
-const U32 MotorDriver::BACK_MOTOR_CHANNEL = 4;
+const U32 MotorDriver::RIGHT_MOTOR_CHANNEL = 0;    // 01
+const U32 MotorDriver::LEFT_MOTOR_CHANNEL = 1;     // 10
+const U32 MotorDriver::FRONT_MOTOR_CHANNEL = 2;
+const U32 MotorDriver::BACK_MOTOR_CHANNEL = 3;
 const U32 MotorDriver::TEST_CHANNEL = 16;
 
 const F32 MotorDriver::MAX_ABS_2D_DIST = 1.0f;
@@ -193,6 +193,9 @@ int MotorDriver::ProcessMessage( QueuePointer& respQueue,
         U32 rightDuty = (U32)(1200 + (S32)((600)*normalisedPWM));  // 1200 to 1800
         U32 frontDuty = (U32)(1700 + (S32)((-400)*normalisedPWM));  // 1700 to 1300
         U32 backDuty = (U32)(2000 + (S32)((-1000)*normalisedPWM));  // 2000 to 1000
+        
+        printf( "Setting PWMS %i, %i %i %i\n",
+                leftDuty, rightDuty, frontDuty, backDuty );
         
         if ( mbInitialisedPWM )
         {
