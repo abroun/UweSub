@@ -50,6 +50,14 @@ const S32 Micron::MIN_RANGE = 2;
 const S32 Micron::MAX_RANGE = 100;
 const S32 Micron::MIN_AD_INTERVAL = 5;  // In units of 640ns
 
+void Micron::ScanData::clear()
+{
+    for ( S32 rayIdx = 0; rayIdx < MAX_NUM_RAYS; rayIdx++ )
+    {
+        mRays[ rayIdx ].mNumBins = 0;
+    }
+}
+
 // parametric constructor
 Micron::Micron(int range, int resolution, int ADlow, int ADspan) {
             

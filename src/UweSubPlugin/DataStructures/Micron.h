@@ -30,12 +30,15 @@ class Micron {
         U16 mNumBins;
     };
     
+    // Careful when creating an instance of ScanData, it probably
+    // weighs in at about quater of a megabyte at the moment...
     public: struct ScanData
     {
         // Clears out all data
         void clear();
         
-        Ray mRays[ MAX_SONAR_ANGLE/SONAR_STEP_ANGLE ];
+        static const S32 MAX_NUM_RAYS = MAX_SONAR_ANGLE/SONAR_STEP_ANGLE;
+        Ray mRays[ MAX_NUM_RAYS ];
         ScanSettings mSettings; // The settings used for this scan
     };
     
@@ -89,10 +92,7 @@ class Micron {
                 F32 mGain;    // Gain from 0.0 to 1.0
                 F32 mStartAngle;
                 F32 mEndAngle;
-                ScanSettings mCurScanSettings;    // Details about the current scan
-
-       public: int scannedlines;
-       public: U8* regionBins[MAX_LINES];
+                ScanData mScanData;    // Data retrieved from the sonar
 
        // state constants
        public: static const int stIdle;
@@ -231,6 +231,8 @@ class Micron {
     
     public: void setGain( F32 gain );
     public: F32 getGain() const;
+
+    public: const ScanData* getScanData() const { return mScanData; }
     
     public: void printState();
     
