@@ -17,13 +17,6 @@
         
 // Commands ends 
 
-// Operation constants
- const U8 Micron::leftRegion = 0;  // 135 to 225 degrees
- const U8 Micron::frontRegion = 1; //45 to 135 degrees 
- const U8 Micron::rightRegion = 2; // -45 to 45 degrees
- const U8 Micron::rearLeftRegion = 3;  // 235 to 270 degrees
- const U8 Micron::rearRightRegion = 4; // 270 to 315 degrees
-
 // alive constants
  const U8 Micron::alFalseAlive = 0;
  const U8 Micron::alNoParams=1;
@@ -44,8 +37,6 @@
  const int Micron::stDataReady = 8;
  
 const F32 Micron::DEFAULT_GAIN = 0.1f;
-const S32 Micron::MAX_SONAR_ANGLE = 6400;  // In 1/16 Grads
-const S32 Micron::SONAR_STEP_ANGLE = 16; // In 1/16 Grads
 const S32 Micron::MIN_RANGE = 2;
 const S32 Micron::MAX_RANGE = 100;
 const S32 Micron::MIN_AD_INTERVAL = 5;  // In units of 640ns
@@ -56,61 +47,46 @@ void Micron::ScanData::clear()
     {
         mRays[ rayIdx ].mNumBins = 0;
     }
+    mNumRaysScanned = 0;
 }
 
 // parametric constructor
 Micron::Micron(int range, int resolution, int ADlow, int ADspan) {
             
-    Micron::range = range;
-    Micron::resolution = resolution;
+    setRangeAndResolution( range, resolution );
     Micron::mADlow = ADlow;
     Micron::mADspan = ADspan;
     setGain( DEFAULT_GAIN );
     
-    // setting regionBins lines to NULL
-    for (int i=0; i<MAX_LINES; i++) regionBins[i] = NULL;
     // setting state and selected region to scan
     state = stIdle;
-    currentRegion = frontRegion;
+    setRegion( eR_Front );
 }
 
 // default values constructor
 Micron::Micron() {
-    Micron::range = 20; // 20 m standard range
-    Micron::resolution = 5; // 5 cm standard resolution
+    setRangeAndResolution( 20, 5 ); // 20 m standard range and 5 cm standard resolution
     Micron::mADlow = 40;     // 40 dB standard AD low limit
     Micron::mADspan = 24;    // 24 dB  standard AD span
     setGain( DEFAULT_GAIN );
    
-    // setting regionBins lines to NULL
-    for (int i=0; i<MAX_LINES; i++) 
-            Micron::regionBins[i] = NULL;
-   
     state = stAliveSonar; // starting from alive state. Assumming Sonar connected and powered
-    currentRegion = frontRegion;
+    setRegion( eR_Front );
 }
 
 
 Micron::~Micron() {
-  // disposing scannedlines  
-  int i;
-  for (i=0; i<scannedlines; i++)
-      if (regionBins[i]!=NULL) delete [] regionBins[i];
 }
 
 
 // reset (call after a reboot)
 void Micron::reset() {
-    // disposing bin data if any
-    int i;
-    for (i=0; i<MAX_LINES; i++) 
-        if (regionBins[i]!=NULL) {
-            delete [] regionBins[i];
-            regionBins[i] = NULL;
-        }
+    // Clear out scan data
+    mScanData.clear();
+    
     // setting current region to frontRegion
-    currentRegion = frontRegion;
-    scannedlines = 0;
+    setRegion( eR_Front );
+
     // setting state
     state = stConnected;
 }
@@ -151,8 +127,8 @@ void Micron::sendReboot(Device* theOpaque, QueuePointer inqueue) {
 
         theOpaque->PutMsg( inqueue,  PLAYER_MSGTYPE_CMD, PLAYER_OPAQUE_CMD_DATA, &mData, 0, NULL); 
         // Data sent
-	    // Now disposing packet and raw data
-	    disposePacket(rbpack);
+        // Now disposing packet and raw data
+        disposePacket(rbpack);
         delete [] rbraw;
         // changing state
          state = stExpectAlive; // waiting for an alive answer
@@ -204,39 +180,32 @@ void Micron::sendVersion(Device* theOpaque, QueuePointer inqueue) {
 }
 
 // this function sends an mtHeadCommand
-void Micron::sendHeadCommand(Device* theOpaque, QueuePointer inqueue) {
+void Micron::sendHeadCommand(Device* theOpaque, QueuePointer inqueue) 
+{
+    mScanData.clear();
     
-       // creating the head packet
-       TritecPacket* headpack = makeHead( range, numBins, 
-        startAngle, endAngle, mADlow, mADspan, &mCurScanSettings )
+    // creating the head packet
+    TritecPacket* headpack = makeHead( mRange, mNumBins, 
+        mStartAngle, mEndAngle, mADlow, mADspan, mGain, &mScanData.mSettings );
   
-       // retrieving length
-       int len = packetLength(headpack);
-       // converting to raw data
-       U8* headraw = convertPacket2Bytes(headpack);
-       // now allocating the region array of bins
-       currentRegion = region;
-       // disposing old region if not null
-       for (int i=0; i<MAX_LINES; i++)
-          if (regionBins[i]!=NULL) {
-                delete [] regionBins[i];
-                regionBins[i] = NULL;
-            }
-       // initializing scannedlines
-       scannedlines = 0;
-       // sending Command
-       player_opaque_data_t mData;
-       mData.data_count = len;
-       mData.data = (uint8_t*)headraw;
+    // retrieving length
+    int len = packetLength(headpack);
+    // converting to raw data
+    U8* headraw = convertPacket2Bytes(headpack);
+    
+    // sending Command
+    player_opaque_data_t mData;
+    mData.data_count = len;
+    mData.data = (uint8_t*)headraw;
 
-       theOpaque->PutMsg( inqueue,  PLAYER_MSGTYPE_CMD, PLAYER_OPAQUE_CMD_DATA, &mData, 0, NULL);
-       // data sent
-       // disposing the packet and raw data
-       disposePacket(headpack);
-       delete [] headraw;
-       // changing state
+    theOpaque->PutMsg( inqueue,  PLAYER_MSGTYPE_CMD, PLAYER_OPAQUE_CMD_DATA, &mData, 0, NULL);
+    // data sent
+    // disposing the packet and raw data
+    disposePacket(headpack);
+    delete [] headraw;
+    // changing state
        
-       state = stSendingData; // it should be stExpectHeadAlive but nobody knows....
+    state = stSendingData; // it should be stExpectHeadAlive but nobody knows....
 }
 
 // this functions sens a sendData command
@@ -261,52 +230,26 @@ void Micron::sendData(Device* theOpaque, QueuePointer inqueue) {
             state = stExpectHeadData; // waiting for head data to arrive
         }
 
-
-// this function clears regionBins and scannedlines
-void Micron::clearRegionBins()
-{
-    int i;
-    for (i=0; i<MAX_LINES; i++)
-        if (regionBins[i]!=NULL) {
-            delete [] regionBins[i];
-            regionBins[i] = NULL;
-        }
-   scannedlines = 0;
-}
-
-// this function expands the current region array of bins
-void Micron::addScanLine(U8* line, int len) {
-         
-         U32 maxlinelength = range*100/resolution;
-         regionBins[scannedlines - 1] = new U8[maxlinelength];
-         U32 j;
-         
-         for (j=0; j < maxlinelength; j++) 
-                regionBins[scannedlines-1][j] = (j < len) ? line[j] : 0;
-         
-         delete [] line;
-}
-
 // this functions changes state according to the response from the sonar
 void Micron::transitionAction(TritecPacket* pack, Device* theOpaque, QueuePointer inqueue) {
         U8 cmd = pack->Msg[0]; // get command
 
-        int datalen=0, headofs=0;
+        int datalen=0, transducerAngle=0;
         U8* linebins = NULL;
         //for (int d =0; d<10000; d++);
         
         switch(cmd) {
-	      case mtBBUserData: // received an answer to a sendBBUserCommand
+          case mtBBUserData: // received an answer to a sendBBUserCommand
              switch(state) {
-		       case stExpectUserData:
+               case stExpectUserData:
                              state = stAliveSonar;
                              break;
-		       case stConnected:
+               case stConnected:
                              state = stAliveSonar; // must be alive
                              break;
-		       case stExpectHeadData: // do nothing, although it shouldn't happen
+               case stExpectHeadData: // do nothing, although it shouldn't happen
                              break;
-		       case stIdle:
+               case stIdle:
                             state = stAliveSonar; // must be alive
                             break;
                case stAliveSonar: 
@@ -316,7 +259,7 @@ void Micron::transitionAction(TritecPacket* pack, Device* theOpaque, QueuePointe
                             break;
                }
                break;
-	      case mtVersionData: // received an mtVersion  packet
+          case mtVersionData: // received an mtVersion  packet
                     switch (state)
                     {
                     case stExpectAlive: // waiting on an alive by a sendversion
@@ -328,7 +271,6 @@ void Micron::transitionAction(TritecPacket* pack, Device* theOpaque, QueuePointe
                             break;
                     case stExpectHeadAlive: // waiting on an alive response to a head command (unlikely to happen)
                                 state = stSendingData; // we are now clear to request data
-                                scannedlines = 0; // reseting scannedlines
                             break;
                     case stIdle: // haven't done anything, but the micron may be sending constant alives or versions
                             // the sonar is alive and send constant alives. Killing alives...
@@ -338,7 +280,7 @@ void Micron::transitionAction(TritecPacket* pack, Device* theOpaque, QueuePointe
                             break;
                     }
                     break;
-	       case mtAlive: // received an alive packet
+           case mtAlive: // received an alive packet
                     switch(state) {
                         case stExpectAlive: // waiting on an alive by a sendversion
                             if (validateAlive(pack)!=alFalseAlive) state = stAliveSonar;
@@ -351,7 +293,6 @@ void Micron::transitionAction(TritecPacket* pack, Device* theOpaque, QueuePointe
                         case stExpectHeadAlive: // waiting on an alive response to a head command
                             // if (validateAlive(pack)==alParamsAck) state = stExpectHeadData;
                             state = stSendingData; // clear to request data lines now
-                            scannedlines = 0; // should be already zero, just in case...
                             // ********* clear incoming buffer
                             break;
                         case stSendingData: // in case an alive comes after a head command
@@ -377,58 +318,38 @@ void Micron::transitionAction(TritecPacket* pack, Device* theOpaque, QueuePointe
                         case stExpectHeadAlive: // nothing
                             break;
                         case stExpectHeadData: 
-                            linebins = unwrapHeadData(pack, datalen, headofs);
-                            scannedlines++;
-                            printf ("Data unwrapped.Scanned Lines: %i\n",scannedlines );
-                            addScanLine(linebins, datalen);
-                            
-                            if ((currentRegion==rearLeftRegion)||(currentRegion==rearRightRegion)) {
-                                if (scannedlines==50) state = stDataReady;
-                                    else if (scannedlines % 2 ==0) {
-                                        
-                                        Micron::sendData(theOpaque, inqueue); 
-                                        for (int d=0; d<20000; d++);
-                                        state = stSendingData; // not needed as sendData() takes care...
-                                    }
-                                        else state = stExpectHeadData;
-                            } else {
-                                if (scannedlines==100) state = stDataReady;
-                                    else if (scannedlines % 2 == 0) {
-                                        
-                                        Micron::sendData(theOpaque, inqueue);
-                                        for (int d=0; d<20000; d++);
-                                        state = stSendingData; // not needed as sendData() takes care...
-                                    }   
-                                     else state = stExpectHeadData;
+                        case stSendingData:
+                        {   
+                            linebins = unwrapHeadData(pack, &datalen, &transducerAngle);
+                            S32 angleDiffToRay = transducerAngle - mScanData.mSettings.mStartAngle;
+                            while ( angleDiffToRay < 0 )
+                            {
+                                angleDiffToRay += MAX_SONAR_ANGLE;
                             }
-                            break;
-                        case stSendingData: // in the case we receive a second head data (full duplex)
-                            linebins = unwrapHeadData(pack, datalen, headofs);
-                            scannedlines++;
-                            printf("Data unwrapped. Scanned lines: %i\n",scannedlines);
-                            // adding line to the region array
-                            addScanLine(linebins, datalen);
+                            assert( angleDiffToRay >= 0 
+                                && angleDiffToRay < mScanData.mSettings.GetAngleDiff() && "Unexpected angle diff" );
+                            S32 rayIdx = (angleDiffToRay / SONAR_STEP_ANGLE);
+                            assert( rayIdx*SONAR_STEP_ANGLE == angleDiffToRay && "Step size error" );
                             
-                            if ((currentRegion==rearLeftRegion)||(currentRegion==rearRightRegion)) {
-                                if (scannedlines == 50) state = stDataReady;
-                                    else if (scannedlines % 2 ==0) {
-                                        
-                                        Micron::sendData(theOpaque, inqueue);
-                                        for (int d=0; d<20000; d++);
-                                        state = stSendingData; // not needed as sendData() takes care...
-                                    }
-                                     else state = stExpectHeadData;
-                            } else {
-                                if (scannedlines == 100) state = stDataReady;
-                                    else if (scannedlines % 2 ==0) {
-                                        
-                                        Micron::sendData(theOpaque, inqueue);
-                                        for (int d=0; d<20000; d++);
-                                        state = stSendingData; // not needed as sendData() takes care...
-                                    }
-                                        else state = stExpectHeadData;
+                            memcpy( mScanData.mRays[ rayIdx ].mBins, linebins, datalen );
+                            mScanData.mRays[ rayIdx ].mNumBins = datalen;
+                            mScanData.mNumRaysScanned++;
+                            
+                            // TODO: Find a slightly less flaky way to signal the end of a scan
+                            S32 mNumRaysPerScan = mScanData.mSettings.GetAngleDiff()/SONAR_STEP_ANGLE;
+                            if ( mScanData.mNumRaysScanned > 0
+                                && (mScanData.mNumRaysScanned % mNumRaysPerScan) == 0 )
+                            {
+                                state = stDataReady;
                             }
+                            else
+                            {
+                                Micron::sendData(theOpaque, inqueue);
+                                state = stExpectHeadData;
+                            }
+            
                             break;
+                        }
                         case stIdle: //nothing
                             break;
                         case stDataReady: // nothing... it shouldn't happen
@@ -593,15 +514,12 @@ TritecPacket* Micron::makeStopAlives() {
 
 
 
-U8* Micron::unwrapHeadData(TritecPacket* hdatapack, int& datalen, int& headofs) {
+U8* Micron::unwrapHeadData(TritecPacket* hdatapack, int* pDataLenOut, int* pTransducerAngleOut ) {
       
-    datalen = hdatapack->Msg[32] + 256 * hdatapack->Msg[33];
-    headofs = hdatapack->Msg[21] + 256 * hdatapack->Msg[22];
-    int i;
-    U8* bins = new U8[datalen];
-    for (i = 0; i < datalen; i++)
-                bins[i] = hdatapack->Msg[34 + i];
-    return bins;
+    *pDataLenOut = hdatapack->Msg[32] + 256 * hdatapack->Msg[33];
+    *pTransducerAngleOut = hdatapack->Msg[30] + 256 * hdatapack->Msg[31];
+    
+    return &hdatapack->Msg[34];
 }
 
 
@@ -655,9 +573,9 @@ int Micron::validateAlive(TritecPacket* alivepack) {
 
 
 // specify resolution in cms, range in meters
-TritecPacket* Micron::makeHead( int range, int resolution, 
+TritecPacket* Micron::makeHead( int range, int numBins, 
                                 int startAngle, int endAngle,
-                                int ADlow, int ADspan, ScanSettings* pScanSettingsOut )
+                                int ADlow, int ADspan, F32 gain, ScanSettings* pScanSettingsOut )
 {
     ScanSettings scanSettings;
     
@@ -742,10 +660,10 @@ TritecPacket* Micron::makeHead( int range, int resolution,
    headpack->Msg[32] = (U8)(ADlow * 255 / 80); // AD low in range 0-255
 
    const U8 MAX_GAIN = 210;
-   U8 gain = (U8)(mGain * MAX_GAIN);
+   U8 gainByte = (U8)(gain * MAX_GAIN);
    
-   headpack->Msg[33] = gain; // initial gain for channel #1
-   headpack->Msg[34] = gain; // initial gain for channel #2
+   headpack->Msg[33] = gainByte; // initial gain for channel #1
+   headpack->Msg[34] = gainByte; // initial gain for channel #2
 
    headpack->Msg[35] = 0x5A; // channel 1 slope low char, ignored
    headpack->Msg[36] = 0x00; // channel 1 slope high char, ignored
@@ -920,33 +838,34 @@ void Micron::setAngleRange( S32 startAngle, S32 endAngle )
 }
     
 void Micron::setResolution(int resolution) {
-    Micron::resolution = resolution;
+    setNumBins( convertResolutionToNumBins( mRange, resolution ) );
 }
 
-int Micron::getResolution() {
-    return (mRange * 100) / mNumBins;
+int Micron::getResolution() const {
+    return convertNumBinsToResolution( mRange, mNumBins );
 }
 
 void Micron::setNumBins( S32 numBins )
 {
-    if ( numBins < MIN_NUM_BINS )
-    {
-        numBins = MIN_NUM_BINS;
-    }
-    if ( numBins > MAX_NUM_BINS )
-    {
-        numBins = MAX_NUM_BINS;
-    }
-    
-    if ( calculateADInterval( mRange, numBins ) >= MIN_AD_INTERVAL )
-    {
-        // The AD interval is achievable
-        mNumBins = numBins;
-    }
+    setRangeAndNumBins( mRange, numBins );
 }
 
 void Micron::setRange(int range) 
 {    
+    setRangeAndNumBins( range, mNumBins );
+}
+
+int Micron::getRange() {
+    return mRange;
+}
+ 
+void Micron::setRangeAndResolution( S32 range, S32 resolution )
+{
+    setRangeAndNumBins( range, convertResolutionToNumBins( range, resolution ) );
+}
+ 
+void Micron::setRangeAndNumBins( S32 range, S32 numBins )
+{
     if ( range < MIN_RANGE )
     {
         range = MIN_RANGE;
@@ -956,17 +875,23 @@ void Micron::setRange(int range)
         range = MAX_RANGE;
     }
     
-    if ( calculateADInterval( range, mNumBins ) >= MIN_AD_INTERVAL )
+    if ( numBins < MIN_NUM_BINS )
+    {
+        numBins = MIN_NUM_BINS;
+    }
+    if ( numBins > MAX_NUM_BINS )
+    {
+        numBins = MAX_NUM_BINS;
+    }
+    
+    if ( calculateADInterval( range, numBins ) >= MIN_AD_INTERVAL )
     {
         // The AD interval is achievable
         mRange = range;
+        mNumBins = numBins;
     }
 }
-
-int Micron::getRange() {
-    return mRange;
-}
-    
+ 
 void Micron::setADlow(int adlow) {
     Micron::mADlow = adlow;
 }
@@ -1030,6 +955,17 @@ S32 Micron::calculateADInterval( S32 range, S32 numBins )
     double bintime = pingtime / numBins;
     return (S32)(bintime/640.0);
 }
+
+S32 Micron::convertResolutionToNumBins( S32 range, S32 resolution )
+{
+    return (range * 100) / resolution;
+}
+
+S32 Micron::convertNumBinsToResolution( S32 range, S32 numBins )
+{
+    return (range * 100) / numBins;
+}
+
 // member variable methods done
 
 

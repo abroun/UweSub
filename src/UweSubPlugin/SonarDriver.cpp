@@ -191,22 +191,22 @@ int SonarDriver::ProcessMessage( QueuePointer& respQueue,
                     
                     break;
             case micronSET_REGION_FRONT: // select front region for next scan
-                    pmicron->setRegion(Micron::frontRegion);
+                    pmicron->setRegion(Micron::eR_Front);
                     break;
             case micronSET_REGION_RIGHT: // select right region for next scan
-                    pmicron->setRegion(Micron::rightRegion);
+                    pmicron->setRegion(Micron::eR_Right);
                     
                     break;
             case micronSET_REGION_LEFT: // select left region for next scan
-                    pmicron->setRegion(Micron::leftRegion);
+                    pmicron->setRegion(Micron::eR_Left);
                     
                     break;
             case micronSET_REGION_REAR_RIGHT: // select rear right region for next scan
-                    pmicron->setRegion(Micron::rearRightRegion);
+                    pmicron->setRegion(Micron::eR_RearRight);
                     
                     break;
              case micronSET_REGION_REAR_LEFT: // select rear left region for next scan
-                    pmicron->setRegion(Micron::rearLeftRegion);
+                    pmicron->setRegion(Micron::eR_RearLeft);
                     break;
              case micronSET_RESOLUTION5: // set resolution to 5cms (bin size)
                     pmicron->setResolution(5);
@@ -233,10 +233,9 @@ int SonarDriver::ProcessMessage( QueuePointer& respQueue,
              case micronSCAN_REGION: // scan the selected region
                     // flushing serial buffer
                     flushSerialBuffer();
-                    // clearing any data in the regionBins array
-                    pmicron->clearRegionBins();
+
                     // now sending head command
-                    pmicron->sendHeadCommand(mpOpaque, this->InQueue, pmicron->currentRegion);
+                    pmicron->sendHeadCommand(mpOpaque, this->InQueue);
                     pmicron->sendData(mpOpaque, this->InQueue);
                     
                     // The command is not acknowledged here. If all goes well, a micronDATA_READY
@@ -245,10 +244,14 @@ int SonarDriver::ProcessMessage( QueuePointer& respQueue,
                     break;
              case micronSTREAM_REGION_DATA: // stream region data available so far
                  int i, j;
-                 int linelength = pmicron->getRange()*100/pmicron->getResolution();
+                 int linelength = pmicron->getScanData()->mSettings.mNumBins;
                  int linecount=0;
+                 
+                 PLAYER_ERROR( "Streaming broken for now" );
+                 return -1;
+                 
                  // counting region lines 
-                 for (i=0; i<Micron::MAX_LINES; i++) 
+                 /*for (i=0; i<Micron::MAX_LINES; i++) 
                      linecount += (pmicron->regionBins[i]!=NULL) ? 1 : 0;
                  // done. now creating a local array to copy the data
                  if (linecount>0) {
@@ -268,9 +271,7 @@ int SonarDriver::ProcessMessage( QueuePointer& respQueue,
                                NULL,                     // timestamp parameter is NULL. Current time will be used 
                                true                      // copy the data 
                                );
-                       // disposing area data 
-                       pmicron->clearRegionBins();
-                 }
+                 }*/
              
         } // end switch
                     
@@ -294,24 +295,25 @@ void SonarDriver::Main()
         {
             // Publish the latest data as an image. The sonar data is
             // mapped into a quarter circle
-            S32 maxPixelRange = pmicron->getRange()*100/pmicron->getResolution();
+            S32 maxPixelRange = pmicron->getScanData()->mSettings.mNumBins;
             
             // Build up the data struct
             player_micronsonar_data_t data;
             
-            /*U32 dim = 2*pmicron->getRange()*100/pmicron->getResolution()+1;
+            const Micron::ScanData* pScanData = pmicron->getScanData();
+            U32 dim = 2*pScanData->mSettings.mNumBins+1;
             data.width = dim;
-            data.height = dim;*/
+            data.height = dim;
             
-            data.width = maxPixelRange;
-            data.height = maxPixelRange;
+            //data.width = maxPixelRange;
+            //data.height = maxPixelRange;
             data.bpp = 8;
             data.format = PLAYER_MICRONSONAR_FORMAT_MONO8;
             data.image_count = data.width*data.height;
             data.image = new U8[ data.image_count ];
             memset( data.image, 127, data.image_count );    // Clear image
             
-            /*U32 r, c;
+            U32 r, c;
             U32 resol = pmicron->getResolution();
             U32 rang = pmicron->getRange();
             
@@ -325,21 +327,22 @@ void SonarDriver::Main()
                     
            
             
-            SonarDriver::polar2Cartesian(tempmatrix, resol, rang, pmicron->regionBins, 
-                             45, 135, rang*100/resol+1, rang*100/resol+1);
+            SonarDriver::polar2Cartesian( tempmatrix, pScanData, 
+                                          pScanData->mSettings.mNumBins+1, 
+                                          pScanData->mSettings.mNumBins+1);
                              
-            //SonarDriver::mapNormalization(tempmatrix, 2*pmicron->getRange()*100/resol+1, 0.8);
+            SonarDriver::mapNormalization(tempmatrix, dim, 0.8);
             
-           // SonarDriver::mapAutothreshold(tempmatrix, 2*pmicron->getRange()*100/resol+1, 60);
+           SonarDriver::mapAutothreshold(tempmatrix, dim, 60);
             
             for (r=0; r<data.width; r++) 
                 for (c=0; c<data.width; c++)
                     data.image[r*data.width+c] = tempmatrix[r][c];
             
-              */  
+             
             
             
-            F32 angleIncrement = (F32)M_PI*0.9/180;
+            /*F32 angleIncrement = (F32)M_PI*0.9/180;
             
             // Copy the data into the buffer
             // For now determine a pixel by interpolating between the 4 closest readings
@@ -378,7 +381,7 @@ void SonarDriver::Main()
                     }
                 }
                 
-            }
+            }*/
 
             // Write data to the client (through the server)
             base::Publish( this->device_addr,
@@ -386,9 +389,9 @@ void SonarDriver::Main()
             delete [] data.image;
             
             // disposing tempmatrix
-            /*for (r=0; r<dim; r++)
+            for (r=0; r<dim; r++)
                 delete [] tempmatrix[r];
-            delete [] tempmatrix;*/
+            //delete [] tempmatrix;
             
             // ******************************* dumping data loop. Use for debugging purposes ***************************
             /*int i;
@@ -483,19 +486,22 @@ void SonarDriver::flushSerialBuffer()
 // specify startangle and endangle in degrees in counter-clockwise fashion
 // arange in meters, aresolution in centimeters
 // (ipos, jpos) is the position of the micron in amap. recommended (arange*100, arange*100).
-void SonarDriver::polar2Cartesian(U8** amap, U32 aresolution, U32 arange, U8** abins, 
-                             U32 startangle, U32 endangle, U32 ipos, U32 jpos)  {
+void SonarDriver::polar2Cartesian(U8** amap, const Micron::ScanData* pScanData, U32 ipos, U32 jpos)  
+{
+    S32 numBins = pScanData->mSettings.mNumBins;
+    F32 endAngleRads = Micron::convertSonarAngleToRadians( pScanData->mSettings.mEndAngle ); 
+    F32 stepAngleRads = Micron::convertSonarAngleToRadians( pScanData->mSettings.mStepAngle ); 
     
     // retrieving dimension of the map (each bin is a pixel)
-    U32 dim = 2*arange*100/aresolution+1;
+    U32 dim = 2*numBins+1;
     F32 theta;
     U32 r, c;
-    U32 rows = (endangle-startangle)*10/9; // rows of the abins array (lines are 0.9 degrees apart)
-    U32 cols = arange*100/aresolution; // length of the line in cms
+    U32 rows = pScanData->mSettings.GetAngleDiff() / pScanData->mSettings.mStepAngle;
+    U32 cols = numBins; // length of the line in cms
     // must start from the ending angle since the micron scans from left to right
     for (r = 0; r< rows; r++) {
         // ontaining the corresponding angle in rads
-        theta = ((F32)endangle - r*0.9)*M_PI/180;
+        theta = endAngleRads - r*stepAngleRads;
         for (c=0; c<cols; c++) {
             // computing bin coordinates of the point on which diagonals cross (bin is a rectangle)
             F32 binCX = (F32)(c*1.0)*cos(theta);
@@ -513,7 +519,7 @@ void SonarDriver::polar2Cartesian(U8** amap, U32 aresolution, U32 arange, U8** a
             // now filling the rectangular area. obviously there will be certain overlappings but it is ok
             // U32 bw_int= (U32)binWidth;
             // U32 bh_int = (U32)binHeight;
-            amap[bini][binj] = abins[r][c];
+            amap[bini][binj] = pScanData->mRays[ r ].mBins[ c ];
             /*
             int k, l;
             for (k=-(bh_int/2); (S32)k<=(S32)(bh_int/2); k++) 

@@ -15,6 +15,16 @@
     
 class Micron {
 
+    public: static const F32 DEFAULT_GAIN;
+    public: static const S32 MAX_SONAR_ANGLE = 6400;  // In 1/16 Grads
+    public: static const S32 SONAR_STEP_ANGLE = 16; // In 1/16 Grads
+    public: static const S32 MIN_NUM_BINS = 1;
+    public: static const S32 MAX_NUM_BINS = 1500;
+    public: static const S32 MIN_RANGE;
+    public: static const S32 MAX_RANGE;
+    public: static const S32 MIN_AD_INTERVAL;  // In units of 640ns
+    
+    
     public: struct ScanSettings
     {
         S32 mRange;         // In metres
@@ -22,6 +32,17 @@ class Micron {
         S32 mEndAngle;      // In 1/16 Grads
         S32 mNumBins;
         S32 mStepAngle;      // In 1/16 Grads
+        
+        //----------------------------------------------------------------------
+        // mEndAngle = (mStartAngle + GetAngleDiff())%MAX_SONAR_ANGLE;
+        S32 GetAngleDiff() const 
+        {
+            S32 angleDiff = mEndAngle - mStartAngle;
+            while ( angleDiff < 0 )   // Get the difference as a +ve value
+            {
+                angleDiff += MAX_SONAR_ANGLE;
+            }
+        }
     };
     
     public: struct Ray
@@ -39,6 +60,7 @@ class Micron {
         
         static const S32 MAX_NUM_RAYS = MAX_SONAR_ANGLE/SONAR_STEP_ANGLE;
         Ray mRays[ MAX_NUM_RAYS ];
+        S32 mNumRaysScanned;
         ScanSettings mSettings; // The settings used for this scan
     };
     
@@ -72,17 +94,6 @@ class Micron {
        public: static const U8 alParamsAck;
        public: static const U8 alInScan;
 
-       // maximum number of lines constant
-       public: static const int MAX_LINES=100;
-       public: static const F32 DEFAULT_GAIN;
-       public: static const S32 MAX_SONAR_ANGLE;  // In 1/16 Grads
-       public: static const S32 SONAR_STEP_ANGLE; // In 1/16 Grads
-       public: static const S32 MIN_NUM_BINS = 1;
-       public: static const S32 MAX_NUM_BINS = 1500;
-       public: static const S32 MIN_RANGE;
-       public: static const S32 MAX_RANGE;
-       public: static const S32 MIN_AD_INTERVAL;  // In units of 640ns
-	
        // class members
        private: int state;
                 S32 mRange;
@@ -90,8 +101,8 @@ class Micron {
                 S32 mADlow;
                 S32 mADspan;
                 F32 mGain;    // Gain from 0.0 to 1.0
-                F32 mStartAngle;
-                F32 mEndAngle;
+                S32 mStartAngle;
+                S32 mEndAngle;
                 ScanData mScanData;    // Data retrieved from the sonar
 
        // state constants
@@ -146,15 +157,10 @@ class Micron {
         // **************************** Send Package Functions ends here ********************************
 
         // **************************** Internal Class State and Data Handling ************************** 
-          
-        // this function expands the current region array of bins
-        private: void addScanLine(U8* line, int len);
         
-	    // this function changes internal state
+        // this function changes internal state
         public: virtual void transitionAction(TritecPacket* pack, Device* theOpaque, QueuePointer inqueue);
         
-        // this function clears the regionBins array ONLY and resets scannedlines to zero
-        public: void clearRegionBins();
 
         // ************************ State and Data Handling functions ends here **************************
         
@@ -162,66 +168,69 @@ class Micron {
         public: static int packetLength(TritecPacket* tp);
         
         // This function converts a packet to a raw bytes message
-	    public: static U8* convertPacket2Bytes(TritecPacket* tp);
-	
-	    // This function makes a packet out of raw bytes
+        public: static U8* convertPacket2Bytes(TritecPacket* tp);
+    
+        // This function makes a packet out of raw bytes
         public: static TritecPacket* convertBytes2Packet(U8* msg);
         
         // This function disposes a tritech Packet
         public: static void disposePacket(TritecPacket* pack);
 
-	// ************************* Methods that create micron command packets ********************	
+    // ************************* Methods that create micron command packets ********************    
 
-	    // mtReboot Command Packet
-	    public: static TritecPacket* makeReboot();
+        // mtReboot Command Packet
+        public: static TritecPacket* makeReboot();
         
-	   // mtSendVesrion Command packet
+       // mtSendVesrion Command packet
         public: static TritecPacket* makeSendVersion();
 
-	    // mtStopAlives command packet
+        // mtStopAlives command packet
         public: static TritecPacket* makeStopAlives();
         
-	     // mtSendData command packet
-	    public: static TritecPacket* makeSendData();
-	
-	     // mtHeadData command packet.
+         // mtSendData command packet
+        public: static TritecPacket* makeSendData();
+    
+         // mtHeadData command packet.
          // Warning: No real checking is done on routines arguments to check
          // that it's valid, data is simply packed up. Therefore it should
          // only be used with extreme care by code outside the Micron class
         public: static TritecPacket* makeHead( int range, S32 numBins, 
             int startAngle, int endAngle,
-            int ADlow, int ADspan, ScanSettings* pScanSettingsOut = NULL );
+            int ADlow, int ADspan, F32 gain, ScanSettings* pScanSettingsOut = NULL );
         
         // An mtSendBBUser command packet
         public: static TritecPacket* makeSendBBUser();
-	// **************************** Command Packets Methods ends here ********************************
+    // **************************** Command Packets Methods ends here ********************************
 
 
-	// ******************************** Packet Handling methods **************************************
+    // ******************************** Packet Handling methods **************************************
 
-	// This function returns a scanned line as an array of characters from a HeadData packet        
-	public: static U8* unwrapHeadData(TritecPacket* hdatapack, int& datalen, int& headofs);
+    // This function returns a scanned line as an array of characters from a HeadData packet        
+    public: static U8* unwrapHeadData(TritecPacket* hdatapack, int* pDataLenOut, int* pTransducerAngleOut );
         
-	// This function recognizes the type of an alive message returned by the micron
+    // This function recognizes the type of an alive message returned by the micron
         public: static int validateAlive(TritecPacket* alivepack);
-	// Packet Handling methods ends here     
-	
-	// member variable methods
+    // Packet Handling methods ends here     
+    
+    // member variable methods
     public: void setState(int state);
     public: int getState();
     
     public: void setRegion(eRegion region);
     public: void setAngleRange( S32 startAngle, S32 endAngle );
-    public: void getStartAngle() const { return mStartAngle; }
-    public: void getEndAngle() const { return mEndAngle; }
+    public: S32 getStartAngle() const { return mStartAngle; }
+    public: S32 getEndAngle() const { return mEndAngle; }
     
     public: void setResolution(int resolution);
-    public: int getResoultion();
+    public: int getResolution() const;
     public: void setNumBins( S32 numBins );
     public: S32 getNumBins() const { return mNumBins; }
      
     public: void setRange(int range);
     public: int getRange();
+    
+    public: void setRangeAndResolution( S32 range, S32 resolution );
+    public: void setRangeAndNumBins( S32 range, S32 numBins );
     
     public: void setADlow(int adlow);
     public: int getADlow();
@@ -232,15 +241,22 @@ class Micron {
     public: void setGain( F32 gain );
     public: F32 getGain() const;
 
-    public: const ScanData* getScanData() const { return mScanData; }
+    public: const ScanData* getScanData() const { return &mScanData; }
     
     public: void printState();
     
-    private: S32 calculateADInterval( S32 range, S32 numBins );
+    private: static S32 calculateADInterval( S32 range, S32 numBins );
+    
+    public: static S32 convertResolutionToNumBins( S32 range, S32 resolution );
+    public: static S32 convertNumBinsToResolution( S32 range, S32 numBins );
+    public: static F32 convertSonarAngleToRadians( S32 angle )
+    {
+        return (F32)(((F32)angle / (F32)MAX_SONAR_ANGLE)*2.0f*M_PI);
+    }
     // member variable methods done
     
 
-	    
+        
  }; // class definition ends here 
 
 #endif // Header ends here
