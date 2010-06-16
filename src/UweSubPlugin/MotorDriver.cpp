@@ -182,15 +182,25 @@ int MotorDriver::ProcessMessage( QueuePointer& respQueue,
         }
         
         // Calculate the PWM to output
-        F32 normalisedPWM = (speedyaw+MAX_ABS_ANG_SPEED)/(2.0f*MAX_ABS_ANG_SPEED);
+        //F32 normalisedPWM = (speedyaw+MAX_ABS_ANG_SPEED)/(2.0f*MAX_ABS_ANG_SPEED);
         // or
-        // F32 normalisedPWM = (linearSpeed+MAX_ABS_LINEAR_SPEED)/(2.0f*MAX_ABS_LINEAR_SPEED);
+        
+        F32 normalisedPWM = (linearSpeed+MAX_ABS_LINEAR_SPEED)/(2.0f*MAX_ABS_LINEAR_SPEED);
       
         U32 pwmDuty = MIN_DUTY_CYCLE_US + (U32)((MAX_DUTY_CYCLE_US-MIN_DUTY_CYCLE_US)*normalisedPWM);
         
+        U32 leftDuty = (U32)(1000 + (S32)((1000)*normalisedPWM));  // 1000 to 2000
+        U32 rightDuty = (U32)(1200 + (S32)((600)*normalisedPWM));  // 1200 to 1800
+        U32 frontDuty = (U32)(1700 + (S32)((-400)*normalisedPWM));  // 1700 to 1300
+        U32 backDuty = (U32)(2000 + (S32)((-1000)*normalisedPWM));  // 2000 to 1000
+        
         if ( mbInitialisedPWM )
         {
-            if (speedyaw<0)
+            pwm_SetPulse( LEFT_MOTOR_CHANNEL, PWM_FREQUENCY_US, leftDuty );
+            pwm_SetPulse( RIGHT_MOTOR_CHANNEL, PWM_FREQUENCY_US, rightDuty );
+            pwm_SetPulse( FRONT_MOTOR_CHANNEL, PWM_FREQUENCY_US, frontDuty );
+            pwm_SetPulse( BACK_MOTOR_CHANNEL, PWM_FREQUENCY_US, backDuty );
+            /*if (speedyaw<0)
             {
                 pwm_SetPulse( LEFT_MOTOR_CHANNEL, PWM_FREQUENCY_US, pwmDuty );
                 //pwm_SetPulse( RIGHT_MOTOR_CHANNEL, PWM_FREQUENCY_US, pwmDuty/2 );
@@ -203,7 +213,7 @@ int MotorDriver::ProcessMessage( QueuePointer& respQueue,
                 //pwm_SetPulse( LEFT_MOTOR_CHANNEL, PWM_FREQUENCY_US, pwmDuty/2 );
                 printf( "Turning left\n");
                 printf( "Sending %i μs pulse\n", pwmDuty );
-            }
+            }*/
             pwm_SetPulse( TEST_CHANNEL, PWM_FREQUENCY_US, pwmDuty );
         }
         
