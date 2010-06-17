@@ -319,7 +319,7 @@ void Micron::transitionAction(TritecPacket* pack, Device* theOpaque, QueuePointe
                             break;
                         case stExpectHeadData: 
                         case stSendingData:
-                        {   
+                        {                               
                             linebins = unwrapHeadData(pack, &datalen, &transducerAngle);
                             S32 angleDiffToRay = transducerAngle - mScanData.mSettings.mStartAngle;
                             while ( angleDiffToRay < 0 )
@@ -327,7 +327,7 @@ void Micron::transitionAction(TritecPacket* pack, Device* theOpaque, QueuePointe
                                 angleDiffToRay += MAX_SONAR_ANGLE;
                             }
                             assert( angleDiffToRay >= 0 
-                                && angleDiffToRay < mScanData.mSettings.GetAngleDiff() && "Unexpected angle diff" );
+                                && angleDiffToRay <= mScanData.mSettings.GetAngleDiff() && "Unexpected angle diff" );
                             S32 rayIdx = (angleDiffToRay / SONAR_STEP_ANGLE);
                             assert( rayIdx*SONAR_STEP_ANGLE == angleDiffToRay && "Step size error" );
                             
@@ -337,14 +337,20 @@ void Micron::transitionAction(TritecPacket* pack, Device* theOpaque, QueuePointe
                             
                             // TODO: Find a slightly less flaky way to signal the end of a scan
                             S32 mNumRaysPerScan = mScanData.mSettings.GetAngleDiff()/SONAR_STEP_ANGLE;
+                            printf( "Num rays to scan = %i Got ray %i\n", mNumRaysPerScan, rayIdx );
                             if ( mScanData.mNumRaysScanned > 0
                                 && (mScanData.mNumRaysScanned % mNumRaysPerScan) == 0 )
                             {
+                                printf( "Finished\n" );
                                 state = stDataReady;
                             }
                             else
                             {
-                                Micron::sendData(theOpaque, inqueue);
+                                if ( rayIdx % 2 == 1 )
+                                {
+                                    printf( "Sending next package\n" );
+                                    Micron::sendData(theOpaque, inqueue);
+                                }
                                 state = stExpectHeadData;
                             }
             
@@ -649,7 +655,7 @@ TritecPacket* Micron::makeHead( int range, int numBins,
   
   scanSettings.mStartAngle = startAngle;
   scanSettings.mEndAngle = endAngle;
-        
+      
    headpack->Msg[27] = (U8)(startAngle & 0xFF);
    headpack->Msg[28] = (U8)((startAngle >> 8) & 0xFF);
    headpack->Msg[29] = (U8)(endAngle & 0xFF);
@@ -951,9 +957,9 @@ void Micron::printState() {
 
 S32 Micron::calculateADInterval( S32 range, S32 numBins )
 {
-    double pingtime = 2 * range / 1500; // in millisec
+    double pingtime = 2.0 * range * 1000.0 / 1.5; // in usec
     double bintime = pingtime / numBins;
-    return (S32)(bintime/640.0);
+    return round( (bintime/64.0)*100.0 );
 }
 
 S32 Micron::convertResolutionToNumBins( S32 range, S32 resolution )

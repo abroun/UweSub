@@ -489,7 +489,7 @@ void SonarDriver::flushSerialBuffer()
 void SonarDriver::polar2Cartesian(U8** amap, const Micron::ScanData* pScanData, U32 ipos, U32 jpos)  
 {
     S32 numBins = pScanData->mSettings.mNumBins;
-    F32 endAngleRads = Micron::convertSonarAngleToRadians( pScanData->mSettings.mEndAngle ); 
+    F32 endAngleRads = Micron::convertSonarAngleToRadians( pScanData->mSettings.mEndAngle ) - M_PI/2.0; 
     F32 stepAngleRads = Micron::convertSonarAngleToRadians( pScanData->mSettings.mStepAngle ); 
     
     // retrieving dimension of the map (each bin is a pixel)

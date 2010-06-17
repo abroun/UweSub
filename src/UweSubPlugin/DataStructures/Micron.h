@@ -42,6 +42,8 @@ class Micron {
             {
                 angleDiff += MAX_SONAR_ANGLE;
             }
+            
+            return angleDiff;
         }
     };
     
