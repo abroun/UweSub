@@ -208,6 +208,9 @@ int SonarDriver::ProcessMessage( QueuePointer& respQueue,
              case micronSET_REGION_REAR_LEFT: // select rear left region for next scan
                     pmicron->setRegion(Micron::eR_RearLeft);
                     break;
+             case micronSET_REGION_FULL: // select front region for next scan
+                    pmicron->setRegion(Micron::eR_Full);
+                    break;
              case micronSET_RESOLUTION5: // set resolution to 5cms (bin size)
                     pmicron->setResolution(5);
                     break;
@@ -216,6 +219,10 @@ int SonarDriver::ProcessMessage( QueuePointer& respQueue,
                     break;
              case micronSET_RESOLUTION20: // set resolution to 20cms (bin size)
                     pmicron->setResolution(20);
+                    
+                    break;
+             case micronSET_RANGE02: // set range to 2 meters
+                    pmicron->setRange(2);
                     
                     break;
              case micronSET_RANGE10: // set range to 10 meters
@@ -366,8 +373,13 @@ void SonarDriver::Main()
                         if ( pixelRange > 0.0f && pixelRange < numBins - 1 )
                         {
                             F32 pixelTheta = atan2( xDiff, -yDiff );
+                            if ( pixelTheta < 0.0f )
+                            {
+                                pixelTheta += 2*M_PI;
+                            }
+                            
                             S32 leftLineIdx = (S32)( pixelTheta / angleIncrement );
-                            S32 rightLineIdx = leftLineIdx + 1;
+                            S32 rightLineIdx = leftLineIdx + 1;                            
                             if ( leftLineIdx >= 0 && rightLineIdx < numRays )
                             {
                                 // Work out the normalised distance between the 2 lines

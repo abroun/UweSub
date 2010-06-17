@@ -71,7 +71,7 @@ Micron::Micron() {
     setGain( DEFAULT_GAIN );
    
     state = stAliveSonar; // starting from alive state. Assumming Sonar connected and powered
-    setRegion( eR_Full );
+    setRegion( eR_Front );
 }
 
 
@@ -336,19 +336,19 @@ void Micron::transitionAction(TritecPacket* pack, Device* theOpaque, QueuePointe
                             mScanData.mNumRaysScanned++;
                             
                             // TODO: Find a slightly less flaky way to signal the end of a scan
-                            S32 mNumRaysPerScan = mScanData.mSettings.GetAngleDiff()/SONAR_STEP_ANGLE;
-                            printf( "Num rays to scan = %i Got ray %i\n", mNumRaysPerScan, rayIdx );
-                            if ( mScanData.mNumRaysScanned > 0
-                                && (mScanData.mNumRaysScanned % mNumRaysPerScan) == 0 )
+                            S32 numRaysPerScan = mScanData.mSettings.GetAngleDiff()/SONAR_STEP_ANGLE;
+                            printf( "Num rays to scan = %i Got ray %i\n", numRaysPerScan, rayIdx );
+                            if ( ( rayIdx == 0 || rayIdx == numRaysPerScan ) 
+                                && mScanData.mNumRaysScanned >= numRaysPerScan - 2 ) // Rays scanned may be slightly out due to full-duplex behaviour
                             {
-                                printf( "Finished\n" );
+                                //printf( "Finished\n" );
                                 state = stDataReady;
                             }
                             else
                             {
                                 if ( rayIdx % 2 == 1 )
                                 {
-                                    printf( "Sending next package\n" );
+                                    //printf( "Sending next package\n" );
                                     Micron::sendData(theOpaque, inqueue);
                                 }
                                 state = stExpectHeadData;
