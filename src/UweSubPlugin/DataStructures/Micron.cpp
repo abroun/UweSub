@@ -60,7 +60,7 @@ Micron::Micron(int range, int resolution, int ADlow, int ADspan) {
     
     // setting state and selected region to scan
     state = stIdle;
-    setRegion( eR_Front );
+    setRegion( eR_Full );
 }
 
 // default values constructor
@@ -71,7 +71,7 @@ Micron::Micron() {
     setGain( DEFAULT_GAIN );
    
     state = stAliveSonar; // starting from alive state. Assumming Sonar connected and powered
-    setRegion( eR_Front );
+    setRegion( eR_Full );
 }
 
 
@@ -608,7 +608,7 @@ TritecPacket* Micron::makeHead( int range, int numBins,
   headpack->Msg[3] = 0x1D; // NOT including channel params 
   // configuring Head Control now
   // low byte
-  headpack->Msg[4] = 0x05;
+  headpack->Msg[4] = 0x85;
   // bit 0:     1  ADC 8-bit
   // bit 1:     0  Sector Scan
   // bit 2:     1  for right scan, 0 for left scan (here set 1 orginally for masking)
@@ -616,7 +616,7 @@ TritecPacket* Micron::makeHead( int range, int numBins,
   // bit 4:     0  motor enabled (makes no difference in the micron)
   // bit 5:     0  sonar transmitter enabled
   // bit 6:     0  always
-  // bit 7:     0  low Frequency channel
+  // bit 7:     1  low Frequency channel
 
   // high byte
   headpack->Msg[5] = 0x23;
@@ -817,6 +817,11 @@ void Micron::setRegion(eRegion region)
         case eR_Left:
         {
             setAngleRange( 800, 2400 );
+            break;
+        }
+        case eR_Full:
+        {
+            setAngleRange( 0, MAX_SONAR_ANGLE - SONAR_STEP_ANGLE );
             break;
         }
         default:

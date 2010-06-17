@@ -87,7 +87,8 @@ class Micron {
            eR_Front,        //45 to 135 degrees 
            eR_Right,        // -45 to 45 degrees
            eR_RearLeft,     // 235 to 270 degrees
-           eR_RearRight     // 270 to 315 degrees
+           eR_RearRight,     // 270 to 315 degrees
+           eR_Full,          // 0 to 360
        };
        
        // alive constants (for evaluation of an mtAlive Message)

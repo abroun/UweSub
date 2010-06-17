@@ -288,56 +288,165 @@ int SonarDriver::ProcessMessage( QueuePointer& respQueue,
 // Main function for device thread
 void SonarDriver::Main()
 {
+    const bool USE_BILINEAR_FILTERING = true;
+    
     for (;;)
     {
         // checking for a Data Ready condition
         if (pmicron->getState()==Micron::stDataReady) 
         {
-            // Publish the latest data as an image. The sonar data is
-            // mapped into a quarter circle
-            S32 maxPixelRange = pmicron->getScanData()->mSettings.mNumBins;
+            // Publish the latest data as an image. 
+            const Micron::ScanData* pScanData = pmicron->getScanData();
             
             // Build up the data struct
             player_micronsonar_data_t data;
             
-            const Micron::ScanData* pScanData = pmicron->getScanData();
-            U32 dim = 2*pScanData->mSettings.mNumBins+1;
-            data.width = dim;
-            data.height = dim;
-            
-            //data.width = maxPixelRange;
-            //data.height = maxPixelRange;
-            data.bpp = 8;
-            data.format = PLAYER_MICRONSONAR_FORMAT_MONO8;
-            data.image_count = data.width*data.height;
-            data.image = new U8[ data.image_count ];
-            memset( data.image, 127, data.image_count );    // Clear image
-            
-            U32 r, c;
-            U32 resol = pmicron->getResolution();
-            U32 rang = pmicron->getRange();
-            
-            U8* tempmatrix[data.width];
-            
-            for (r=0; r<dim; r++) {
-                tempmatrix[r] = new U8[dim];
-                for (c=0; c<dim; c++) 
-                    tempmatrix[r][c] = 0;
-            }
+            if ( USE_BILINEAR_FILTERING )
+            {
+                S32 numBins = pScanData->mSettings.mNumBins;
+                S32 imageHeight = numBins;
+                S32 imageWidth = 0;
+                S32 centreX = 0;
+                S32 centreY = imageHeight - 1;
+                F32 angleDiffRads = 
+                    Micron::convertSonarAngleToRadians( pScanData->mSettings.GetAngleDiff() );
                     
-           
+                if ( angleDiffRads >= 3.0*M_PI/2.0 )
+                {
+                    // The angle diff is over 3/4 of a full circle
+                    imageHeight = numBins*2;
+                    imageWidth = numBins*2;
+                    centreX = numBins;
+                }
+                else if ( angleDiffRads >= M_PI )
+                {
+                    // The angle diff is between 1/2 and 3/4 of a full circle
+                    imageHeight = numBins*2;
+                    S32 extraWidth = (S32)(numBins*sinf( angleDiffRads - (F32)M_PI ));
+                    imageWidth = extraWidth + numBins;
+                    centreX = extraWidth;
+                }
+                else if ( angleDiffRads >= M_PI/2.0 )
+                {
+                    // The angle diff is between 1/4 and 1/2 of a full circle
+                    S32 extraHeight = (S32)(numBins*sinf( angleDiffRads - (F32)(M_PI/2.0) ));
+                    imageHeight = numBins + extraHeight;
+                    imageWidth = numBins;
+                }
+                else
+                {
+                    // The angle diff is between 0 and 1/4 of a full circle
+                    imageWidth = (S32)(numBins*sinf( angleDiffRads ));
+                }
+                
+                data.width = imageWidth;
+                data.height = imageHeight;
+                data.bpp = 8;
+                data.format = PLAYER_MICRONSONAR_FORMAT_MONO8;
+                data.image_count = data.width*data.height;
+                data.image = new U8[ data.image_count ];
+                memset( data.image, 127, data.image_count );    // Clear image
             
-            SonarDriver::polar2Cartesian( tempmatrix, pScanData, 
-                                          pScanData->mSettings.mNumBins+1, 
-                                          pScanData->mSettings.mNumBins+1);
-                             
-            SonarDriver::mapNormalization(tempmatrix, dim, 0.8);
+                F32 angleIncrement = Micron::convertSonarAngleToRadians(
+                    pScanData->mSettings.mStepAngle );
+                S32 numRays = pScanData->mSettings.GetAngleDiff()
+                    /pScanData->mSettings.mStepAngle;
             
-           SonarDriver::mapAutothreshold(tempmatrix, dim, 60);
+                // Copy the data into the buffer
+                // For now determine a pixel by interpolating between the 4 closest readings
+                for ( S32 y = 0; y < imageHeight; y++ )
+                {
+                    S32 invertedY = ( imageHeight - 1 ) - y;    // Invert y so that we draw from bottom to top
+                    for ( S32 x = 0; x < data.width; x++ )
+                    {
+                        S32 xDiff = x - centreX;
+                        S32 yDiff = y - centreY;
+                        
+                        F32 pixelRange = (F32)sqrt( xDiff*xDiff + yDiff*yDiff );
+                        if ( pixelRange > 0.0f && pixelRange < numBins - 1 )
+                        {
+                            F32 pixelTheta = atan2( xDiff, -yDiff );
+                            S32 leftLineIdx = (S32)( pixelTheta / angleIncrement );
+                            S32 rightLineIdx = leftLineIdx + 1;
+                            if ( leftLineIdx >= 0 && rightLineIdx < numRays )
+                            {
+                                // Work out the normalised distance between the 2 lines
+                                F32 lineInterp = (pixelTheta - leftLineIdx*angleIncrement)/angleIncrement;
+                                
+                                // Then work out the normalised distance between the front and back bins
+                                S32 nearBinIdx = (S32)pixelRange;
+                                S32 farBinIdx = nearBinIdx + 1;
+                                F32 binInterp = pixelRange - nearBinIdx;
+                                
+                                // Fill in the pixel value using bilinear interpolation
+                                F32 r1 = pScanData->mRays[ leftLineIdx ].mBins[ nearBinIdx ]*(1.0f - lineInterp)
+                                    + pScanData->mRays[ rightLineIdx ].mBins[ nearBinIdx ]*lineInterp;
+                                F32 r2 = pScanData->mRays[ leftLineIdx ].mBins[ farBinIdx ]*(1.0f - lineInterp)
+                                    + pScanData->mRays[ rightLineIdx ].mBins[ farBinIdx ]*lineInterp;
+                                    
+                                data.image[ y*imageWidth + x ] = 
+                                    (U8)(r1*(1.0f - binInterp) + r2*binInterp);
+                            }
+                        }
+                    }
+                    
+                }
+                
+                // Write data to the client (through the server)
+                base::Publish( this->device_addr,
+                    PLAYER_MSGTYPE_DATA, PLAYER_MICRONSONAR_DATA_STATE, &data );
+                delete [] data.image;
+            }
+            else
+            {
+                U32 dim = 2*pScanData->mSettings.mNumBins+1;
+                data.width = dim;
+                data.height = dim;
+                
+                //data.width = maxPixelRange;
+                //data.height = maxPixelRange;
+                data.bpp = 8;
+                data.format = PLAYER_MICRONSONAR_FORMAT_MONO8;
+                data.image_count = data.width*data.height;
+                data.image = new U8[ data.image_count ];
+                memset( data.image, 127, data.image_count );    // Clear image
+                
+                U32 r, c;
+                U32 resol = pmicron->getResolution();
+                U32 rang = pmicron->getRange();
+                
+                U8* tempmatrix[data.width];
+                
+                for (r=0; r<dim; r++) {
+                    tempmatrix[r] = new U8[dim];
+                    for (c=0; c<dim; c++) 
+                        tempmatrix[r][c] = 0;
+                }
+                
+                SonarDriver::polar2Cartesian( tempmatrix, pScanData, 
+                                            pScanData->mSettings.mNumBins+1, 
+                                            pScanData->mSettings.mNumBins+1);
+                                
+                SonarDriver::mapNormalization(tempmatrix, dim, 0.8);
+                
+                //SonarDriver::mapAutothreshold(tempmatrix, dim, 60);
+                
+                for (r=0; r<data.width; r++) 
+                    for (c=0; c<data.width; c++)
+                        data.image[r*data.width+c] = tempmatrix[r][c];
+
+                    
+                // Write data to the client (through the server)
+                base::Publish( this->device_addr,
+                    PLAYER_MSGTYPE_DATA, PLAYER_MICRONSONAR_DATA_STATE, &data );
+                delete [] data.image;
+                
+                // disposing tempmatrix
+                for (r=0; r<dim; r++)
+                    delete [] tempmatrix[r];
+                //delete [] tempmatrix;
+            }
             
-            for (r=0; r<data.width; r++) 
-                for (c=0; c<data.width; c++)
-                    data.image[r*data.width+c] = tempmatrix[r][c];
             
              
             
@@ -383,15 +492,7 @@ void SonarDriver::Main()
                 
             }*/
 
-            // Write data to the client (through the server)
-            base::Publish( this->device_addr,
-                PLAYER_MSGTYPE_DATA, PLAYER_MICRONSONAR_DATA_STATE, &data );
-            delete [] data.image;
             
-            // disposing tempmatrix
-            for (r=0; r<dim; r++)
-                delete [] tempmatrix[r];
-            //delete [] tempmatrix;
             
             // ******************************* dumping data loop. Use for debugging purposes ***************************
             /*int i;
