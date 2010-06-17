@@ -39,8 +39,8 @@ const U32 MotorDriver::MIN_DUTY_CYCLE_US = 1000;
 const U32 MotorDriver::MAX_DUTY_CYCLE_US = 2000;
 const U32 MotorDriver::ZERO_DUTY_CYCLE_US = (MIN_DUTY_CYCLE_US + MAX_DUTY_CYCLE_US)/2;
 
-const U32 MotorDriver::RIGHT_MOTOR_CHANNEL = 0;    // 01
-const U32 MotorDriver::LEFT_MOTOR_CHANNEL = 1;     // 10
+const U32 MotorDriver::RIGHT_MOTOR_CHANNEL = 4;    // 01
+const U32 MotorDriver::LEFT_MOTOR_CHANNEL = 5;     // 10
 const U32 MotorDriver::FRONT_MOTOR_CHANNEL = 2;
 const U32 MotorDriver::BACK_MOTOR_CHANNEL = 3;
 const U32 MotorDriver::TEST_CHANNEL = 16;
@@ -80,6 +80,8 @@ MotorDriver::MotorDriver( ConfigFile* pConfigFile, int section )
         pwm_SetPulse( TEST_CHANNEL, PWM_FREQUENCY_US, ZERO_DUTY_CYCLE_US );
         pwm_SetCountingMode( LEFT_MOTOR_CHANNEL, PWM_CONTINUE_MODE );
         pwm_SetCountingMode( RIGHT_MOTOR_CHANNEL, PWM_CONTINUE_MODE );
+        pwm_SetCountingMode( FRONT_MOTOR_CHANNEL, PWM_CONTINUE_MODE );
+        pwm_SetCountingMode( BACK_MOTOR_CHANNEL, PWM_CONTINUE_MODE );
         pwm_SetCountingMode( TEST_CHANNEL, PWM_CONTINUE_MODE );
         
         // Enable the pins
