@@ -373,6 +373,10 @@ void SonarDriver::Main()
             
             // Build up the data struct
             player_micronsonar_data_t data;
+            data.range = pScanData->mSettings.mRange;
+            data.numBins = pScanData->mSettings.mNumBins;
+            data.startAngle = Micron::convertSonarAngleToRadians( pScanData->mSettings.mStartAngle );
+            data.endAngle = Micron::convertSonarAngleToRadians( pScanData->mSettings.mEndAngle );
             
             if ( USE_BILINEAR_FILTERING )
             {
@@ -412,6 +416,8 @@ void SonarDriver::Main()
                     imageWidth = (S32)(numBins*sinf( angleDiffRads ));
                 }
                 
+                data.centreX = centreX;
+                data.centreY = centreY;
                 data.width = imageWidth;
                 data.height = imageHeight;
                 data.bpp = 8;
