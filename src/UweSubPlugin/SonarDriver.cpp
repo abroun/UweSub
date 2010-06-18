@@ -150,7 +150,8 @@ int SonarDriver::ProcessMessage( QueuePointer& respQueue,
     
     char micronresp[7];
     
-    if ( Message::MatchMessage(pHeader, PLAYER_MSGTYPE_DATA, PLAYER_OPAQUE_DATA_STATE, mOpaqueID ) )
+    if ( Message::MatchMessage( pHeader, PLAYER_MSGTYPE_DATA, 
+        PLAYER_OPAQUE_DATA_STATE, mOpaqueID ) )
     {
         player_opaque_data_t* pOpaqueData = (player_opaque_data_t*)pData;
         
@@ -164,11 +165,12 @@ int SonarDriver::ProcessMessage( QueuePointer& respQueue,
         }
         return 0;
     }
-    else if ( Message::MatchMessage(pHeader, PLAYER_MSGTYPE_CMD, PLAYER_MICRONSONAR_CMD_SAY, this->device_addr ) )
+    else if ( Message::MatchMessage( pHeader, PLAYER_MSGTYPE_CMD, 
+        PLAYER_MICRONSONAR_CMD_SAY, this->device_addr ) )
     { // Handling message from the client
     
         
-        player_micronsonar_cmd* pCmd = (player_micronsonar_cmd*)pData;
+        player_micronsonar_cmd_say* pCmd = (player_micronsonar_cmd_say*)pData;
         
         printf( "Micron command received %s\n", pCmd->string );
         // action
@@ -238,15 +240,18 @@ int SonarDriver::ProcessMessage( QueuePointer& respQueue,
                     
                     break;
              case micronSCAN_REGION: // scan the selected region
-                    // flushing serial buffer
-                    flushSerialBuffer();
+                    if ( pmicron->getState() == Micron::stAliveSonar )
+                    {
+                        // flushing serial buffer
+                        flushSerialBuffer();
 
-                    // now sending head command
-                    pmicron->sendHeadCommand(mpOpaque, this->InQueue);
-                    pmicron->sendData(mpOpaque, this->InQueue);
-                    
-                    // The command is not acknowledged here. If all goes well, a micronDATA_READY
-                    // should be published shortly
+                        // now sending head command
+                        pmicron->sendHeadCommand(mpOpaque, this->InQueue);
+                        pmicron->sendData(mpOpaque, this->InQueue);
+                        
+                        // The command is not acknowledged here. If all goes well, a micronDATA_READY
+                        // should be published shortly
+                    }
                     
                     break;
              case micronSTREAM_REGION_DATA: // stream region data available so far
@@ -283,6 +288,67 @@ int SonarDriver::ProcessMessage( QueuePointer& respQueue,
         } // end switch
                     
             
+        return 0;
+    }
+    else if ( Message::MatchMessage( pHeader, PLAYER_MSGTYPE_CMD, 
+        PLAYER_MICRONSONAR_CMD_SCAN, this->device_addr ) )
+    {
+        if ( pmicron->getState() == Micron::stAliveSonar )
+        {
+            // Start a scan
+            player_micronsonar_cmd_scan_t* pCmd = (player_micronsonar_cmd_scan_t*)pData;
+            
+            pmicron->setAngleRange( 
+                Micron::convertRadiansToSonarAngle( pCmd->startAngle ),
+                Micron::convertRadiansToSonarAngle( pCmd->endAngle ) );
+                
+            // flushing serial buffer
+            flushSerialBuffer();
+
+            // now sending head command
+            pmicron->sendHeadCommand( mpOpaque, this->InQueue );
+            pmicron->sendData( mpOpaque, this->InQueue );
+        }
+        else
+        {
+            PLAYER_WARN( "Not ready to start new scan yet\n" );
+        }
+        return 0;
+    }
+    else if( Message::MatchMessage( pHeader, PLAYER_MSGTYPE_REQ,
+        PLAYER_MICRONSONAR_REQ_SET_CONFIG, this->device_addr ) )
+    {
+        player_micronsonar_config_t* pConfig =
+            (player_micronsonar_config_t*)pData;
+
+        pmicron->setRangeAndNumBins( pConfig->range, pConfig->numBins );
+        pmicron->setGain( pConfig->gain );
+
+        // The configuration parameters may have been modified by
+        // the Micron object to fall within valid ranges, send the
+        // new configuration parameters back in the ACK
+        pConfig->range = pmicron->getRange();
+        pConfig->numBins = pmicron->getNumBins();
+        pConfig->gain = pmicron->getGain();
+        
+        Publish( this->device_addr, respQueue,
+            PLAYER_MSGTYPE_RESP_ACK, PLAYER_MICRONSONAR_REQ_SET_CONFIG,
+            pData, pHeader->size, NULL );
+
+        return 0;
+    }
+    else if( Message::MatchMessage( pHeader, PLAYER_MSGTYPE_REQ,
+        PLAYER_MICRONSONAR_REQ_GET_CONFIG, this->device_addr ) )
+    {
+        player_micronsonar_config_t config;
+        config.range = pmicron->getRange();
+        config.numBins = pmicron->getNumBins();
+        config.gain = pmicron->getGain();
+
+        Publish( this->device_addr, respQueue,
+            PLAYER_MSGTYPE_RESP_ACK, PLAYER_MICRONSONAR_REQ_GET_CONFIG,
+            (void*)&config, sizeof(config), NULL );
+    
         return 0;
     }
     
@@ -458,53 +524,6 @@ void SonarDriver::Main()
                     delete [] tempmatrix[r];
                 //delete [] tempmatrix;
             }
-            
-            
-             
-            
-            
-            /*F32 angleIncrement = (F32)M_PI*0.9/180;
-            
-            // Copy the data into the buffer
-            // For now determine a pixel by interpolating between the 4 closest readings
-            for ( S32 y = 0; y < data.height; y++ )
-            {
-                S32 invertedY = ( data.height - 1 ) - y;    // Invert y so that we draw from bottom to top
-                for ( S32 x = 0; x < data.width; x++ )
-                {
-                    F32 pixelRange = (F32)sqrt( x*x + invertedY*invertedY );
-                    if ( pixelRange > 0.0f && pixelRange < maxPixelRange - 1 )
-                    {
-                        F32 pixelTheta = atan2( x, invertedY );
-                        S32 leftLineIdx = (S32)( pixelTheta / angleIncrement );
-                        S32 rightLineIdx = leftLineIdx + 1;
-                        if ( leftLineIdx >= 0 && rightLineIdx < Micron::MAX_LINES
-                            && NULL != pmicron->regionBins[ leftLineIdx ]
-                            && NULL != pmicron->regionBins[ rightLineIdx ] )
-                        {
-                            // Work out the normalised distance between the 2 lines
-                            F32 lineInterp = (pixelTheta - leftLineIdx*angleIncrement)/angleIncrement;
-                            
-                            // Then work out the normalised distance between the front and back bins
-                            S32 nearBinIdx = (S32)pixelRange;
-                            S32 farBinIdx = nearBinIdx + 1;
-                            F32 binInterp = pixelRange - nearBinIdx;
-                            
-                            // Fill in the pixel value using bilinear interpolation
-                            F32 r1 = pmicron->regionBins[ leftLineIdx ][ nearBinIdx ]*(1.0f - lineInterp)
-                                + pmicron->regionBins[ rightLineIdx ][ nearBinIdx ]*lineInterp;
-                            F32 r2 = pmicron->regionBins[ leftLineIdx ][ farBinIdx ]*(1.0f - lineInterp)
-                                + pmicron->regionBins[ rightLineIdx ][ farBinIdx ]*lineInterp;
-                                
-                            data.image[ y*maxPixelRange + x ] = 
-                                (U8)(r1*(1.0f - binInterp) + r2*binInterp);
-                        }
-                    }
-                }
-                
-            }*/
-
-            
             
             // ******************************* dumping data loop. Use for debugging purposes ***************************
             /*int i;

@@ -256,6 +256,10 @@ class Micron {
     {
         return (F32)(((F32)angle / (F32)MAX_SONAR_ANGLE)*2.0f*M_PI);
     }
+    public: static S32 convertRadiansToSonarAngle( F32 rads )
+    {
+        return (S32)((rads/(2.0f*(F32)M_PI)) * MAX_SONAR_ANGLE);
+    }
     // member variable methods done
     
 
