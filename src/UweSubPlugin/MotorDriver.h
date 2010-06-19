@@ -44,6 +44,15 @@ class MotorDriver : public ThreadedDriver
     private: bool mbCompassAngleValid;
     private: double mCompassAngleTimestamp;
     private: double mLastDisplayedCompassAngleTimestamp;
+    
+    private: Device* mpDepthSensor;
+    private: player_devaddr_t  mDepthSensorID;
+    private: bool mbDepthSensorAvailable;
+    
+    private: F32 mDepthSensorDepth;
+    private: bool mbDepthSensorDepthValid;
+    private: double mDepthSensorDepthTimestamp;
+    
 
     private: static const U32 PWM_FREQUENCY_US;
     private: static const U32 MIN_DUTY_CYCLE_US;

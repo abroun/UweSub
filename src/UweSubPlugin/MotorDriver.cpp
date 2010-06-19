@@ -107,6 +107,18 @@ MotorDriver::MotorDriver( ConfigFile* pConfigFile, int section )
     {
         mbCompassAvailable = true;
     }
+    
+    mpDepthSensor = NULL;
+    // See if we have a depth sensor
+    if ( pConfigFile->ReadDeviceAddr( &mDepthSensorID, section, "requires",
+                       PLAYER_POSITION1D_CODE, -1, NULL ) != 0 )
+    {
+        PLAYER_WARN( "No Depth Sensor specified" );
+    }
+    else
+    {
+        mbDepthSensorAvailable = true;
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -136,6 +148,28 @@ int MotorDriver::MainSetup()
         if ( mpCompass->Subscribe( this->InQueue ) != 0 )
         {
             PLAYER_ERROR( "Unable to subscribe to compass device" );
+            return -1;
+        }
+    }
+    
+    if ( mbDepthSensorAvailable )
+    {
+        if ( Device::MatchDeviceAddress( mDepthSensorID, this->device_addr ) )
+        {
+            PLAYER_ERROR( "Attempting to subscribe to self" );
+            return -1;
+        }
+
+        mpDepthSensor = deviceTable->GetDevice( mDepthSensorID );
+        if ( NULL == mpDepthSensor )
+        {
+            PLAYER_ERROR( "Unable to locate suitable compass device" );
+            return -1;
+        }
+
+        if ( mpDepthSensor->Subscribe( this->InQueue ) != 0 )
+        {
+            PLAYER_ERROR( "Unable to subscribe to Depth Sensor device" );
             return -1;
         }
     }
@@ -236,6 +270,17 @@ int MotorDriver::ProcessMessage( QueuePointer& respQueue,
         
         return 0;
     }
+    else if ( Message::MatchMessage(
+        pHeader, PLAYER_MSGTYPE_DATA, PLAYER_POSITION1D_DATA_STATE, mDepthSensorID ) )
+    {
+        player_position1d_data* pDepthSensorData = (player_position1d_data*)pData;
+        mDepthSensorDepth = pDepthSensorData->pos;
+           
+        mbDepthSensorDepthValid = true;
+        mDepthSensorDepthTimestamp = pHeader->timestamp;
+        
+        return 0;
+    }
     
     printf( "Unhandled message\n" );
     return -1;
@@ -270,7 +315,8 @@ void MotorDriver::Main()
             
             F32 degYawCompassAngle = radYawCompassAngle*180.0f/M_PI;
             F32 degPitchCompassAngle = radPitchCompassAngle*180.0f/M_PI;
-            printf( "Current compass angle (degrees): yaw = %2.3f, pitch = %2.3f\n", degYawCompassAngle, degPitchCompassAngle );
+                        
+            printf( "Compass angle (degrees): yaw = %2.3f, pitch = %2.3f | Sensor depth (m): %2.3f \n", degYawCompassAngle, degPitchCompassAngle, mDepthSensorDepth );
             mLastDisplayedCompassAngleTimestamp = mCompassAngleTimestamp;
         }
     }
