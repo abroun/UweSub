@@ -1,6 +1,6 @@
 #! /usr/bin/python
 #-------------------------------------------------------------------------------
-# Simple joystick application for controlling the sub
+# Joystick application for controlling the sub
 #-------------------------------------------------------------------------------
 
 import sys
@@ -21,9 +21,9 @@ import yaml
 # Add common packages directory to path
 sys.path.append( "../" )
 from SubControllerConfig import SubControllerConfig
-#from Controllers import PitchControl
-#from Controllers import YawControl
-#from Controllers import DepthControl
+from Controllers import PitchControl
+from Controllers import YawControl
+from Controllers import DepthControl
 from Controllers import Arbitrator
 
 #-------------------------------------------------------------------------------
@@ -47,21 +47,30 @@ class MainWindow:
         self.arrayYawAngles = [ 0 ]
         self.startYawGraph = False
         
+        self.depthSensorDepth = 0.0
         self.arrayDepthValues = [ 0 ]
         self.startDepthGraph = False
-        
+
+        self.pitchpTest = []
+        self.pitchiTest = []
+        self.pitchdTest = []
+                
         self.yawpTest = []
         self.yawiTest = []
         self.yawdTest = []
 
+        self.depthpTest = []
+        self.depthiTest = []
+        self.depthdTest = []
+        
         self.connectToPlayer()
         
-        #self.pitchController = PitchControl( self.playerPos3d,
-            #self.playerCompass, self.playerSimPos3d )
-        #self.yawController = YawControl( self.playerPos3d,
-            #self.playerCompass, self.playerSimPos3d )
-        #self.depthController = DepthControl( self.playerPos3d,
-            #self.playerDepthSensor, self.playerSimPos3d )
+        self.pitchController = PitchControl( self.playerPos3d,
+            self.playerCompass, self.playerSimPos3d )
+        self.yawController = YawControl( self.playerPos3d,
+            self.playerCompass, self.playerSimPos3d )
+        self.depthController = DepthControl( self.playerPos3d,
+            self.playerDepthSensor, self.playerSimPos3d )
         
         self.arbitrator = Arbitrator( self.playerPos3d,
             self.playerCompass, self.playerDepthSensor, self.playerSimPos3d )
@@ -238,18 +247,18 @@ class MainWindow:
 
 #---------------------------------------------------------------------------
     def onPitchPosButtonClicked( self, button ):
-        #time = len( self.arrayPitchAngles )
-        #figure(2)
-        #plot( range( time ), self.arrayPitchAngles )
+        time = len( self.arrayPitchAngles )
+        figure(2)
+        plot( range( time ), self.arrayPitchAngles )
         ylabel( 'Pitch angle [deg/s]' )
         xlabel( 'Time' )
         show()
 
 #---------------------------------------------------------------------------
     def onDepthPosButtonClicked( self, button ):
-        #time = len( self.arrayDepthValues )
-        #figure(3)
-        #plot( range( time ), self.arrayDepthValues )
+        time = len( self.arrayDepthValues )
+        figure(3)
+        plot( range( time ), self.arrayDepthValues )
         ylabel( 'Pitch angle [deg/s]' )
         xlabel( 'Time' )
         show()
@@ -266,31 +275,29 @@ class MainWindow:
                 # Get compass pitch and yaw angle
                 radCompassPitchAngle = self.playerCompass.pose.ppitch
                 radCompassYawAngle = self.playerCompass.pose.pyaw
-                
                 # 0 < angle < 2*pi
-                while radCompassYawAngle >= 2*math.pi:
-                    radCompassYawAngle -= 2*math.pi
                 while radCompassPitchAngle >= 2*math.pi:
                     radCompassPitchAngle -= 2*math.pi
-                    
-                degCompassYawAngle = radCompassYawAngle*180.0/math.pi    # from rad to degrees
+                while radCompassYawAngle >= 2*math.pi:
+                    radCompassYawAngle -= 2*math.pi
                 degCompassPitchAngle = radCompassPitchAngle*180.0/math.pi    # from rad to degrees
+                degCompassYawAngle = radCompassYawAngle*180.0/math.pi    # from rad to degrees
                 #print it on the GUI
                 self.lblCompassPitchAngle.set_text( "{0:.3}".format( degCompassPitchAngle ) )
                 self.lblCompassYawAngle.set_text( "{0:.3}".format( degCompassYawAngle ) )
             
-            # Update the depth sensor value if needed
+            # Update the depth sensor value if needed                
             if self.playerDepthSensor != None and self.playerClient.peek( 0 ):
                 self.playerClient.read()
-                
-                # Get pressure sensor depth
-                radDepthSensorDepth = self.playerDepthSensor.pose.pz
-                   
-            maxDepthSpeed = self.spinMaxDepthSpeed.get_value()	    
-            maxLinearSpeed = self.spinMaxLinearSpeed.get_value() 
-            
-            maxAngularSpeed = self.spinMaxAngularSpeed.get_value()*math.pi/180.0    # from degrees to rad
 
+                # Get pressure sensor depth
+                self.depthSensorDepth = self.playerDepthSensor.pose.pz
+                self.lblDepthSensorDepth.set_text( "{0:.3}".format( self.depthSensorDepth ) )  
+            
+            maxLinearSpeed = self.spinMaxLinearSpeed.get_value() 
+            maxAngularSpeed = self.spinMaxAngularSpeed.get_value()*math.pi/180.0    # from degrees to rad
+            maxDepthSpeed = self.spinMaxDepthSpeed.get_value()      
+            
             if self.controlActive:
                 newDepthSpeed = -self.normalisedDepthSpeed*maxDepthSpeed
                 if newDepthSpeed == 0.0:
@@ -302,7 +309,9 @@ class MainWindow:
                 newLinearSpeed = 0.0
                 newAngularSpeed = 0.0
             
-            newDesiredYawAngle = self.spinDesiredYawAngle.get_value()*math.pi/180.0    # from degrees to rad       
+            newDesiredPitchAngle = self.spinDesiredPitchAngle.get_value()*math.pi/180.0    # from degrees to rad
+            newDesiredYawAngle = self.spinDesiredYawAngle.get_value()*math.pi/180.0    # from degrees to rad
+            newDesiredDepth = self.spinDesiredDepth.get_value()
             
             if degCompassPitchAngle > 0.05:
                 self.startPitchGraph = True
@@ -334,29 +343,28 @@ class MainWindow:
                     #show()
                     self.startYawGraph = False
                     
-            if degDepthSensorDepth > 0.05:
+            if self.depthSensorDepth > 0.005:
                 self.startDepthGraph = True
             if self.startDepthGraph:
-                self.arrayDepthValuess.append( degDepthSensorDepth)
+                self.arrayDepthValuess.append( self.depthSensorDepth)
                 self.depthpTest.append (self.depthController.depthpTerm)
                 self.depthdTest.append(self.depthController.depthdTerm)
-                if radDepthSensorDepth - newDesiredDepth < 0.01 \
-                    and radDepthSensorDepth - newDesiredDepth> -0.01:
+                if self.depthSensorDepth - newDesiredDepth < 0.01 \
+                    and self.depthSensorDepth - newDesiredDepth> -0.01:
                     self.depthController.iState = 0.0
                     self.startDepthGraph = False
                             
-            self.arbitrator.setDesiredState( newDesiredPitchAngle, newDesiredYawAngle, newDepth )   # rad
+            self.arbitrator.setDesiredState( newDesiredPitchAngle, newDesiredYawAngle, newDesiredDepth )   # rad
             self.arbitrator.update( newLinearSpeed )         
-            
             
             if newLinearSpeed != self.linearSpeed \
                 or newAngularSpeed != self.angularSpeed \
 		        or newDepthSpeed != self.depthSpeed:
 
                 # Store the speeds
-                self.depthSpeed = newDepthSpeed
                 self.linearSpeed = newLinearSpeed
                 self.angularSpeed = newAngularSpeed
+                self.depthSpeed = newDepthSpeed
                 
             yield True
             

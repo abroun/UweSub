@@ -56,7 +56,6 @@ MotorDriver::MotorDriver( ConfigFile* pConfigFile, int section )
     : ThreadedDriver( pConfigFile, section, false, 
         PLAYER_MSGQUEUE_DEFAULT_MAXLEN, PLAYER_POSITION3D_CODE ),
     mbCompassAvailable( false ),
-    mbCompassAngleValid( false ),
     mLastDisplayedCompassAngleTimestamp( 0.0 ),
     mbInitialisedPWM( false )
 {
@@ -227,7 +226,8 @@ int MotorDriver::ProcessMessage( QueuePointer& respQueue,
     {
         player_imu_data_state_t* pCompassData = (player_imu_data_state_t*)pData;
         
-        mCompassAngle = pCompassData->pose.pyaw;
+        mYawCompassAngle = pCompassData->pose.pyaw;
+        mPitchCompassAngle = pCompassData->pose.ppitch;
         
         mbCompassAngleValid = true;
         mCompassAngleTimestamp = pHeader->timestamp;
@@ -254,14 +254,21 @@ void MotorDriver::Main()
             && mCompassAngleTimestamp != mLastDisplayedCompassAngleTimestamp )
         {
             // 0 < angle < 2*pi
-            F32 radCompassAngle = mCompassAngle;
-            while( radCompassAngle >= 2*M_PI)
+            F32 radYawCompassAngle = mYawCompassAngle;
+            while( radYawCompassAngle >= 2*M_PI)
             {
-                radCompassAngle -= 2*M_PI;
+                radYawCompassAngle -= 2*M_PI;
             }
-
-            F32 degCompassAngle = radCompassAngle*180.0f/M_PI;
-            printf( "Current compass angle is %2.3f degrees\n", degCompassAngle );
+            
+            F32 radPitchCompassAngle = mPitchCompassAngle;
+            while( radPitchCompassAngle >= 2*M_PI)
+            {
+                radPitchCompassAngle -= 2*M_PI;
+            }
+            
+            F32 degYawCompassAngle = radYawCompassAngle*180.0f/M_PI;
+            F32 degPitchCompassAngle = radPitchCompassAngle*180.0f/M_PI;
+            printf( "Current compass angle (degrees): yaw = %2.3f, pitch = %2.3f\n", degYawCompassAngle, degPitchCompassAngle );
             mLastDisplayedCompassAngleTimestamp = mCompassAngleTimestamp;
         }
     }

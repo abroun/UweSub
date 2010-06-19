@@ -3,7 +3,6 @@
 #-------------------------------------------------------------------------------
 
 import math
-from Controllers import Arbitrator
 
 #-------------------------------------------------------------------------------
 class DepthControl:
@@ -35,11 +34,11 @@ class DepthControl:
     # interfaces if needed.
     def update( self ):
 
-        depthKp = 0.01
-        depthKi = 0.008
-        depthKd = 0.015
-        depthiMax = 2.2
-        depthiMin = -2.2
+        Kp = 0.01
+        Ki = 0.008
+        Kd = 0.015
+        iMax = 2.2
+        iMin = -2.2
         
         # Feedback from the Depth Sensor
         depthSensorDepth = self.playerDepthSensor.pose.pz
@@ -52,25 +51,25 @@ class DepthControl:
 
         # Proportional
         depthError = self.desiredDepth - depthSensorDepth    # rad
-        #print angleError
-        self.depthpTerm = depthKp*depthError
+        #print depthError
+        self.depthpTerm = Kp*depthError
         
         # Integral
         self.depthiState += depthError
         
         # Integral wind-up
-        if self.depthiState > depthiMax:
-            self.depthiState = depthiMax
-        elif self.depthiState < depthiMin:
-            self.depthiState = depthiMin
-        self.depthiTerm = depthKi*self.depthiState
+        if self.depthiState > iMax:
+            self.depthiState = iMax
+        elif self.depthiState < iMin:
+            self.depthiState = iMin
+        self.depthiTerm = Ki*self.depthiState
         
         # Derivative
         depthdState = depthError - self.lastDepthError
-        self.depthdTerm = depthKd*depthdState
+        self.depthdTerm = Kd*depthdState
         self.lastDepthError = depthError
 
-        depthSpeed = self.depthpTerm + self.depthiTerm + self.depthdTerm    # rad/s
+        self.depthSpeed = self.depthpTerm + self.depthiTerm + self.depthdTerm    # rad/s
              
         #print "accumulating error ="
         #print self.depthiState

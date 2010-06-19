@@ -20,12 +20,12 @@ class Arbitrator:
         self.playerDepthSensor = playerDepthSensor
         self.playerSimPos3D = playerSimPos3D
         
-        self.pitchController = PitchControl( self.playerPos3d,
-            self.playerCompass, self.playerSimPos3d )
-        self.yawController = YawControl( self.playerPos3d,
-            self.playerCompass, self.playerSimPos3d )
-        self.depthController = DepthControl( self.playerPos3d,
-            self.playerDepthSensor, self.playerSimPos3d )
+        self.pitchController = PitchControl( self.playerPos3D,
+            self.playerCompass, self.playerSimPos3D )
+        self.yawController = YawControl( self.playerPos3D,
+            self.playerCompass, self.playerSimPos3D )
+        self.depthController = DepthControl( self.playerPos3D,
+            self.playerDepthSensor, self.playerSimPos3D )
 
     #---------------------------------------------------------------------------
     def setDesiredState( self, pitchAngle, yawAngle, depth ):        
@@ -38,17 +38,20 @@ class Arbitrator:
     # interfaces if needed.
     def update( self, linearSpeed ):
         
-        pitchSpeed = self.pitchController.pitchSpeed                # rad/s
-        yawSpeed = self.yawController.yawSpeed                      # rad/s
-        depthSpeed = self.depthController.depthSpeed                # m/s
-
-
+        self.pitchController.update()  
+        self.yawController.update()  
+        self.depthController.update() 
+         
+        pSpeed = self.pitchController.pitchSpeed                # rad/s
+        ySpeed = self.yawController.yawSpeed                      # rad/s
+        dSpeed = -self.depthController.depthSpeed                # m/s
+        
         #------------ Send the new speeds to player ----------#
         
-        self.playerPos3D.set_velocity( linearSpeed, 0.0, depthSpeed, # x, y, z
-                                       0.0, pitchSpeed, yawSpeed, # roll, pitch, yaw
+        self.playerPos3D.set_velocity( linearSpeed, 0.0, dSpeed, # x, y, z
+                                       0.0, pSpeed, ySpeed, # roll, pitch, yaw
                                        0 )   # State
         if self.playerSimPos3D != None:
-            self.playerSimPos3D.set_velocity( linearSpeed, 0.0, depthSpeed, # x, y, z
-                                              0.0, pitchSpeed, yawSpeed, # roll, pitch, yaw
+            self.playerSimPos3D.set_velocity( linearSpeed, 0.0, dSpeed, # x, y, z
+                                              0.0, pSpeed, ySpeed, # roll, pitch, yaw
                                               0 )   # State

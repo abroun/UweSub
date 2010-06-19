@@ -13,7 +13,7 @@
             <property name="visible">True</property>
             <property name="homogeneous">True</property>
             <child>
-              <object class="GtkHBox" id="displayxLinearSpeed">
+              <object class="GtkHBox" id="displayXLinearSpeed">
                 <property name="visible">True</property>
                 <property name="homogeneous">True</property>
                 <child>
@@ -72,7 +72,7 @@
               </packing>
             </child>
             <child>
-              <object class="GtkHBox" id="displayMAngularSpeed">
+              <object class="GtkHBox" id="displayAngularSpeed">
                 <property name="visible">True</property>
                 <property name="homogeneous">True</property>
                 <child>
@@ -129,7 +129,7 @@
               </packing>
             </child>
             <child>
-              <object class="GtkHBox" id="displayMDepthSpeed">
+              <object class="GtkHBox" id="displayDepthSpeed">
                 <property name="visible">True</property>
                 <property name="homogeneous">True</property>
                 <child>
@@ -272,7 +272,7 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkLabel" id="lblCompassAngleName">
+                  <object class="GtkLabel" id="lblCompassYawAngleName">
                     <property name="visible">True</property>
                     <property name="xalign">0.98000001907348633</property>
                     <property name="label" translatable="yes">Compass Yaw Angle:</property>
@@ -282,7 +282,7 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkLabel" id="lblCompassAngle">
+                  <object class="GtkLabel" id="lblCompassYawAngle">
                     <property name="visible">True</property>
                     <property name="xpad">5</property>
                     <property name="label" translatable="yes">0.0</property>
@@ -329,7 +329,7 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkLabel" id="lblPresSensorDepthName">
+                  <object class="GtkLabel" id="lblDepthSensorDepthName">
                     <property name="visible">True</property>
                     <property name="xalign">0.98000001907348633</property>
                     <property name="label" translatable="yes">Pressure Sensor Depth:</property>
@@ -339,7 +339,7 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkLabel" id="lblPresSensorDepth">
+                  <object class="GtkLabel" id="lblDepthSensorDepth">
                     <property name="visible">True</property>
                     <property name="xpad">5</property>
                     <property name="label" translatable="yes">0.0</property>
@@ -425,21 +425,9 @@
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
   </object>
-  <object class="GtkAdjustment" id="adjDesDepth">
+  <object class="GtkAdjustment" id="adjDepthSpeed">
+    <property name="lower">-100</property>
     <property name="upper">100</property>
-    <property name="step_increment">1</property>
-    <property name="page_increment">10</property>
-    <property name="page_size">10</property>
-  </object>
-  <object class="GtkAdjustment" id="adjMaxLinSpeed">
-    <property name="value">2.0000000002235172</property>
-    <property name="upper">5</property>
-    <property name="step_increment">1</property>
-    <property name="page_increment">10</property>
-  </object>
-  <object class="GtkAdjustment" id="adjMaxAngSpeed">
-    <property name="value">30</property>
-    <property name="upper">30</property>
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
   </object>
@@ -449,11 +437,23 @@
     <property name="step_increment">0.5</property>
     <property name="page_increment">10</property>
   </object>
-  <object class="GtkAdjustment" id="adjDesPitchAngle">
-    <property name="upper">100</property>
+  <object class="GtkAdjustment" id="adjMaxAngSpeed">
+    <property name="value">30</property>
+    <property name="upper">30</property>
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
-    <property name="page_size">10</property>
+  </object>
+  <object class="GtkAdjustment" id="adjMaxLinSpeed">
+    <property name="value">2.0000000002235172</property>
+    <property name="upper">5</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+  </object>
+  <object class="GtkAdjustment" id="adjDesPitchAngle">
+    <property name="lower">-360</property>
+    <property name="upper">360</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
   </object>
   <object class="GtkAdjustment" id="adjDesYawAngle">
     <property name="lower">-360</property>
@@ -461,9 +461,9 @@
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
   </object>
-  <object class="GtkAdjustment" id="adjDepthSpeed">
-    <property name="upper">100</property>
-    <property name="step_increment">1</property>
+  <object class="GtkAdjustment" id="adjDesDepth">
+    <property name="upper">8</property>
+    <property name="step_increment">0.10000000000000001</property>
     <property name="page_increment">10</property>
   </object>
 </interface>

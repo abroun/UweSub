@@ -166,7 +166,7 @@ int SonarDriver::ProcessMessage( QueuePointer& respQueue,
     { // Handling message from the client
     
         
-        player_micronsonar_cmd* pCmd = (player_micronsonar_cmd*)pData;
+        player_micronsonar_cmd_say* pCmd = (player_micronsonar_cmd_say*)pData;
         
         printf( "Micron command received %s\n", pCmd->string );
         // action

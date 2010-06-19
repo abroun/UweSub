@@ -3,7 +3,7 @@
 #-------------------------------------------------------------------------------
 
 import math
-from Controllers import Arbitrator
+
 #-------------------------------------------------------------------------------
 class YawControl:
     
@@ -14,7 +14,7 @@ class YawControl:
         self.playerCompass = playerCompass
         self.playerSimPos3D = playerSimPos3D
 
-        # No desired angle to begin with so that the AUV doesn't just spin round
+        # No desired angle to begin with so that the AUV doesn't just spin
         self.desiredYawAngle = None
         # Yaw angle PID loop variables:
         self.yawiState = 0.0
@@ -30,13 +30,13 @@ class YawControl:
         self.desiredYawAngle = yawAngle         # rad
     
     #----------------------Updates the control loop------------------------------
-    def update( self, linearSpeed ):
+    def update( self ):
 
-        yawKp = 0.01
-        yawKi = 0.008
-        yawKd = 0.015
-        yawiMax = 2.2
-        yawiMin = -2.2
+        Kp = 0.01
+        Ki = 0.001
+        Kd = 0.015
+        iMax = 1.57
+        iMin = -1.57
         
         # Feedback from the Compass
         radCompassYawAngle = self.playerCompass.pose.pyaw
@@ -53,25 +53,25 @@ class YawControl:
 
         # Proportional
         yawAngleError = self.desiredYawAngle - radCompassYawAngle    # rad
-        #print angleError
-        self.yawpTerm = yawKp*yawAngleError
+        #print yawAngleError
+        self.yawpTerm = Kp*yawAngleError
         
         # Integral
         self.yawiState += yawAngleError
         
         # Integral wind-up
-        if self.yawiState > yawiMax:
-            self.yawiState = yawiMax
-        elif self.yawiState < yawiMin:
-            self.yawiState = yawiMin
-        self.yawiTerm = yawKi*self.yawiState
+        if self.yawiState > iMax:
+            self.yawiState = iMax
+        elif self.yawiState < iMin:
+            self.yawiState = iMin
+        self.yawiTerm = Ki*self.yawiState
         
         # Derivative
         yawdState = yawAngleError - self.lastYawAngleError
-        self.yawdTerm = yawKd*yawdState
+        self.yawdTerm = Kd*yawdState
         self.lastYawAngleError = yawAngleError
 
-        yawSpeed = self.yawpTerm + self.yawiTerm + self.yawdTerm    # rad/s
+        self.yawSpeed = self.yawpTerm + self.yawiTerm + self.yawdTerm    # rad/s
              
         #print "accumulating error ="
         #print self.yawiState
