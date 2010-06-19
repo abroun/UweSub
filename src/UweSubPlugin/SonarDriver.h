@@ -88,14 +88,13 @@ class SonarDriver : public ThreadedDriver
     // specify resolution in cms, range in meters
     // startangle and endangle in degrees in counter-clockwise fashion
     // abins should be the array of bins produced by the micron class
-    public: static void polar2Cartesian(U8* amap[], U32 aresolution, U8 arange, U8* abins[], 
-                                        U32 startangle, U32 endangle, U32 ipos, U32 jpos);
+    public: static void polar2Cartesian(U8** amap, const Micron::ScanData* pScanData, U32 ipos, U32 jpos);
     
     // The following method normalizes the contents of a grid map
     // using a normal distribution of sigma^2 standard deviation (diaspora is sigma)
     public: static void mapNormalization(U8* amap[], U32 dim, F32 sigma);
     
-    public: static U8** mapAutothreshold(U8* amap[], U32 dim, U8 threshold);
+    public: static void mapAutothreshold(U8* amap[], U32 dim, U8 threshold);
     
     // *************** Sonar image handling functions ends here ***********************************
 

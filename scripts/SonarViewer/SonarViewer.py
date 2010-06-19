@@ -19,8 +19,6 @@ import yaml
 
 # Add common packages directory to path
 sys.path.append( "../" )
-import SubJoy
-import TestSequence
 from SubControllerConfig import SubControllerConfig
 
 #-------------------------------------------------------------------------------
@@ -48,18 +46,28 @@ class MainWindow:
         
         self.window = builder.get_object( "winMain" )
         self.dwgDisplay = builder.get_object( "dwgDisplay" )
-        self.textentry = builder.get_object( "entry1")        
+        self.textentry = builder.get_object( "entry1")   
+        self.spinZoom = builder.get_object( "spinZoom" )
+        self.spinRange = builder.get_object( "spinRange" )
+        self.spinNumBins = builder.get_object( "spinNumBins" )
+        self.spinGain = builder.get_object( "spinGain" )
+        self.spinStartAngle = builder.get_object( "spinStartAngle" )
+        self.spinEndAngle = builder.get_object( "spinEndAngle" )
         builder.connect_signals( self )
+        
+        # Set default values now as they're not set by Glade
+        self.spinZoom.set_value( 1.0 )
+        self.spinRange.set_value( 5 )
+        self.spinNumBins.set_value( 200 )
+        self.spinGain.set_value( 0.1 )
+        self.spinStartAngle.set_value( 0.0 )
+        self.spinEndAngle.set_value( 90.0 )
         
         self.window.show()
 
         updateLoop = self.update()
         gobject.idle_add( updateLoop.next )
 
-        # Slightly crappy way to start up the joystick...
-        #subJoyWindow = SubJoy.MainWindow( config )
-        #subJoyWindow.main()
-    
     #---------------------------------------------------------------------------
     def connectToPlayer( self ):
         
@@ -116,6 +124,20 @@ class MainWindow:
         self.playerSonar.say( self.textentry.get_text() )
 
     #---------------------------------------------------------------------------
+    def onBtnStartScanClicked( self, widget, data = None ):
+        
+        # Configure the sonar
+        self.playerSonar.set_config( 
+            int( self.spinRange.get_value() ),
+            int( self.spinNumBins.get_value() ),
+            self.spinGain.get_value() )
+             
+        # Start the scan
+        self.playerSonar.scan(
+            self.spinStartAngle.get_value()*math.pi/180.0, 
+            self.spinEndAngle.get_value()*math.pi/180.0 )
+        
+    #---------------------------------------------------------------------------
     def onDwgDisplayExposeEvent( self, widget, event ):
     
         if self.displayPixBuf != None:
@@ -167,6 +189,11 @@ class MainWindow:
         while 1:
             if self.playerClient.peek( 0 ):
                 self.playerClient.read()
+                
+                # Update the setting controls
+                self.spinRange.set_value( self.playerSonar.range )
+                self.spinNumBins.set_value( self.playerSonar.numBins )
+                self.spinGain.set_value( self.playerSonar.gain )
 
                 if self.isNewFrameAvailable():
                     sonarFrameTime = self.playerSonar.info.datatime
@@ -179,10 +206,11 @@ class MainWindow:
                     rgbImage = cv.CreateImage( ( self.playerSonar.width, self.playerSonar.height ), cv.IPL_DEPTH_8U, 3 )
                     cv.CvtColor( grayImage, rgbImage, cv.CV_GRAY2RGB )
 
-                    if self.IMAGE_SCALE != 1.0:
+                    zoom = self.spinZoom.get_value()
+                    if zoom != 1.0:
                         scaledImage = cv.CreateImage( 
-                            ( int( rgbImage.width*self.IMAGE_SCALE ), 
-                             int ( rgbImage.height*self.IMAGE_SCALE ) ), 
+                            ( int( rgbImage.width*zoom ), 
+                             int ( rgbImage.height*zoom ) ), 
                             rgbImage.depth, rgbImage.nChannels )
                     
                         cv.Resize( rgbImage, scaledImage )
@@ -203,6 +231,12 @@ class MainWindow:
                         self.dwgDisplay.set_size_request( rgbImage.width, rgbImage.height )
 
                     self.dwgDisplay.queue_draw()
+                    
+                    # Also write out image
+                    bgrImage = cv.CreateImage( ( self.playerSonar.width, self.playerSonar.height ), cv.IPL_DEPTH_8U, 3 )
+                    cv.CvtColor( grayImage, bgrImage, cv.CV_GRAY2BGR )
+                    cv.SaveImage( "sonar.png", bgrImage )
+                    
                     self.lastSonarFrameTime = sonarFrameTime
                 
             yield True

@@ -9,7 +9,8 @@ INCLUDE_DIRECTORIES(
 
 SET( srcFiles 
     HighPrecisionTime.cpp 
-    Utils.cpp )
+    Utils.cpp
+    MathUtils.cpp )
 
 ADD_LIBRARY( common ${srcFiles} )
 

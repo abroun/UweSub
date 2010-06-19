@@ -1,29 +1,39 @@
 //------------------------------------------------------------------------------
-// File: Utils.h
-// Desc: Common utility library for useful routines that have no other home
+// File: MathUtils.h
+// Desc: Hold all utility library that may need to be re-organised at some
+//       point
 //
 // Author: Alan Broun
 //------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
-#ifndef UTILS_H
-#define UTILS_H
+#ifndef MATH_UTILS_H
+#define MATH_UTILS_H
 
 //------------------------------------------------------------------------------
+#include <math.h>
 #include "Common.h"
-#include "Common/HighPrecisionTime.h"
 
 //------------------------------------------------------------------------------
-class Utils
+class MathUtils
 {
     //--------------------------------------------------------------------------
-    // Apparently Linux does not have stricmp so we provide a cross platform
-    // alternative
-    public: static S32 stricmp( const char* s1, const char* s2 );
+    public: static F32 RadToDeg( F32 radians ) 
+    { 
+        return radians * 180.0f / M_PI;
+    }
     
     //--------------------------------------------------------------------------
-    // Attempt at a cross platform 'nanosleep'
-    public: static void Sleep( const HighPrecisionTime& time );
+    public: static F32 DegToRad( F32 degrees ) 
+    { 
+        return degrees * M_PI / 180.0f;
+    }
+    
+    //--------------------------------------------------------------------------
+    public: static F32 GradToRad( F32 grads )
+    { 
+        return grads * M_PI / 200.0f;
+    }
 };
 
-#endif // UTILS_H
+#endif // MATH_UTILS_H

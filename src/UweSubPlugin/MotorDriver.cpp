@@ -79,6 +79,8 @@ MotorDriver::MotorDriver( ConfigFile* pConfigFile, int section )
         pwm_SetPulse( TEST_CHANNEL, PWM_FREQUENCY_US, ZERO_DUTY_CYCLE_US );
         pwm_SetCountingMode( LEFT_MOTOR_CHANNEL, PWM_CONTINUE_MODE );
         pwm_SetCountingMode( RIGHT_MOTOR_CHANNEL, PWM_CONTINUE_MODE );
+        pwm_SetCountingMode( FRONT_MOTOR_CHANNEL, PWM_CONTINUE_MODE );
+        pwm_SetCountingMode( BACK_MOTOR_CHANNEL, PWM_CONTINUE_MODE );
         pwm_SetCountingMode( TEST_CHANNEL, PWM_CONTINUE_MODE );
         
         // Enable the pins
