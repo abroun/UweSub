@@ -39,10 +39,10 @@ const U32 MotorDriver::MIN_DUTY_CYCLE_US = 1000;
 const U32 MotorDriver::MAX_DUTY_CYCLE_US = 2000;
 const U32 MotorDriver::ZERO_DUTY_CYCLE_US = (MIN_DUTY_CYCLE_US + MAX_DUTY_CYCLE_US)/2;
 
-const U32 MotorDriver::RIGHT_MOTOR_CHANNEL = 1;    // 01
-const U32 MotorDriver::LEFT_MOTOR_CHANNEL = 2;     // 10
-const U32 MotorDriver::FRONT_MOTOR_CHANNEL = 3;
-const U32 MotorDriver::BACK_MOTOR_CHANNEL = 4;
+const U32 MotorDriver::RIGHT_MOTOR_CHANNEL = 2;    // 01
+const U32 MotorDriver::LEFT_MOTOR_CHANNEL = 3;     // 10
+const U32 MotorDriver::FRONT_MOTOR_CHANNEL = 4;
+const U32 MotorDriver::BACK_MOTOR_CHANNEL = 5;
 const U32 MotorDriver::TEST_CHANNEL = 16;
 
 const F32 MotorDriver::MAX_ABS_2D_DIST = 1.0f;
