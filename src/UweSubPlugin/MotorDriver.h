@@ -39,7 +39,8 @@ class MotorDriver : public ThreadedDriver
     private: player_devaddr_t mCompassID;
     private: bool mbCompassAvailable;
     
-    private: F32 mCompassAngle;
+    private: F32 mYawCompassAngle;
+    private: F32 mPitchCompassAngle;
     private: bool mbCompassAngleValid;
     private: double mCompassAngleTimestamp;
     private: double mLastDisplayedCompassAngleTimestamp;
