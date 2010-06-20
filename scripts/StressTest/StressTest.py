@@ -42,6 +42,7 @@ class MainWindow:
         self.lastMainCameraFrameTime = 0.0
         self.lastOtherCameraFrameTime = 0.0
         self.frameNumber = 0
+        self.testTime = 0.0
 
         self.connectToPlayer()
     
@@ -98,14 +99,19 @@ class MainWindow:
                 raise Exception( playerc_error_str() )
             
             # Create a proxy for camera:0
-            self.playerMainCamera = playerc_camera( self.playerClient, 0 )
+            self.playerMainCamera = playerc_camera( self.playerClient, 1 )
             if self.playerMainCamera.subscribe( PLAYERC_OPEN_MODE ) != 0:
                 raise Exception( playerc_error_str() )
             
             # Create a proxy for camera:1 if it exists
-            self.playerOtherCamera = playerc_camera( self.playerClient, 1 )
+            self.playerOtherCamera = playerc_camera( self.playerClient, 2 )
             if self.playerOtherCamera.subscribe( PLAYERC_OPEN_MODE ) != 0:
                 self.playerOtherCamera = None
+                
+            # Create a proxy for position3d.0
+            self.playerPos3d = playerc_position3d( self.playerClient, 0 )
+            if self.playerPos3d.subscribe( PLAYERC_OPEN_MODE ) != 0:
+                raise Exception( playerc_error_str() )
                 
             if self.playerClient.datamode( PLAYERC_DATAMODE_PULL ) != 0:
                 raise Exception( playerc_error_str() )
@@ -316,6 +322,16 @@ class MainWindow:
     def update( self ):
     
         while 1:
+            
+            # Send the new speed to player
+            forwardSpeed = math.sin( self.testTime )
+            self.playerPos3d.set_velocity( 
+                        forwardSpeed, 0.0, 0.0, # x, y, z
+                        0.0, 0.0, 0.0, # roll, pitch, yaw
+                        0 )   # State
+        
+            self.testTime += 0.0001
+            
             if self.playerClient.peek( 0 ):
                 self.playerClient.read()
                 

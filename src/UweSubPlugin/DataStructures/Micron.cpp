@@ -1,7 +1,6 @@
 ﻿
 #include "Micron.h"
 
-
  
 // Tritec Protocol Command Constants
  const U8 Micron::mtVersionData = 1; // Version reply by the micron
@@ -228,6 +227,8 @@ void Micron::sendData(Device* theOpaque, QueuePointer inqueue) {
             delete [] sdraw;
             // changing state
             state = stExpectHeadData; // waiting for head data to arrive
+            
+            mLastDataRequestTime = HighPrecisionTime::GetTime();
         }
 
 // this functions changes state according to the response from the sonar
@@ -326,32 +327,54 @@ void Micron::transitionAction(TritecPacket* pack, Device* theOpaque, QueuePointe
                             {
                                 angleDiffToRay += MAX_SONAR_ANGLE;
                             }
-                            assert( angleDiffToRay >= 0 
-                                && angleDiffToRay <= mScanData.mSettings.GetAngleDiff() && "Unexpected angle diff" );
-                            S32 rayIdx = (angleDiffToRay / SONAR_STEP_ANGLE);
-                            assert( rayIdx*SONAR_STEP_ANGLE == angleDiffToRay && "Step size error" );
                             
-                            memcpy( mScanData.mRays[ rayIdx ].mBins, linebins, datalen );
-                            mScanData.mRays[ rayIdx ].mNumBins = datalen;
-                            mScanData.mNumRaysScanned++;
-                            
-                            // TODO: Find a slightly less flaky way to signal the end of a scan
-                            S32 numRaysPerScan = mScanData.mSettings.GetAngleDiff()/SONAR_STEP_ANGLE;
-                            printf( "Num rays to scan = %i Got ray %i\n", numRaysPerScan, rayIdx );
-                            if ( ( rayIdx == 0 || rayIdx == numRaysPerScan ) 
-                                && mScanData.mNumRaysScanned >= numRaysPerScan - 2 ) // Rays scanned may be slightly out due to full-duplex behaviour
+                            if ( angleDiffToRay < 0 
+                                || angleDiffToRay > mScanData.mSettings.GetAngleDiff() )
                             {
-                                //printf( "Finished\n" );
-                                state = stDataReady;
+                                // Angle outside expected range possible corrupted packet
+                                Micron::sendData(theOpaque, inqueue);
                             }
                             else
                             {
-                                if ( rayIdx % 2 == 1 )
+                                S32 rayIdx = (angleDiffToRay / SONAR_STEP_ANGLE);
+                            
+                                datalen = MIN( datalen, MAX_NUM_BINS - 1 );
+                                datalen = MAX( datalen, 0 );
+                                memcpy( mScanData.mRays[ rayIdx ].mBins, linebins, datalen );
+                                mScanData.mRays[ rayIdx ].mNumBins = datalen;
+                                mScanData.mNumRaysScanned++;
+                            
+                                /*if ( rayIdx*SONAR_STEP_ANGLE != angleDiffToRay )
                                 {
-                                    //printf( "Sending next package\n" );
-                                    Micron::sendData(theOpaque, inqueue);
+                                    printf( "rayIdx*SONAR_STEP_ANGLE = %i. Should = %i\n", 
+                                            rayIdx*SONAR_STEP_ANGLE, angleDiffToRay );
+                                    printf( "SA = %i, EA = %i, TA= %i\n", 
+                                        mScanData.mSettings.mStartAngle,
+                                        mScanData.mSettings.mEndAngle,
+                                        transducerAngle );
+                                        
+                                    state = stDataReady;
+                                    //assert( rayIdx*SONAR_STEP_ANGLE == angleDiffToRay && "Step size error" );
+                                }*/
+                  
+                                // TODO: Find a slightly less flaky way to signal the end of a scan
+                                S32 numRaysPerScan = mScanData.mSettings.GetAngleDiff()/SONAR_STEP_ANGLE;
+                                printf( "Num rays to scan = %i Got ray %i\n", numRaysPerScan, rayIdx );
+                                if ( ( rayIdx == 0 || rayIdx == numRaysPerScan ) 
+                                    && mScanData.mNumRaysScanned >= numRaysPerScan - 2 ) // Rays scanned may be slightly out due to full-duplex behaviour
+                                {
+                                    //printf( "Finished\n" );
+                                    state = stDataReady;
                                 }
-                                state = stExpectHeadData;
+                                else
+                                {
+                                    if ( rayIdx % 2 == 1 )
+                                    {
+                                        //printf( "Sending next package\n" );
+                                        Micron::sendData(theOpaque, inqueue);
+                                    }
+                                    state = stExpectHeadData;
+                                }
                             }
             
                             break;
@@ -833,8 +856,13 @@ void Micron::setRegion(eRegion region)
 
 void Micron::setAngleRange( S32 startAngle, S32 endAngle )
 {
+    // Make sure that angles are within range and multiples of the step angle
     mStartAngle = startAngle % MAX_SONAR_ANGLE;
+    mStartAngle = (mStartAngle/SONAR_STEP_ANGLE);
+    mStartAngle = mStartAngle*SONAR_STEP_ANGLE;
     mEndAngle = endAngle % MAX_SONAR_ANGLE;
+    mEndAngle = (mEndAngle/SONAR_STEP_ANGLE);
+    mEndAngle = mEndAngle*SONAR_STEP_ANGLE;
   
     S32 angleDiff = mEndAngle - mStartAngle;
     while ( angleDiff < 0 )   // Get the difference as a +ve value

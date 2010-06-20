@@ -7,9 +7,9 @@
 #include <stdio.h>
 #include <time.h>
 #include <math.h>
-#include "../../Common.h"
+#include "Common.h"
 #include <libplayercore/playercore.h>
-
+#include "Common/HighPrecisionTime.h"
 
 
     
@@ -107,6 +107,7 @@ class Micron {
                 S32 mStartAngle;
                 S32 mEndAngle;
                 ScanData mScanData;    // Data retrieved from the sonar
+                HighPrecisionTime mLastDataRequestTime;
 
        // state constants
        public: static const int stIdle;
@@ -243,6 +244,8 @@ class Micron {
     
     public: void setGain( F32 gain );
     public: F32 getGain() const;
+    
+    public: HighPrecisionTime GetLastDataRequestTime() const { return mLastDataRequestTime; }
 
     public: const ScanData* getScanData() const { return &mScanData; }
     

@@ -147,19 +147,42 @@ void setup()
     SPI_WriteRead( 0x40 );
     //digitalWrite( SS_PIN, HIGH );
     
+    pinMode( 15, OUTPUT );
+    digitalWrite( 15, HIGH );
+    
     delay( 100 ); 
 }
 
 //------------------------------------------------------------------------------
 void loop()
 {
-    //delay( 1000 );
+    //delay( 100 );
     //SPI_SetSampleMode( eSM_Trailing );
     /*digitalWrite( SS_PIN, LOW );
     byte num = SPI_WriteRead( 0x00 );
     digitalWrite( SS_PIN, HIGH );
-    Serial.println( (int)num );
-    return;*/
+    Serial.println( (int)num );*/
+    //SPI_SetSampleMode( eSM_Leading );
+    //digitalWrite( SS_PIN, LOW );
+    //SPI_WriteRead( 0x1D );
+    //SPI_WriteRead( 0x50 );
+    //SPI_WriteRead( 0x15 );
+    //SPI_WriteRead( 0x55 );
+    //SPI_WriteRead( 0x40 );   
+    //Serial.println( (int)ReadDataFromSensor( 0x1D, 0x50, 0 ) );
+    //ReadDataFromSensor( 0x1D, 0x50, 0 );
+    
+    //SPI_SetSampleMode( eSM_Leading );
+    //digitalWrite( SS_PIN, LOW );
+    //SPI_WriteRead( 0x00 );
+    
+    //delay( 100 );
+    //SPI_SetSampleMode( eSM_Leading );
+    //digitalWrite( SS_PIN, LOW );
+    //SPI_WriteRead( 0x15 );
+    //SPI_WriteRead( 0x55 );
+    //SPI_WriteRead( 0x40 );
+    //return;
     
     switch ( gState )
     {
@@ -168,10 +191,10 @@ void loop()
             U16 calibrationWords[ 4 ];
             
             // Read the calibration words
-            calibrationWords[ 0 ] = ReadDataFromSensor( 0x1D, 0x50, 10 );
-            calibrationWords[ 1 ] = ReadDataFromSensor( 0x1D, 0x60, 10 );
-            calibrationWords[ 2 ] = ReadDataFromSensor( 0x1D, 0x90, 10 );
-            calibrationWords[ 3 ] = ReadDataFromSensor( 0x1D, 0xA0, 10 );
+            calibrationWords[ 0 ] = ReadDataFromSensor( 0x1D, 0x50, 0 );
+            calibrationWords[ 1 ] = ReadDataFromSensor( 0x1D, 0x60, 0 );
+            calibrationWords[ 2 ] = ReadDataFromSensor( 0x1D, 0x90, 0 );
+            calibrationWords[ 3 ] = ReadDataFromSensor( 0x1D, 0xA0, 0 );
             
             // Extract coefficients
             C1 = calibrationWords[ 0 ] >> 1;
@@ -183,27 +206,27 @@ void loop()
             
             gState = eS_StreamingData;
             
-            Serial.println( C1 );
+            /*Serial.println( C1 );
             Serial.println( C2 );            
             Serial.println( C3 );
             Serial.println( C4 );
             Serial.println( C5 );
             Serial.println( C6 );
-            Serial.println( "Hi" );
+            Serial.println( "Hi" );*/
             
             break;
         }
         case eS_StreamingData:
         {
             // Read out the pressure
-            U16 pressureData = ReadDataFromSensor( 0x0F, 0x40, 35 );
+            U16 pressureData = ReadDataFromSensor( 0x0F, 0x40, 40 );
             
             // Read out the temperature
-            U16 tempData = ReadDataFromSensor( 0x0F, 0x20, 35 );
+            U16 tempData = ReadDataFromSensor( 0x0F, 0x20, 40 );
          
             // TODO: Remove this when we attach sensor
-            C1 = C2 = C3 = C4 = C5 = C6 = 0;
-            pressureData = tempData = 0;
+            //C1 = C2 = C3 = C4 = C5 = C6 = 0;
+            //pressureData = tempData = 0;
             
             // Calculate the calibrated temperature and pressure values
             // Calculations taken from MS5540C datasheet
@@ -244,7 +267,7 @@ void loop()
             P = P - P2;
             
             // Send over serial
-//            SendData( P, TEMP );
+            SendData( P, TEMP );
             break;
         }
     }
