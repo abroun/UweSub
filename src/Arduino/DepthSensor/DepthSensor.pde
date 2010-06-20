@@ -3,12 +3,12 @@
 #include "DepthSensor.h"
 
 // Conversion coefficients
-U16 C1 = 0;
-U16 C2 = 0;
-U16 C3 = 0;
-U16 C4 = 0;
-U16 C5 = 0;
-U16 C6 = 0;
+S32 C1 = 0;
+S32 C2 = 0;
+S32 C3 = 0;
+S32 C4 = 0;
+S32 C5 = 0;
+S32 C6 = 0;
 
 
 
@@ -197,16 +197,21 @@ void loop()
             calibrationWords[ 3 ] = ReadDataFromSensor( 0x1D, 0xA0, 0 );
             
             // Extract coefficients
-            C1 = calibrationWords[ 0 ] >> 1;
-            C2 = ( ( calibrationWords[ 2 ] & 0x3F ) << 6 ) | ( calibrationWords[ 3 ] & 0x3F ); 
-            C3 = ( calibrationWords[ 2 ] & 0xFFC0 ) >> 6;
-            C4 = ( calibrationWords[ 3 ] & 0xFFC0 ) >> 6;
-            C5 = ( ( calibrationWords[ 0 ] & 0x1 ) << 10 ) | ( ( calibrationWords[ 1 ] & 0xFFC0 ) >> 6 );
-            C6 = calibrationWords[ 1 ] & 0x3F;
+            C1 = (S32)(calibrationWords[ 0 ] >> 1);
+            C2 = (S32)(( ( calibrationWords[ 2 ] & 0x3F ) << 6 ) | ( calibrationWords[ 3 ] & 0x3F )); 
+            C3 = (S32)(( calibrationWords[ 3 ] & 0xFFC0 ) >> 6);
+            C4 = (S32)(( calibrationWords[ 2 ] & 0xFFC0 ) >> 6);
+            C5 = (S32)(( ( calibrationWords[ 0 ] & 0x1 ) << 10 ) | ( ( calibrationWords[ 1 ] & 0xFFC0 ) >> 6 ));
+            C6 = (S32)(calibrationWords[ 1 ] & 0x3F);
             
             gState = eS_StreamingData;
             
-            /*Serial.println( C1 );
+            /*Serial.println( calibrationWords[ 0 ] );
+            Serial.println( calibrationWords[ 1 ] );
+            Serial.println( calibrationWords[ 2 ] );
+            Serial.println( calibrationWords[ 3 ] );
+            
+            Serial.println( C1 );
             Serial.println( C2 );            
             Serial.println( C3 );
             Serial.println( C4 );
@@ -219,10 +224,13 @@ void loop()
         case eS_StreamingData:
         {
             // Read out the pressure
-            U16 pressureData = ReadDataFromSensor( 0x0F, 0x40, 40 );
+            S32 pressureData = (S32)ReadDataFromSensor( 0x0F, 0x40, 40 );
             
             // Read out the temperature
-            U16 tempData = ReadDataFromSensor( 0x0F, 0x20, 40 );
+            S32 tempData = (S32)ReadDataFromSensor( 0x0F, 0x20, 40 );
+         
+//            pressureData = 14895;
+//            tempData = 29540;
          
             // TODO: Remove this when we attach sensor
             //C1 = C2 = C3 = C4 = C5 = C6 = 0;
@@ -233,23 +241,23 @@ void loop()
             // Use S32s to ensure that we have enough precision
             S32 UT1 = 8*C5 + 20224;
             S32 dT = tempData - UT1;
-            S32 TEMP = 200 + (dT*(C6 + 50))>>10;
+            S32 TEMP = 200 + ((dT*(C6 + 50))>>10);
             
             // Temperature compensated pressure
-            S32 OFF = C2*4 + (((C4-512)*dT))>>12;
-            S32 SENS = C1 + (C3*dT)>>10 + 24576;
-            S32 X = (SENS*(pressureData-7168))>>14 - OFF;
-            S32 P = (X*10)>>5 + 250*10;
+            S32 OFF = C2*4 + ((((C4-512)*dT))>>12);
+            S32 SENS = C1 + ((C3*dT)>>10) + 24576;
+            S32 X = ((SENS*(pressureData-7168))>>14) - OFF;
+            S32 P = ((X*10)>>5) + 250*10;
             
             // Now perform second order temperature compensation
-            S32 T2;
-            S32 P2;
+            /*S32 T2 = 0;
+            S32 P2 = 0;
             
             if ( TEMP < 200 )
             {
                 // Low temperatures
-                T2 = (11*(C6+24)*(200-TEMP)*(200-TEMP))>>20;
-                P2 = (3*T2*(P-3500))>>14;
+                //T2 = (11*(C6+24)*(200-TEMP)*(200-TEMP))>>20;
+                //P2 = (3*T2*(P-3500))>>14;
             }
             else if ( TEMP >= 200 && TEMP <= 450 )
             {
@@ -259,12 +267,21 @@ void loop()
             }
             else // TEMP > 450
             {
-                T2 = (3*(C6+24)*(450-TEMP)*(450-TEMP))>>20;
-                P2 = (T2*(P-10000))>>13;
+                // AB: Second order compensation is very slow for some reason
+                
+                S32 A = 3*(C6+24);
+                S32 tDiff = 450-TEMP;
+                S32 B = A*tDiff;
+                S32 C = B*tDiff;
+                //T2 = A*tDiff;
+                //T2 = T2*tDiff;
+                S32 D = C>>20;
+                P2 = (D*(P-10000))>>13;
+                T2 = D;
             }
             
             TEMP = TEMP - T2;
-            P = P - P2;
+            P = P - P2;*/
             
             // Send over serial
             SendData( P, TEMP );

@@ -230,7 +230,7 @@ void DepthSensorDriver::ProcessData()
             {
                 fprintf( stderr, "Error: Unrecognised packet id recieved\n" );
                 // Remove the invalid data from the buffer
-                mBuffer.ReadBytes( byteCountBuffer, HEADER_LENGTH ); 
+                mBuffer.ReadBytes( byteCountBuffer, 1 ); 
             }
         }
             
