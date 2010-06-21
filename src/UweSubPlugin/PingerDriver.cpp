@@ -1,14 +1,12 @@
 //------------------------------------------------------------------------------
-// File: DepthSensorDriver.cpp
-// Desc: A simple serial relay for data being sent from a depth sensor attached
-//       to an Arduino. We would control the sensor directly from the RoBoard 
-//       but the SPI on the RoBoard is too fast... :P
+// File: PingerDriver.cpp
+// Desc: A driver to communicate with George's custom sonar hardware
 //------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
 #include <stdio.h>
 #include <assert.h>
-#include "DepthSensorDriver.h"
+#include "PingerDriver.h"
 #include "Common/HighPrecisionTime.h"
 
 //------------------------------------------------------------------------------
@@ -16,10 +14,10 @@
 // can be invoked without any object context (alternatively, you can
 // declare it static in the class).  In this function, we create and return
 // (as a generic Driver*) a pointer to a new instance of this driver.
-Driver* DepthSensorDriverInit( ConfigFile* pConfigFile, int section )
+Driver* PingerDriverInit( ConfigFile* pConfigFile, int section )
 {
     // Create and return a new instance of this driver
-    return (Driver*)(new DepthSensorDriver( pConfigFile, section ));
+    return (Driver*)(new PingerDriver( pConfigFile, section ));
 }
 
 //------------------------------------------------------------------------------
@@ -27,9 +25,9 @@ Driver* DepthSensorDriverInit( ConfigFile* pConfigFile, int section )
 // that it can be invoked without object context.  In this function, we add
 // the driver into the given driver table, indicating which interfaces the
 // driver can support and how to create a driver instance.
-void DepthSensorDriverRegister( DriverTable* pTable )
+void PingerDriverRegister( DriverTable* pTable )
 {
-    pTable->AddDriver( (char*)"depthsensordriver", DepthSensorDriverInit );
+    pTable->AddDriver( (char*)"pingerdriver", PingerDriverInit );
 }
 
 //------------------------------------------------------------------------------
@@ -57,15 +55,15 @@ static inline F32 READ_F32( U8* buffer )
 }
 
 //------------------------------------------------------------------------------
-// DepthSensorDriver
+// PingerDriver
 //------------------------------------------------------------------------------
-const U32 DepthSensorDriver::DEFAULT_BUFFER_SIZE = 512;
-const U16 DepthSensorDriver::DATA_PACKET_ID = 0xDEAB;
+const U32 PingerDriver::DEFAULT_BUFFER_SIZE = 512;
+const U16 PingerDriver::DATA_PACKET_ID = 0xEFBE;    // Will appear as 0xBEEF in big-endian
 
 //------------------------------------------------------------------------------
-DepthSensorDriver::DepthSensorDriver( ConfigFile* pConfigFile, int section )
+PingerDriver::PingerDriver( ConfigFile* pConfigFile, int section )
     : ThreadedDriver( pConfigFile, section, false, 
-        PLAYER_MSGQUEUE_DEFAULT_MAXLEN, PLAYER_POSITION1D_CODE ),
+        PLAYER_MSGQUEUE_DEFAULT_MAXLEN, PLAYER_SPEECH_CODE ),
     mBufferSize( "buffer_size", DEFAULT_BUFFER_SIZE, false )
 {
     this->alwayson = true;
@@ -87,14 +85,14 @@ DepthSensorDriver::DepthSensorDriver( ConfigFile* pConfigFile, int section )
 }
 
 //------------------------------------------------------------------------------
-DepthSensorDriver::~DepthSensorDriver()
+PingerDriver::~PingerDriver()
 {
     mBuffer.Deinit();
 }
 
 //------------------------------------------------------------------------------
 // Set up the device.  Return 0 if things go well, and -1 otherwise.
-int DepthSensorDriver::MainSetup()
+int PingerDriver::MainSetup()
 {
     if ( Device::MatchDeviceAddress( mOpaqueID, this->device_addr ) )
     {
@@ -120,14 +118,14 @@ int DepthSensorDriver::MainSetup()
 
 //------------------------------------------------------------------------------
 // Shutdown the device
-void DepthSensorDriver::MainQuit()
+void PingerDriver::MainQuit()
 {
     mpOpaque->Unsubscribe( this->InQueue );
 }
 
 //------------------------------------------------------------------------------
 // Process all messages for this driver.
-int DepthSensorDriver::ProcessMessage( QueuePointer& respQueue,
+int PingerDriver::ProcessMessage( QueuePointer& respQueue,
                                 player_msghdr* pHeader, void* pData )
 {    
     if ( Message::MatchMessage(
@@ -141,9 +139,20 @@ int DepthSensorDriver::ProcessMessage( QueuePointer& respQueue,
         }
         else
         {
-            PLAYER_WARN( "Depth Sensor driver buffer is full. Dropping data" );
+            PLAYER_WARN( "Pinger driver buffer is full. Dropping data" );
         }
         return 0;
+    }
+    else if ( Message::MatchMessage(
+        pHeader, PLAYER_MSGTYPE_CMD, PLAYER_SPEECH_CMD_SAY, this->device_addr )
+    {
+        player_speech_cmd_t* pCmd = (player_speech_cmd_t*)pData;
+        
+        printf( "Got %s\n", pCmd->string );
+        
+        return 0;
+    }
+        
     }
     
     PLAYER_WARN( "Unhandled message\n" );
@@ -152,19 +161,12 @@ int DepthSensorDriver::ProcessMessage( QueuePointer& respQueue,
 
 //------------------------------------------------------------------------------
 // Main function for device thread
-void DepthSensorDriver::Main()
+void PingerDriver::Main()
 {
-    HighPrecisionTime oldTime = HighPrecisionTime::GetTime();
-    
     for (;;)
     {
         // Wait for messages to arrive
         base::Wait();
-
-        HighPrecisionTime curTime = HighPrecisionTime::GetTime();
-        HighPrecisionTime timeDiff = HighPrecisionTime::GetDiff( curTime, oldTime );
-        //printf( "Woken up after %ims\n", HighPrecisionTime::ConvertToMilliSeconds( timeDiff ) );
-        oldTime = curTime;
         
         base::ProcessMessages();
 
@@ -173,7 +175,7 @@ void DepthSensorDriver::Main()
 }
 
 //------------------------------------------------------------------------------
-void DepthSensorDriver::ProcessData()
+void PingerDriver::ProcessData()
 {
     bool bAllDataProcessed = false;
     
@@ -240,7 +242,7 @@ void DepthSensorDriver::ProcessData()
         {
             assert( DATA_PACKET_ID == packetID );
             
-            S32 pressure = READ_S32( &packetBuffer[ 4 ] );
+            /*S32 pressure = READ_S32( &packetBuffer[ 4 ] );
             S32 temperature = READ_S32( &packetBuffer[ 8 ] );
             
             printf( "Got pressure %i and temperature %i\n", pressure, temperature );
@@ -253,7 +255,7 @@ void DepthSensorDriver::ProcessData()
             
             base::Publish( this->device_addr, 
                 PLAYER_MSGTYPE_DATA, PLAYER_POSITION1D_DATA_STATE, 
-                &publishData, sizeof( publishData ) );
+                &publishData, sizeof( publishData ) );*/
             
             // May be something else in the buffer to process
             bAllDataProcessed = false;
@@ -262,7 +264,7 @@ void DepthSensorDriver::ProcessData()
 }
 
 //------------------------------------------------------------------------------
-U16 DepthSensorDriver::CalculateCRC( U8* pData, U32 numBytes )
+U16 PingerDriver::CalculateCRC( U8* pData, U32 numBytes )
 {
     U32 index = 0;
     U16 crc = 0;
