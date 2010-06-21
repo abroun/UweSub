@@ -144,15 +144,13 @@ int PingerDriver::ProcessMessage( QueuePointer& respQueue,
         return 0;
     }
     else if ( Message::MatchMessage(
-        pHeader, PLAYER_MSGTYPE_CMD, PLAYER_SPEECH_CMD_SAY, this->device_addr )
+        pHeader, PLAYER_MSGTYPE_CMD, PLAYER_SPEECH_CMD_SAY, this->device_addr ) )
     {
         player_speech_cmd_t* pCmd = (player_speech_cmd_t*)pData;
         
         printf( "Got %s\n", pCmd->string );
         
         return 0;
-    }
-        
     }
     
     PLAYER_WARN( "Unhandled message\n" );
