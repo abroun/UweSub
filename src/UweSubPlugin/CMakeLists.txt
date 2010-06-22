@@ -13,6 +13,7 @@ SET( srcFiles
     CompassDriver.cpp
     DepthSensorDriver.cpp
     MotorDriver.cpp
+    PingerDriver.cpp
     SonarDriver.cpp
     DataStructures/RollingBuffer.cpp
     DataStructures/Micron.cpp

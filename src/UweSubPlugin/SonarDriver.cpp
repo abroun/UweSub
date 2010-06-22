@@ -362,11 +362,23 @@ int SonarDriver::ProcessMessage( QueuePointer& respQueue,
 void SonarDriver::Main()
 {
     const bool USE_BILINEAR_FILTERING = true;
+    const F32 DATA_TIMEOUT = 1.0f;
     
     for (;;)
     {
+        if ( pmicron->getState()==Micron::stExpectHeadData )
+        {   
+            F32 time = HighPrecisionTime::ConvertToSeconds( 
+                HighPrecisionTime::GetDiff( HighPrecisionTime::GetTime(),
+                pmicron->GetLastDataRequestTime() ) );
+            if ( time > DATA_TIMEOUT )
+            {
+                printf( "Timed out waiting for data. Sending extra request\n" );
+                pmicron->sendData( mpOpaque, this->InQueue );
+            }
+        }
         // checking for a Data Ready condition
-        if (pmicron->getState()==Micron::stDataReady) 
+        else if (pmicron->getState()==Micron::stDataReady) 
         {
             // Publish the latest data as an image. 
             const Micron::ScanData* pScanData = pmicron->getScanData();
@@ -549,7 +561,7 @@ void SonarDriver::Main()
         
         
         // Wait for messages to arrive
-        base::Wait();
+        base::Wait( 1.0f );
        
         
         base::ProcessMessages();
