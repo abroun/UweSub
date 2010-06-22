@@ -280,8 +280,8 @@ void CompassDriver::ProcessData()
                     PLAYER_MSGTYPE_DATA, PLAYER_IMU_DATA_EULER, 
                     &publishData, sizeof( publishData ) );
                 
-                printf( "H: %2.3f, P: %2.3f, R: %2.3f\n", 
-                    compassData.mHeadingDegrees, compassData.mRollDegrees, compassData.mRollDegrees );
+                //printf( "H: %2.3f, P: %2.3f, R: %2.3f\n", 
+                //    compassData.mHeadingDegrees, compassData.mPitchDegrees, compassData.mRollDegrees );
                     
                 SendGetDataCommand();
                 break;
