@@ -231,8 +231,8 @@ int MotorDriver::ProcessMessage( QueuePointer& respQueue,
         U32 frontDuty = (U32)(1700 + (S32)((-400)*normalisedPWM));  // 1700 to 1300
         U32 backDuty = (U32)(2000 + (S32)((-1000)*normalisedPWM));  // 2000 to 1000
         
-        printf( "Setting PWMS %i, %i %i %i\n",
-                leftDuty, rightDuty, frontDuty, backDuty );
+      //  printf( "Setting PWMS %i, %i %i %i\n",
+       //         leftDuty, rightDuty, frontDuty, backDuty );
         
         if ( mbInitialisedPWM )
         {
@@ -318,22 +318,18 @@ void MotorDriver::Main()
           // && mDepthSensorDepthTimestamp != mLastDisplayedDepthSensorDepthTimestamp )
         {
             // 0 < angle < 2*pi
-            F32 radYawCompassAngle = mYawCompassAngle;
-            while( radYawCompassAngle >= 2*M_PI)
+            F32 radCompassYawAngle = mYawCompassAngle;
+            
+            F32 radCompassPitchAngle = mPitchCompassAngle;
+            while( radCompassPitchAngle >= 2*M_PI)
             {
-                radYawCompassAngle -= 2*M_PI;
+                radCompassPitchAngle -= 2*M_PI;
             }
             
-            F32 radPitchCompassAngle = mPitchCompassAngle;
-            while( radPitchCompassAngle >= 2*M_PI)
-            {
-                radPitchCompassAngle -= 2*M_PI;
-            }
-            
-            F32 degYawCompassAngle = radYawCompassAngle*180.0f/M_PI;
-            F32 degPitchCompassAngle = radPitchCompassAngle*180.0f/M_PI;
+            F32 degCompassYawAngle = radCompassYawAngle*180.0f/M_PI;
+            F32 degCompassPitchAngle = radCompassPitchAngle*180.0f/M_PI;
                         
-            printf( "Compass angle (degrees): yaw = %2.3f, pitch = %2.3f | Sensor depth (m): %2.3f \n", degYawCompassAngle, degPitchCompassAngle, mDepthSensorDepth );
+            printf( "Compass angle (degrees): yaw = %2.3f, pitch = %2.3f | Sensor depth (m): %2.3f \n", degCompassYawAngle, degCompassPitchAngle, mDepthSensorDepth );
             mLastDisplayedCompassAngleTimestamp = mCompassAngleTimestamp;
         }
     }
