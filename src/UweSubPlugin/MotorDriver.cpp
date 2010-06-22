@@ -226,21 +226,9 @@ int MotorDriver::ProcessMessage( QueuePointer& respQueue,
       
         U32 pwmDuty = MIN_DUTY_CYCLE_US + (U32)((MAX_DUTY_CYCLE_US-MIN_DUTY_CYCLE_US)*normalisedPWM);
         
-        U32 leftDuty = (U32)(1000 + (S32)((1000)*normalisedPWM));  // 1000 to 2000
-        U32 rightDuty = (U32)(1200 + (S32)((600)*normalisedPWM));  // 1200 to 1800
-        U32 frontDuty = (U32)(1700 + (S32)((-400)*normalisedPWM));  // 1700 to 1300
-        U32 backDuty = (U32)(2000 + (S32)((-1000)*normalisedPWM));  // 2000 to 1000
-        
-      //  printf( "Setting PWMS %i, %i %i %i\n",
-       //         leftDuty, rightDuty, frontDuty, backDuty );
-        
         if ( mbInitialisedPWM )
         {
-            pwm_SetPulse( LEFT_MOTOR_CHANNEL, PWM_FREQUENCY_US, leftDuty );
-            pwm_SetPulse( RIGHT_MOTOR_CHANNEL, PWM_FREQUENCY_US, rightDuty );
-            pwm_SetPulse( FRONT_MOTOR_CHANNEL, PWM_FREQUENCY_US, frontDuty );
-            pwm_SetPulse( BACK_MOTOR_CHANNEL, PWM_FREQUENCY_US, backDuty );
-            /*if (speedyaw<0)
+            if (speedyaw<0)
             {
                 pwm_SetPulse( LEFT_MOTOR_CHANNEL, PWM_FREQUENCY_US, pwmDuty );
                 //pwm_SetPulse( RIGHT_MOTOR_CHANNEL, PWM_FREQUENCY_US, pwmDuty/2 );
@@ -253,7 +241,7 @@ int MotorDriver::ProcessMessage( QueuePointer& respQueue,
                 //pwm_SetPulse( LEFT_MOTOR_CHANNEL, PWM_FREQUENCY_US, pwmDuty/2 );
                 printf( "Turning left\n");
                 printf( "Sending %i μs pulse\n", pwmDuty );
-            }*/
+            }
             pwm_SetPulse( TEST_CHANNEL, PWM_FREQUENCY_US, pwmDuty );
         }
         
@@ -284,6 +272,42 @@ int MotorDriver::ProcessMessage( QueuePointer& respQueue,
         mCompassAngleTimestamp = pHeader->timestamp;
         
         return 0;
+    }
+    else if ( Message::MatchMessage( pHeader, PLAYER_MSGTYPE_CMD, 
+        PLAYER_POSITION3D_CMD_SET_POS, this->device_addr ) )
+    {
+        // AB: This is a complete abuse of the interface but basically
+        // we use this message to set the motor powers directly. 
+        // So, motor powers are place in the 'vel' component and are 
+        // 'normalised' so -1.0 is full reverse and 1.0 is full forward.
+        // Motors are
+        // x = left
+        // y = right
+        // roll = forward
+        // pitch = back
+        
+        player_position3d_cmd_pos_t* pCmd = (player_position3d_cmd_pos_t*)pData;
+        
+        F32 normalisedLeftPWM = MAX( -1.0f, MIN( (F32)pCmd->vel.px, 1.0f ) );
+        F32 normalisedRightPWM = MAX( -1.0f, MIN( (F32)pCmd->vel.py, 1.0f ) );
+        F32 normalisedForwardPWM = MAX( -1.0f, MIN( (F32)pCmd->vel.proll, 1.0f ) );
+        F32 normalisedBackPWM = MAX( -1.0f, MIN( (F32)pCmd->vel.ppitch, 1.0f ) );
+        
+        U32 leftDuty = MIN_DUTY_CYCLE_US + (U32)((MAX_DUTY_CYCLE_US-MIN_DUTY_CYCLE_US)*normalisedLeftPWM);
+        U32 rightDuty = MIN_DUTY_CYCLE_US + (U32)((MAX_DUTY_CYCLE_US-MIN_DUTY_CYCLE_US)*normalisedRightPWM);
+        U32 frontDuty = MIN_DUTY_CYCLE_US + (U32)((MAX_DUTY_CYCLE_US-MIN_DUTY_CYCLE_US)*normalisedForwardPWM);
+        U32 backDuty = MIN_DUTY_CYCLE_US + (U32)((MAX_DUTY_CYCLE_US-MIN_DUTY_CYCLE_US)*normalisedBackPWM);
+        
+        //printf( "Seting PWMS %i, %i, %i, %i\n",
+        //    leftDuty, rightDuty, frontDuty, backDuty );
+        
+        if ( mbInitialisedPWM )
+        {
+            pwm_SetPulse( LEFT_MOTOR_CHANNEL, PWM_FREQUENCY_US, leftDuty );
+            pwm_SetPulse( RIGHT_MOTOR_CHANNEL, PWM_FREQUENCY_US, rightDuty );
+            pwm_SetPulse( FRONT_MOTOR_CHANNEL, PWM_FREQUENCY_US, frontDuty );
+            pwm_SetPulse( BACK_MOTOR_CHANNEL, PWM_FREQUENCY_US, backDuty );
+        }
     }
     else if ( Message::MatchMessage(
         pHeader, PLAYER_MSGTYPE_DATA, PLAYER_POSITION1D_DATA_STATE, mDepthSensorID ) )

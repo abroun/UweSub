@@ -281,7 +281,7 @@ void CompassDriver::ProcessData()
                     &publishData, sizeof( publishData ) );
                 
                 printf( "H: %2.3f, P: %2.3f, R: %2.3f\n", 
-                    compassData.mHeadingDegrees, compassData.mRollDegrees, compassData.mRollDegrees );
+                    compassData.mHeadingDegrees, compassData.mPitchDegrees, compassData.mRollDegrees );
                     
                 SendGetDataCommand();
                 break;
