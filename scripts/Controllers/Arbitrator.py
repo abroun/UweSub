@@ -38,14 +38,16 @@ class Arbitrator:
     # interfaces if needed.
     def update( self, linearSpeed ):
         
-        self.pitchController.update()  
-        self.yawController.update()  
-        self.depthController.update() 
-         
-        pSpeed = self.pitchController.pitchSpeed                # rad/s
-        ySpeed = self.yawController.yawSpeed                      # rad/s
+        self.depthController.update()
         dSpeed = -self.depthController.depthSpeed                # m/s
         
+        self.pitchController.update()  
+        pSpeed = self.pitchController.pitchSpeed                # rad/s
+        
+        self.yawController.update()  
+        ySpeed = self.yawController.yawSpeed                      # rad/s
+
+
         #------------ Send the new speeds to player ----------#
         
         self.playerPos3D.set_velocity( linearSpeed, 0.0, dSpeed, # x, y, z

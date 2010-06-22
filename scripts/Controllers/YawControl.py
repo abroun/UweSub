@@ -33,7 +33,7 @@ class YawControl:
     def update( self ):
 
         Kp = 0.01
-        Ki = 0.001
+        Ki = 0.00
         Kd = 0.015
         iMax = 1.57
         iMin = -1.57
