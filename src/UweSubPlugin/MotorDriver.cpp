@@ -57,6 +57,8 @@ MotorDriver::MotorDriver( ConfigFile* pConfigFile, int section )
         PLAYER_MSGQUEUE_DEFAULT_MAXLEN, PLAYER_POSITION3D_CODE ),
     mbCompassAvailable( false ),
     mLastDisplayedCompassAngleTimestamp( 0.0 ),
+    mbDepthSensorAvailable( false ),
+    mLastDisplayedDepthSensorDepthTimestamp( 0.0 ),
     mbInitialisedPWM( false )
 {
     this->alwayson = true;
@@ -163,7 +165,7 @@ int MotorDriver::MainSetup()
         mpDepthSensor = deviceTable->GetDevice( mDepthSensorID );
         if ( NULL == mpDepthSensor )
         {
-            PLAYER_ERROR( "Unable to locate suitable compass device" );
+            PLAYER_ERROR( "Unable to locate suitable Depth Sensor device" );
             return -1;
         }
 
@@ -296,9 +298,11 @@ void MotorDriver::Main()
         base::Wait();
         
         base::ProcessMessages();
-        
+
         if ( mbCompassAngleValid
-            && mCompassAngleTimestamp != mLastDisplayedCompassAngleTimestamp )
+            && mCompassAngleTimestamp != mLastDisplayedCompassAngleTimestamp)
+            //&& mbDepthSensorDepthValid
+          // && mDepthSensorDepthTimestamp != mLastDisplayedDepthSensorDepthTimestamp )
         {
             // 0 < angle < 2*pi
             F32 radYawCompassAngle = mYawCompassAngle;

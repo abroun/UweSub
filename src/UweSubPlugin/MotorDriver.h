@@ -34,7 +34,7 @@ class MotorDriver : public ThreadedDriver
     // The main routine of the thread
     private: virtual void Main();
     
-    // Link to the compass decive
+    // Link to the compass device
     private: Device* mpCompass;
     private: player_devaddr_t mCompassID;
     private: bool mbCompassAvailable;
@@ -45,6 +45,7 @@ class MotorDriver : public ThreadedDriver
     private: double mCompassAngleTimestamp;
     private: double mLastDisplayedCompassAngleTimestamp;
     
+    // Link to the depth sensor device
     private: Device* mpDepthSensor;
     private: player_devaddr_t  mDepthSensorID;
     private: bool mbDepthSensorAvailable;
@@ -52,8 +53,8 @@ class MotorDriver : public ThreadedDriver
     private: F32 mDepthSensorDepth;
     private: bool mbDepthSensorDepthValid;
     private: double mDepthSensorDepthTimestamp;
+    private: double mLastDisplayedDepthSensorDepthTimestamp;
     
-
     private: static const U32 PWM_FREQUENCY_US;
     private: static const U32 MIN_DUTY_CYCLE_US;
     private: static const U32 MAX_DUTY_CYCLE_US;
