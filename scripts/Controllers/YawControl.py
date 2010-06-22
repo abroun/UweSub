@@ -39,9 +39,9 @@ class YawControl:
         iMin = -1.57
         
         # Feedback from the Compass
-        radCompassYawAngle = self.playerCompass.pose.pyaw
+        radCompassYawAngle = self.playerCompass.orientation.pyaw
         if radCompassYawAngle > math.pi:
-            radCompassYawAngle = radCompassYawAngle - 2*math.pi
+            radCompassYawAngle = 2*math.pi - radCompassYawAngle
         
         if self.desiredYawAngle == None:
             # Cope with the case where DesiredYawAngle is not set
@@ -52,8 +52,8 @@ class YawControl:
 
         # Proportional
         yawAngleError = -self.desiredYawAngle + radCompassYawAngle    # rad
-       # if yawAngleError > math.pi:
-        #    yawAngleError = yawAngleError - 2*math.pi
+        if yawAngleError > math.pi:
+            yawAngleError = 2*math.pi - yawAngleError
         #print yawAngleError
         self.yawpTerm = Kp*yawAngleError
         

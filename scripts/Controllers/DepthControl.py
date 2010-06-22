@@ -41,8 +41,8 @@ class DepthControl:
         iMin = -2.2
         
         # Feedback from the Depth Sensor
-        depthSensorDepth = self.playerDepthSensor.pose.pz
-
+        depthSensorDepth = self.playerDepthSensor.pos
+        
         if self.desiredDepth == None:
             # Cope with the case where DesiredDepth is not set
             self.desiredDepth = depthSensorDepth

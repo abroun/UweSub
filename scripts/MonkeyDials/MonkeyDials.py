@@ -33,6 +33,7 @@ class MainWindow:
     def __init__( self, config = SubControllerConfig() ):
             
         self.config = config
+
         self.controlActive = False
         self.normalisedLinearSpeed = 0.0
         self.normalisedAngularSpeed = 0.0
@@ -41,9 +42,11 @@ class MainWindow:
         self.linearSpeed = 0.0
         self.angularSpeed = 0.0
         
+        self.degCompassPitchAngle = 0.0
         self.arrayPitchAngles = [ 0 ]
         self.startPitchGraph = False
         
+        self.degCompassYawAngle = 0.0
         self.arrayYawAngles = [ 0 ]
         self.startYawGraph = False
         
@@ -165,7 +168,6 @@ class MainWindow:
         
 #---------------------------------------------------------------------------   
     def showErrorMessage( self, msg ):
-
         dialog = gtk.MessageDialog( parent=None, 
             flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
             type=gtk.MESSAGE_ERROR, 
@@ -280,11 +282,11 @@ class MainWindow:
                     radCompassPitchAngle -= 2*math.pi
                 while radCompassYawAngle >= 2*math.pi:
                     radCompassYawAngle -= 2*math.pi
-                degCompassPitchAngle = radCompassPitchAngle*180.0/math.pi    # from rad to degrees
-                degCompassYawAngle = radCompassYawAngle*180.0/math.pi    # from rad to degrees
+                self.degCompassPitchAngle = radCompassPitchAngle*180.0/math.pi    # from rad to degrees
+                self.degCompassYawAngle = radCompassYawAngle*180.0/math.pi    # from rad to degrees
                 #print it on the GUI
-                self.lblCompassPitchAngle.set_text( "{0:.3}".format( degCompassPitchAngle ) )
-                self.lblCompassYawAngle.set_text( "{0:.3}".format( degCompassYawAngle ) )
+                self.lblCompassPitchAngle.set_text( "{0:.3}".format( self.degCompassPitchAngle ) )
+                self.lblCompassYawAngle.set_text( "{0:.3}".format( self.degCompassYawAngle ) )
             
             # Update the depth sensor value if needed                
             if self.playerDepthSensor != None and self.playerClient.peek( 0 ):
@@ -313,10 +315,10 @@ class MainWindow:
             newDesiredYawAngle = self.spinDesiredYawAngle.get_value()*math.pi/180.0    # from degrees to rad
             newDesiredDepth = self.spinDesiredDepth.get_value()
             
-            if degCompassPitchAngle > 0.05:
+            if self.degCompassPitchAngle > 0.05:
                 self.startPitchGraph = True
             if self.startPitchGraph:
-                self.arrayPitchAngles.append( degCompassPitchAngle)
+                self.arrayPitchAngles.append( self.degCompassPitchAngle)
                 self.pitchpTest.append (self.pitchController.pitchpTerm)
                 self.pitchdTest.append(self.pitchController.pitchdTerm)
                 if radCompassPitchAngle - newDesiredPitchAngle < 0.01 \
@@ -324,10 +326,10 @@ class MainWindow:
                     self.pitchController.iState = 0.0
                     self.startPitchGraph = False
 
-            if degCompassYawAngle > 0.05:
+            if self.degCompassYawAngle > 0.05:
                 self.startYawGraph = True
             if self.startYawGraph:
-                self.arrayYawAngles.append( degCompassYawAngle)
+                self.arrayYawAngles.append( self.degCompassYawAngle)
                 self.yawpTest.append (self.yawController.yawpTerm)
                 self.yawdTest.append(self.yawController.yawdTerm)
                 if radCompassYawAngle - newDesiredYawAngle < 0.01 \
@@ -379,7 +381,6 @@ if __name__ == "__main__":
 
     (options, args) = optionParser.parse_args()
     subControllerConfig = SubControllerConfig()
-
     if options.configFilename != None \
         and os.path.exists( options.configFilename ):
     
