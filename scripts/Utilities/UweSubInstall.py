@@ -54,7 +54,7 @@ for i in range( len( FILE_TRANSFER_LIST ) ):
         ( string.Template( FILE_TRANSFER_LIST[ i ][ 0 ] ).safe_substitute( os.environ ),
         FILE_TRANSFER_LIST[ i ][ 1 ] )
 
-hostName = "192.168.8.10"
+hostName = "192.168.8.11"
 
 # Read in options from the command line
 optionParser = OptionParser()

@@ -17,6 +17,8 @@ from playerc import *
 import cv
 import yaml
 import time
+import pygame
+from pygame import locals
 
 # Add common packages directory to path
 sys.path.append( "../" )
@@ -61,6 +63,18 @@ class MainWindow:
         builder.connect_signals( self )
         
         self.window.show()
+
+        pygame.init()
+        pygame.joystick.init() # main joystick device system
+
+
+        try:
+            self.j = pygame.joystick.Joystick(0) # create a joystick instance
+            self.j.init() # init instance
+            print 'Enabled joystick: ' + self.j.get_name()
+        except pygame.error:
+            print 'no joystick found.'
+
 
         updateLoop = self.update()
         gobject.idle_add( updateLoop.next )
@@ -280,6 +294,7 @@ class MainWindow:
     #---------------------------------------------------------------------------
     def update( self ):
     
+        MAX_DEFLECTION = self.HALF_CONTROL_BOX_WIDTH
         MAX_UPDATES_PER_SECOND = 30.0
         TIME_BETWEEN_UPDATES = 1.0 / MAX_UPDATES_PER_SECOND
         
@@ -289,8 +304,28 @@ class MainWindow:
     
         while 1:
             
-            if not self.controlActive:
-                self.normalisedJoystickDeflection = 0.0
+            continue
+            
+            for e in pygame.event.get(): # iterate over event stack
+               
+                print 'event : ' + str(e.type)
+                if e.type == pygame.locals.JOYAXISMOTION: # 7
+                    x , y = self.j.get_axis(0), self.j.get_axis(1)
+                    #print 'x and y : ' + str(x) +' , '+ str(y)
+                    
+                    self.joystickHeading = math.atan2( -x, -y )
+            
+                    normalisedX = x
+                    normalisedY = y
+                    self.normalisedJoystickDeflection = math.sqrt( normalisedX*normalisedX + normalisedY*normalisedY )
+                    if self.normalisedJoystickDeflection > 1.0:
+                        self.normalisedJoystickDeflection = 1.0
+
+            
+            #print self.normalisedJoystickDeflection
+            
+            #if not self.controlActive:
+            #    self.normalisedJoystickDeflection = 0.0
 
             if self.normalisedJoystickDeflection > 0.0:
                 forwardComponent = math.cos( self.joystickHeading )*self.normalisedJoystickDeflection
