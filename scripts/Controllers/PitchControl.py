@@ -39,8 +39,7 @@ class PitchControl:
         iMin = -1.57
         
         # Feedback from the Compass
-        radCompassPitchAngle = self.playerCompass.pose
-        .ppitch
+        radCompassPitchAngle = self.playerCompass.pose.ppitch
         
         if self.desiredPitchAngle == None:
             # Cope with the case where DesiredPitchAngle is not set

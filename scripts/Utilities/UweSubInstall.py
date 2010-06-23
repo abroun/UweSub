@@ -15,8 +15,8 @@ FILE_TRANSFER_LIST = [
     # UweSub Libraries
     ( "${HOME}/dev/install/lib/uwesubplugin.so", "/home/uwesub/dev/install/lib/uwesubplugin.so" ),
     # Player Libraries
-    ( "${HOME}/dev/install/lib/liblodo.so.3.0.1", "/home/uwesub/dev/install/lib/liblodo.so.3.0.1" ),
-    ( "${HOME}/dev/install/lib/liblododriver.so.3.0.1", "/home/uwesub/dev/install/lib/liblododriver.so.3.0.1" ),
+   # ( "${HOME}/dev/install/lib/liblodo.so.3.0.1", "/home/uwesub/dev/install/lib/liblodo.so.3.0.1" ),
+    #( "${HOME}/dev/install/lib/liblododriver.so.3.0.1", "/home/uwesub/dev/install/lib/liblododriver.so.3.0.1" ),
     ( "${HOME}/dev/install/lib/libplayerc.so.3.0.1", "/home/uwesub/dev/install/lib/libplayerc.so.3.0.1" ),
     ( "${HOME}/dev/install/lib/libplayerc++.so.3.0.1", "/home/uwesub/dev/install/lib/libplayerc++.so.3.0.1" ),
     ( "${HOME}/dev/install/lib/libplayercommon.so.3.0.1", "/home/uwesub/dev/install/lib/libplayercommon.so.3.0.1" ),
@@ -26,7 +26,7 @@ FILE_TRANSFER_LIST = [
     ( "${HOME}/dev/install/lib/libplayerjpeg.so.3.0.1", "/home/uwesub/dev/install/lib/libplayerjpeg.so.3.0.1" ),
     ( "${HOME}/dev/install/lib/libplayertcp.so.3.0.1", "/home/uwesub/dev/install/lib/libplayertcp.so.3.0.1" ),
     ( "${HOME}/dev/install/lib/libplayerudp.so.3.0.1", "/home/uwesub/dev/install/lib/libplayerudp.so.3.0.1" ),
-    ( "${HOME}/dev/install/lib/libpmap.so.3.0.1", "/home/uwesub/dev/install/lib/libpmap.so.3.0.1" ),
+   # ( "${HOME}/dev/install/lib/libpmap.so.3.0.1", "/home/uwesub/dev/install/lib/libpmap.so.3.0.1" ),
     ( "${HOME}/dev/install/lib/libwavefront_standalone.so.3.0.1", "/home/uwesub/dev/install/lib/libwavefront_standalone.so.3.0.1" ),
     # Scripts
     ( "${HOME}/dev/uwe/UweSub/scripts/SubController.py", 

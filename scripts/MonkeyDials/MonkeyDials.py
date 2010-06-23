@@ -140,7 +140,7 @@ class MainWindow:
             if self.playerCompass.subscribe( PLAYERC_OPEN_MODE ) != 0:
                 self.playerCompass = None
             
-            self.playerDepthSensor = playerc_imu( self.playerClient, 0 )
+            self.playerDepthSensor = playerc_position1d( self.playerClient, 0 )
             if self.playerDepthSensor.subscribe( PLAYERC_OPEN_MODE ) != 0:
                 self.playerDepthSensor = None
 
@@ -293,7 +293,7 @@ class MainWindow:
                 self.playerClient.read()
 
                 # Get pressure sensor depth
-                self.depthSensorDepth = self.playerDepthSensor.pose.pz
+                self.depthSensorDepth = self.playerDepthSensor.pos
                 self.lblDepthSensorDepth.set_text( "{0:.3}".format( self.depthSensorDepth ) )  
             
             maxLinearSpeed = self.spinMaxLinearSpeed.get_value() 
@@ -348,7 +348,7 @@ class MainWindow:
             if self.depthSensorDepth > 0.005:
                 self.startDepthGraph = True
             if self.startDepthGraph:
-                self.arrayDepthValuess.append( self.depthSensorDepth)
+                self.arrayDepthValues.append( self.depthSensorDepth)
                 self.depthpTest.append (self.depthController.depthpTerm)
                 self.depthdTest.append(self.depthController.depthdTerm)
                 if self.depthSensorDepth - newDesiredDepth < 0.01 \
