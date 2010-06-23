@@ -48,6 +48,9 @@ class Arbitrator:
         ySpeed = self.yawController.yawSpeed                      # rad/s
 
 
+        pSpeed = 0.0
+        ySpeed = 0.0
+
         #------------ Send the new speeds to player ----------#
         
         self.playerPos3D.set_velocity( linearSpeed, 0.0, dSpeed, # x, y, z

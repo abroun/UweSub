@@ -103,7 +103,7 @@ class MainWindow:
         
         self.spinDesiredPitchAngle.set_value( 0.0 )
         self.spinDesiredYawAngle.set_value( 0.0 )
-        self.spinDesiredDepth.set_value( 1.0 )
+        self.spinDesiredDepth.set_value( 7340.0 )
         
         
     	self.RANGE = 100
@@ -264,7 +264,7 @@ class MainWindow:
 #---------------------------------------------------------------------------
     def onDepthPosButtonClicked( self, button ):
         time = len( self.arrayDepthValues )
-        figure(3)
+        figure(1)
         plot( range( time ), self.arrayDepthValues )
         ylabel( 'Pitch angle [deg/s]' )
         xlabel( 'Time' )
@@ -299,7 +299,7 @@ class MainWindow:
 
                 # Get pressure sensor depth
                 self.depthSensorDepth = self.playerDepthSensor.pos
-                self.lblDepthSensorDepth.set_text( "{0:.3}".format( self.depthSensorDepth ) )  
+                self.lblDepthSensorDepth.set_text( "{0:2.3f}".format( self.depthSensorDepth ) )  
             
             maxLinearSpeed = self.spinMaxLinearSpeed.get_value() 
             maxAngularSpeed = self.spinMaxAngularSpeed.get_value()*math.pi/180.0    # from degrees to rad
@@ -350,7 +350,7 @@ class MainWindow:
                     #show()
                     self.startYawGraph = False
                     
-            if self.depthSensorDepth > 0.005:
+            if self.depthSensorDepth > 7365:
                 self.startDepthGraph = True
             if self.startDepthGraph:
                 self.arrayDepthValues.append( self.depthSensorDepth)
