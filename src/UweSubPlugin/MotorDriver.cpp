@@ -39,10 +39,10 @@ const U32 MotorDriver::MIN_DUTY_CYCLE_US = 1000;
 const U32 MotorDriver::MAX_DUTY_CYCLE_US = 2000;
 const U32 MotorDriver::ZERO_DUTY_CYCLE_US = (MIN_DUTY_CYCLE_US + MAX_DUTY_CYCLE_US)/2;
 
-const U32 MotorDriver::RIGHT_MOTOR_CHANNEL = 2;    // 01
-const U32 MotorDriver::LEFT_MOTOR_CHANNEL = 3;     // 10
-const U32 MotorDriver::FRONT_MOTOR_CHANNEL = 4;
-const U32 MotorDriver::BACK_MOTOR_CHANNEL = 5;
+const U32 MotorDriver::RIGHT_MOTOR_CHANNEL = 3;    // 01
+const U32 MotorDriver::LEFT_MOTOR_CHANNEL = 5;     // 10
+const U32 MotorDriver::FRONT_MOTOR_CHANNEL = 2;
+const U32 MotorDriver::BACK_MOTOR_CHANNEL = 4;
 const U32 MotorDriver::TEST_CHANNEL = 16;
 
 const F32 MotorDriver::MAX_ABS_2D_DIST = 1.0f;
@@ -222,7 +222,7 @@ int MotorDriver::ProcessMessage( QueuePointer& respQueue,
         //F32 normalisedPWM = (speedyaw+MAX_ABS_ANG_SPEED)/(2.0f*MAX_ABS_ANG_SPEED);
         // or
         
-        F32 normalisedPWM = (linearSpeed+MAX_ABS_LINEAR_SPEED)/(2.0f*MAX_ABS_LINEAR_SPEED);
+        F32 normalisedPWM = -(linearSpeed+MAX_ABS_LINEAR_SPEED)/(2.0f*MAX_ABS_LINEAR_SPEED);
       
         U32 pwmDuty = MIN_DUTY_CYCLE_US + (U32)((MAX_DUTY_CYCLE_US-MIN_DUTY_CYCLE_US)*normalisedPWM);
         
@@ -288,10 +288,15 @@ int MotorDriver::ProcessMessage( QueuePointer& respQueue,
         
         player_position3d_cmd_pos_t* pCmd = (player_position3d_cmd_pos_t*)pData;
         
-        F32 normalisedLeftPWM = MAX( -1.0f, MIN( (F32)pCmd->vel.px, 1.0f ) );
-        F32 normalisedRightPWM = MAX( -1.0f, MIN( (F32)pCmd->vel.py, 1.0f ) );
+        F32 normalisedLeftPWM = -MAX( -1.0f, MIN( (F32)pCmd->vel.px, 1.0f ) );
+        F32 normalisedRightPWM = -MAX( -1.0f, MIN( (F32)pCmd->vel.py, 1.0f ) );
         F32 normalisedForwardPWM = MAX( -1.0f, MIN( (F32)pCmd->vel.proll, 1.0f ) );
         F32 normalisedBackPWM = MAX( -1.0f, MIN( (F32)pCmd->vel.ppitch, 1.0f ) );
+        
+        normalisedLeftPWM = (normalisedLeftPWM + 1.0f)/2.0f;
+        normalisedRightPWM = (normalisedRightPWM + 1.0f)/2.0f;
+        normalisedForwardPWM = (normalisedForwardPWM + 1.0f)/2.0f;
+        normalisedBackPWM = (normalisedBackPWM + 1.0f)/2.0f;
         
         U32 leftDuty = MIN_DUTY_CYCLE_US + (U32)((MAX_DUTY_CYCLE_US-MIN_DUTY_CYCLE_US)*normalisedLeftPWM);
         U32 rightDuty = MIN_DUTY_CYCLE_US + (U32)((MAX_DUTY_CYCLE_US-MIN_DUTY_CYCLE_US)*normalisedRightPWM);

@@ -52,12 +52,12 @@ class MainWindow:
         self.vscaleRightMotor = builder.get_object( "vscaleRightMotor" )
         self.vscaleFrontMotor = builder.get_object( "vscaleFrontMotor" )
         self.vscaleBackMotor = builder.get_object( "vscaleBackMotor" )
-        self.cbxLinkVerticalMotors = builder.get_object( "cbxLinkVerticalMotors" )
+        self.chkLinkVerticalMotors = builder.get_object( "chkLinkVerticalMotors" )
 
         (self.CONTROL_AREA_WIDTH, self.CONTROL_AREA_HEIGHT) = self.dwgControlArea.get_size_request()
         self.CONTROL_BOX_WIDTH = self.CONTROL_AREA_WIDTH*0.95
         self.HALF_CONTROL_BOX_WIDTH = self.CONTROL_BOX_WIDTH / 2.0
-        self.DEAD_ZONE_WIDTH = self.CONTROL_AREA_WIDTH*0.05
+        self.DEAD_ZONE_WIDTH = self.CONTROL_AREA_WIDTH*0.20
         self.HALF_DEAD_ZONE_WIDTH = self.DEAD_ZONE_WIDTH / 2.0
 
         builder.connect_signals( self )
@@ -175,7 +175,7 @@ class MainWindow:
         if self.oldFrontMotorValue != newValue:
             self.oldFrontMotorValue = newValue
             
-            if self.cbxLinkVerticalMotors.get_active():
+            if self.chkLinkVerticalMotors.get_active():
                 self.vscaleBackMotor.set_value( newValue )
                
     #---------------------------------------------------------------------------
@@ -185,13 +185,13 @@ class MainWindow:
         if self.oldBackMotorValue != newValue:
             self.oldBackMotorValue = newValue
             
-            if self.cbxLinkVerticalMotors.get_active():
+            if self.chkLinkVerticalMotors.get_active():
                 self.vscaleFrontMotor.set_value( newValue )
     
     #---------------------------------------------------------------------------
-    def onCbxLinkVerticalMotorsToggled( self, widget, event = None ):
+    def onChkLinkVerticalMotorsToggled( self, widget, event = None ):
         
-        if self.cbxLinkVerticalMotors.get_active():
+        if self.chkLinkVerticalMotors.get_active():
                 self.vscaleBackMotor.set_value( self.vscaleFrontMotor.get_value() )
     
     #---------------------------------------------------------------------------
@@ -257,7 +257,7 @@ class MainWindow:
             height=int( self.DEAD_ZONE_WIDTH ) )
 
         # Draw the control arrow if needed
-        if self.controlActive:
+        if self.normalisedJoystickDeflection > 0.0:
             widget.window.draw_line( graphicsContext, 
                 centreX, centreY,
                 int( centreX - math.sin( self.joystickHeading )*self.HALF_CONTROL_BOX_WIDTH*self.normalisedJoystickDeflection ),
@@ -297,6 +297,7 @@ class MainWindow:
         MAX_DEFLECTION = self.HALF_CONTROL_BOX_WIDTH
         MAX_UPDATES_PER_SECOND = 30.0
         TIME_BETWEEN_UPDATES = 1.0 / MAX_UPDATES_PER_SECOND
+        DIVE_CHANGE = 1.0 / 500.0
         
         zeroPosPose = player_pose3d_t()
         velocityPose = player_pose3d_t()
@@ -304,14 +305,19 @@ class MainWindow:
     
         while 1:
             
-            continue
-            
             for e in pygame.event.get(): # iterate over event stack
                
-                print 'event : ' + str(e.type)
                 if e.type == pygame.locals.JOYAXISMOTION: # 7
                     x , y = self.j.get_axis(0), self.j.get_axis(1)
                     #print 'x and y : ' + str(x) +' , '+ str(y)
+                    
+                    # Apply the dead zone
+                    if x >= -self.HALF_DEAD_ZONE_WIDTH/MAX_DEFLECTION \
+                        and x <= self.HALF_DEAD_ZONE_WIDTH/MAX_DEFLECTION:
+                        x = 0.0
+                    if y >= -self.HALF_DEAD_ZONE_WIDTH/MAX_DEFLECTION \
+                        and y <= self.HALF_DEAD_ZONE_WIDTH/MAX_DEFLECTION:
+                        y = 0.0
                     
                     self.joystickHeading = math.atan2( -x, -y )
             
@@ -320,8 +326,21 @@ class MainWindow:
                     self.normalisedJoystickDeflection = math.sqrt( normalisedX*normalisedX + normalisedY*normalisedY )
                     if self.normalisedJoystickDeflection > 1.0:
                         self.normalisedJoystickDeflection = 1.0
-
-            
+                        
+                    self.dwgControlArea.queue_draw()
+                    
+                    # Vertical control
+                    z = self.j.get_axis(4)
+                    if abs( z ) > 0.15:
+                        self.chkLinkVerticalMotors.set_active( True )
+                    
+                        if z < 0.0:
+                            self.vscaleFrontMotor.set_value(
+                                self.vscaleFrontMotor.get_value() - DIVE_CHANGE )
+                        else:
+                            self.vscaleFrontMotor.set_value(
+                                self.vscaleFrontMotor.get_value() + DIVE_CHANGE )
+                
             #print self.normalisedJoystickDeflection
             
             #if not self.controlActive:
@@ -344,9 +363,11 @@ class MainWindow:
 
             curTime = time.time()
             if curTime - lastTime > TIME_BETWEEN_UPDATES:
-            
+                     
                 frontMotorSpeed = self.vscaleFrontMotor.get_value()
                 backMotorSpeed = self.vscaleBackMotor.get_value()
+            
+                print "Sending ", leftMotorSpeed, rightMotorSpeed, frontMotorSpeed, backMotorSpeed
             
                 velocityPose.px = leftMotorSpeed
                 velocityPose.py = rightMotorSpeed
