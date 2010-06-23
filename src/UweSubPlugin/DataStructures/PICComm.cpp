@@ -8,7 +8,7 @@ PICPacket* PICComm::convertBytes2Packet(U8* rawmsg) {
 
             pack->Starter = rawmsg[0];
             pack->MsgLen = (U32)rawmsg[1] + (U32)(256 * rawmsg[2]);
-            pack->MsgType = rawmsg[3];
+            pack->MsgType = (U8)rawmsg[3];
             pack->Message = new U8[pack->MsgLen - 3];
             for (i = 0; i < pack->MsgLen - 3; i++)
                 pack->Message[i] = rawmsg[4 + i];

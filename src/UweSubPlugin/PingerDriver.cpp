@@ -346,7 +346,7 @@ void PingerDriver::ProcessData()
             // tailoring bufhead and rembuffer into buffer
         
             for (i=0; i<totalbytes; i++)
-                 if (i<7) buffer[i] = bufhead[i];
+                 if (i<3) buffer[i] = bufhead[i];
                       else buffer[i] = rembuffer[i-3];
                         // now handling the message
             // handling packet
@@ -373,26 +373,34 @@ void PingerDriver::transitionAction(PICPacket* pack) {
     U8* EchoData;
     U32 msglen = pack->MsgLen - 3;
     U8 msgtype = pack->MsgType;
+    U8 highb, lowb;
     switch(msgtype) {
         case PICComm::msgGyro: // must publish angular velocity value here
-                      AngularVelocity = calcAngularVelocity(pack->Message[0]+256*(pack->Message[1]));
+                      lowb = pack->Message[0];
+                      highb = pack->Message[1];
+                      AngularVelocity = calcAngularVelocity(lowb+256*highb);
                       printf("Angular Velocity: %f\n", AngularVelocity);
                       
                       state = stIdle;
                       break;
         case PICComm::msgAccelerometerX: // must publish acceleration in the X (vertical) axis (positive is DOWN)
-                                AccelerationX = calcAcceleration(pack->Message[0]+256*(pack->Message[1]));
+                                lowb = pack->Message[0];
+                                highb = pack->Message[1];
+                                AccelerationX = calcAccelerationX(lowb+256*highb);
                                 printf ("Acceleration in X: %f\n", AccelerationX);
                                 
                                 state = stIdle;
                                 break;
         case PICComm::msgAccelerometerY: // must publish acceleration in the Y (horizontal) axis (positive is BACKWARDS)
-                                AccelerationY = calcAcceleration(pack->Message[0]+256*(pack->Message[1]));
+                                lowb = pack->Message[0];
+                                highb = pack->Message[1];
+                                AccelerationY = calcAccelerationY(lowb+256*highb);
                                 printf("Acceleration in Y: %f\n", AccelerationY);
                                 
                                 state = stIdle;
                                 break;
-        case PICComm::msgSonarEcho: if (state==stWaitingActiveECho) {
+        case PICComm::msgSonarEcho: 
+                               if (state==stWaitingActiveECho) {
                                 ObjectDistance = locateObstacle(pack->Message);
                                 // publish the distance
                                 if (ObjectDistance!=-1)
@@ -401,8 +409,10 @@ void PingerDriver::transitionAction(PICPacket* pack) {
                             } else if (state==stWaitingPassiveEcho) {
                                 PingIntensity = observeEcho(pack->Message);
                                 // must publish result
-                                
-                                printf("Intensity of noise in the transducer: %i", PingIntensity);
+                                if (PingIntensity<0) 
+                                        printf("No noise in the transducers \n");
+                                else 
+                                    printf("Intensity of noise in the transducer: %i\n", PingIntensity);
                             }
                             state = stIdle;
                             break;
@@ -423,10 +433,18 @@ F32 PingerDriver::calcAngularVelocity(U32 analog) {
 
 
 // convert analog value to  acceleration
-F32 PingerDriver::calcAcceleration(U32 analog) {
+F32 PingerDriver::calcAccelerationY(U32 analog) {
     F32 acceleration;
     if ((analog >= 542) && (analog <=553 )) acceleration = 0;
             else acceleration = ((F32)analog -544)* 5*10 / (1023*1.040);
+    
+ return acceleration;
+}
+
+F32 PingerDriver::calcAccelerationX(U32 analog) {
+    F32 acceleration;
+    if ((analog >= 710) && (analog <=715 )) acceleration = 0;
+            else acceleration = ((F32)analog -713)* 5*10 / (1023*1.040);
     
  return acceleration;
 }
@@ -466,13 +484,13 @@ F32 PingerDriver::locateObstacle(U8* data) {
             }
         }
     }
-    if (maxindex>-1) objectdistance = 4.5*0.0015*maxindex; // in meters
+    if (maxindex>-1) objectdistance = 4.5*0.0015*maxindex/2.0; // in meters
         else objectdistance = -1;
    
    return objectdistance;
  }
 
-U32 PingerDriver::observeEcho(U8* data) {
+S32 PingerDriver::observeEcho(U8* data) {
     U8 beam[1200];
     U32 i;
     S32 maxcount, maxindex, lowindex, lowcount;
