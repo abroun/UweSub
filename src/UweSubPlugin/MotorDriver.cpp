@@ -337,9 +337,9 @@ void MotorDriver::Main()
         base::ProcessMessages();
 
         if ( mbCompassAngleValid
-            && mCompassAngleTimestamp != mLastDisplayedCompassAngleTimestamp)
-            //&& mbDepthSensorDepthValid
-          // && mDepthSensorDepthTimestamp != mLastDisplayedDepthSensorDepthTimestamp )
+            && mCompassAngleTimestamp != mLastDisplayedCompassAngleTimestamp
+            && mbDepthSensorDepthValid
+            && mDepthSensorDepthTimestamp != mLastDisplayedDepthSensorDepthTimestamp )
         {
             // 0 < angle < 2*pi
             F32 radCompassYawAngle = mYawCompassAngle;
@@ -352,9 +352,12 @@ void MotorDriver::Main()
             
             F32 degCompassYawAngle = radCompassYawAngle*180.0f/M_PI;
             F32 degCompassPitchAngle = radCompassPitchAngle*180.0f/M_PI;
-                        
-            printf( "Compass angle (degrees): yaw = %2.3f, pitch = %2.3f | Sensor depth (m): %2.3f \n", degCompassYawAngle, degCompassPitchAngle, mDepthSensorDepth );
+            F32 DepthSensorDepth = -mDepthSensorDepth;
+            
+            
+            printf( "Compass angle (degrees): yaw = %2.3f, pitch = %2.3f | Sensor depth (m): %2.3f \n", degCompassYawAngle, degCompassPitchAngle, DepthSensorDepth );
             mLastDisplayedCompassAngleTimestamp = mCompassAngleTimestamp;
+            mLastDisplayedDepthSensorDepthTimestamp = mDepthSensorDepthTimestamp;
         }
     }
 }

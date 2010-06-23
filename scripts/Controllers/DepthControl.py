@@ -34,11 +34,11 @@ class DepthControl:
     # interfaces if needed.
     def update( self ):
 
-        Kp = 0.01
-        Ki = 0.008
-        Kd = 0.015
-        iMax = 2.2
-        iMin = -2.2
+        Kp = 1.0
+        Ki = 0.00
+        Kd = 1.15
+        iMax = 1.57
+        iMin = -1.57
         
         # Feedback from the Depth Sensor
         depthSensorDepth = self.playerDepthSensor.pos
@@ -50,7 +50,7 @@ class DepthControl:
         #--------------------- PID loop ---------------------#
 
         # Proportional
-        depthError = self.desiredDepth - depthSensorDepth    # rad
+        depthError = self.desiredDepth + depthSensorDepth    # rad
         #print depthError
         self.depthpTerm = Kp*depthError
         

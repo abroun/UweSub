@@ -101,6 +101,11 @@ class MainWindow:
         self.spinMaxAngularSpeed.set_value( 30.0 )
         self.spinMaxDepthSpeed.set_value( 2.0 )
         
+        self.spinDesiredPitchAngle.set_value( 0.0 )
+        self.spinDesiredYawAngle.set_value( 0.0 )
+        self.spinDesiredDepth.set_value( 1.0 )
+        
+        
     	self.RANGE = 100
         self.DEAD_ZONE = self.RANGE*0.01
 
@@ -303,7 +308,7 @@ class MainWindow:
             if self.controlActive:
                 newDepthSpeed = -self.normalisedDepthSpeed*maxDepthSpeed
                 if newDepthSpeed == 0.0:
-                    newDepthSpeed = 0.05     # positive boyancy - it can also fly after a while ^o^            
+                    newDepthSpeed = 0.05     # positive boyancy - it can also fly after a while           
                 newLinearSpeed = self.normalisedLinearSpeed*maxLinearSpeed
                 newAngularSpeed = self.normalisedAngularSpeed*maxAngularSpeed
             else:
