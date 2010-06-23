@@ -27,13 +27,13 @@
               </packing>
             </child>
             <child>
-              <object class="GtkCheckButton" id="cbxLinkVerticalMotors">
+              <object class="GtkCheckButton" id="chkLinkVerticalMotors">
                 <property name="label" translatable="yes">Link Vertical Motors</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
                 <property name="draw_indicator">True</property>
-                <signal name="toggled" handler="onCbxLinkVerticalMotorsToggled"/>
+                <signal name="toggled" handler="onChkLinkVerticalMotorsToggled"/>
               </object>
               <packing>
                 <property name="position">1</property>
