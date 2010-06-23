@@ -68,11 +68,13 @@ class PingerDriver : public ThreadedDriver
     
     private: F32 calcAngularVelocity(U32 analog);
     
-    private: F32 calcAcceleration(U32 analog);
+    private: F32 calcAccelerationX(U32 analog);
     
+    private: F32 calcAccelerationY(U32 analog);
+     
     private: F32 locateObstacle(U8* data);
     
-    private: U32 observeEcho(U8* data);
+    private: S32 observeEcho(U8* data);
     
     // Properties
     private: IntProperty mBufferSize;
