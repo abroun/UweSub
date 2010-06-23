@@ -17,7 +17,9 @@ SET( srcFiles
     SonarDriver.cpp
     DataStructures/RollingBuffer.cpp
     DataStructures/Micron.cpp
-    DataStructures/microncmds.cpp ) 
+    DataStructures/microncmds.cpp 
+    DataStructures/PICComm.cpp
+    ) 
 
 LINK_DIRECTORIES( 
     ${global_link_dirs}
