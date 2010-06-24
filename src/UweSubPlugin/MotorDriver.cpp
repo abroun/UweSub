@@ -49,6 +49,8 @@ const F32 MotorDriver::MAX_ABS_2D_DIST = 1.0f;
 const F32 MotorDriver::MAX_ABS_LINEAR_SPEED = 1.0f;
 const F32 MotorDriver::MAX_ABS_ANG_SPEED = M_PI/6;
 
+ const F32 MOTOR_PER = 0.8;
+
 //------------------------------------------------------------------------------
 // Constructor.  Retrieve options from the configuration file and do any
 // pre-Setup() setup.
@@ -198,68 +200,39 @@ int MotorDriver::ProcessMessage( QueuePointer& respQueue,
     {
         player_position3d_cmd_vel_t* pCmd = (player_position3d_cmd_vel_t*)pData;
         
-        F32 linearSpeed = (F32)pCmd->vel.px;
-        if ( linearSpeed > MAX_ABS_LINEAR_SPEED )
-        {
-           linearSpeed = MAX_ABS_LINEAR_SPEED;
-        }
-        else if ( linearSpeed < -MAX_ABS_LINEAR_SPEED )
-        {
-            linearSpeed = -MAX_ABS_LINEAR_SPEED;
-        }
-        
-        F32 speedyaw = (F32)pCmd->vel.pyaw;
-        if ( speedyaw > MAX_ABS_ANG_SPEED )
-        {
-           speedyaw = MAX_ABS_ANG_SPEED;
-        }
-        else if ( speedyaw < -MAX_ABS_ANG_SPEED )
-        {
-            speedyaw = -MAX_ABS_ANG_SPEED;
-        }
-        
-        F32 speedDepth = MAX( -1.0f, MIN( (F32)pCmd->vel.pz, 1.0f ) );
-        
-        // Calculate the PWM to output
-        //F32 normalisedPWM = (speedyaw+MAX_ABS_ANG_SPEED)/(2.0f*MAX_ABS_ANG_SPEED);
-        // or
-        
-        F32 normalisedPWM = -(linearSpeed+MAX_ABS_LINEAR_SPEED)/(2.0f*MAX_ABS_LINEAR_SPEED);
-      
-        U32 pwmDuty = MIN_DUTY_CYCLE_US + (U32)((MAX_DUTY_CYCLE_US-MIN_DUTY_CYCLE_US)*normalisedPWM);
-        
-        F32 normalisedBackPWM = (speedDepth + 1.0f)/2.0f;
-        F32 normalisedFrontPWM = ((speedDepth*0.8f) + 1.0f)/2.0f;
-        F32 backDuty = MIN_DUTY_CYCLE_US 
-            + (U32)((MAX_DUTY_CYCLE_US-MIN_DUTY_CYCLE_US)*normalisedBackPWM);
+       
+        F32 depthSpeed = MOTOR_PER*MAX( -1.0f, MIN( (F32)pCmd->vel.pz, 1.0f ) );
+        F32 normalisedFrontPWM = (depthSpeed + 1.0f)/2.0f;
         F32 frontDuty = MIN_DUTY_CYCLE_US 
             + (U32)((MAX_DUTY_CYCLE_US-MIN_DUTY_CYCLE_US)*normalisedFrontPWM);
         
+        F32 pitchSpeed = MOTOR_PER*MAX( -1.0f, MIN( (F32)pCmd->vel.ppitch, 1.0f ) );
+        F32 normalisedBackPWM = (pitchSpeed + 1.0f)/2.0f;
+        F32 backDuty = MIN_DUTY_CYCLE_US 
+            + (U32)((MAX_DUTY_CYCLE_US-MIN_DUTY_CYCLE_US)*normalisedBackPWM);
+            
+        F32 linearSpeed = MAX( -1.0f, MIN( (F32)pCmd->vel.px, 1.0f ) );
+        F32 yawSpeed = MAX( -1.0f, MIN( (F32)pCmd->vel.pyaw, 1.0f ) );
+        F32 leftSpeed = MOTOR_PER*MAX( -1.0f, MIN( linearSpeed + yawSpeed, 1.0f ) );
+        F32 rightSpeed = MOTOR_PER*MAX( -1.0f, MIN( linearSpeed - yawSpeed, 1.0f ) );
+
+        F32 normalisedLeftPWM = (leftSpeed + 1.0f)/2.0f;
+        F32 normalisedRightPWM = (rightSpeed + 1.0f)/2.0f;
+        F32 leftDuty = MIN_DUTY_CYCLE_US 
+            + (U32)((MAX_DUTY_CYCLE_US-MIN_DUTY_CYCLE_US)*normalisedLeftPWM);
+        F32 rightDuty = MIN_DUTY_CYCLE_US 
+            + (U32)((MAX_DUTY_CYCLE_US-MIN_DUTY_CYCLE_US)*normalisedRightPWM);
+        
         if ( mbInitialisedPWM )
         {
-            if (speedyaw<0)
-            {
-                pwm_SetPulse( LEFT_MOTOR_CHANNEL, PWM_FREQUENCY_US, pwmDuty );
-                //pwm_SetPulse( RIGHT_MOTOR_CHANNEL, PWM_FREQUENCY_US, pwmDuty/2 );
-                printf( "Turning right\n");
-                printf( "Sending %i μs pulse\n", pwmDuty );
-            }
-            else
-            {
-                pwm_SetPulse( RIGHT_MOTOR_CHANNEL, PWM_FREQUENCY_US, pwmDuty );
-                //pwm_SetPulse( LEFT_MOTOR_CHANNEL, PWM_FREQUENCY_US, pwmDuty/2 );
-                printf( "Turning left\n");
-                printf( "Sending %i μs pulse\n", pwmDuty );
-            }
-            
+            //printf("front Duty = %f\n", frontDuty);
+            //printf("back Duty = %f\n", backDuty);
             pwm_SetPulse( FRONT_MOTOR_CHANNEL, PWM_FREQUENCY_US, frontDuty );
             pwm_SetPulse( BACK_MOTOR_CHANNEL, PWM_FREQUENCY_US, backDuty );
-            
-            pwm_SetPulse( TEST_CHANNEL, PWM_FREQUENCY_US, pwmDuty );
+            pwm_SetPulse( LEFT_MOTOR_CHANNEL, PWM_FREQUENCY_US, leftDuty );
+            pwm_SetPulse( RIGHT_MOTOR_CHANNEL, PWM_FREQUENCY_US, rightDuty );
         }
         
-        
-
         return 0;
     }
     // Request to enable motor power
@@ -300,10 +273,9 @@ int MotorDriver::ProcessMessage( QueuePointer& respQueue,
         // pitch = back
         
         player_position3d_cmd_pos_t* pCmd = (player_position3d_cmd_pos_t*)pData;
-        
-        const F32 MOTOR_PER = 0.8;
-        F32 normalisedLeftPWM = MOTOR_PER*MAX( -1.0f, MIN( (F32)pCmd->vel.px, 1.0f ) );
-        F32 normalisedRightPWM = MOTOR_PER*MAX( -1.0f, MIN( (F32)pCmd->vel.py, 1.0f ) );
+
+        F32 normalisedLeftPWM = -MOTOR_PER*MAX( -1.0f, MIN( (F32)pCmd->vel.px, 1.0f ) );
+        F32 normalisedRightPWM = -MOTOR_PER*MAX( -1.0f, MIN( (F32)pCmd->vel.py, 1.0f ) );
         F32 normalisedFrontPWM = -MOTOR_PER*MAX( -1.0f, MIN( (F32)pCmd->vel.proll, 1.0f ) );
         F32 normalisedBackPWM = -MOTOR_PER*MAX( -1.0f, MIN( (F32)pCmd->vel.ppitch, 1.0f ) );
        
@@ -328,6 +300,7 @@ int MotorDriver::ProcessMessage( QueuePointer& respQueue,
             pwm_SetPulse( FRONT_MOTOR_CHANNEL, PWM_FREQUENCY_US, frontDuty );
             pwm_SetPulse( BACK_MOTOR_CHANNEL, PWM_FREQUENCY_US, backDuty );
         }
+        return 0;
     }
     else if ( Message::MatchMessage(
         pHeader, PLAYER_MSGTYPE_DATA, PLAYER_POSITION1D_DATA_STATE, mDepthSensorID ) )

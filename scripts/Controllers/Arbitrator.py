@@ -27,6 +27,8 @@ class Arbitrator:
             self.playerCompass, self.playerSimPos3D )
         self.depthController = DepthControl( self.playerPos3D,
             self.playerDepthSensor, self.playerSimPos3D )
+        
+        self.lastTime = time.time()
 
     #---------------------------------------------------------------------------
     def setDesiredState( self, pitchAngle, yawAngle, depth ):        
@@ -42,9 +44,8 @@ class Arbitrator:
         MAX_UPDATES_PER_SECOND = 30.0
         TIME_BETWEEN_UPDATES = 1.0 / MAX_UPDATES_PER_SECOND
         
-        lastTime = time.time()       
         curTime = time.time()
-        if curTime - lastTime > TIME_BETWEEN_UPDATES:
+        if curTime - self.lastTime > TIME_BETWEEN_UPDATES:
             
             self.depthController.update()
             dSpeed = -self.depthController.depthSpeed                # m/s
@@ -55,8 +56,6 @@ class Arbitrator:
             self.yawController.update()  
             ySpeed = self.yawController.yawSpeed                      # rad/s
 
-            pSpeed = 0.0
-            ySpeed = 0.0
 
             #------------ Send the new speeds to player ----------#
             
@@ -68,4 +67,4 @@ class Arbitrator:
                                                   0.0, pSpeed, ySpeed, # roll, pitch, yaw
                                                   0 )   # State
             
-            lastTime = curTime     
+            self.lastTime = curTime     

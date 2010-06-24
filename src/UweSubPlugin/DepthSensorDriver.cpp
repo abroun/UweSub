@@ -243,7 +243,7 @@ void DepthSensorDriver::ProcessData()
             S32 pressure = READ_S32( &packetBuffer[ 4 ] );
             S32 temperature = READ_S32( &packetBuffer[ 8 ] );
             
-            printf( "Got pressure %i and temperature %i\n", pressure, temperature );
+            //printf( "Got pressure %i and temperature %i\n", pressure, temperature );
             
             // Publish the data
             player_position1d_data publishData;

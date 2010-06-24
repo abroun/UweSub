@@ -244,6 +244,56 @@
               </packing>
             </child>
             <child>
+              <object class="GtkHBox" id="StartGraphs">
+                <property name="visible">True</property>
+                <property name="homogeneous">True</property>
+                <child>
+                  <object class="GtkButton" id="yawPosStartButton">
+                    <property name="label" translatable="yes">Start Yaw Graph</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">True</property>
+                    <signal name="clicked" handler="onYawPosStartButtonClicked"/>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkButton" id="pitchPosStartButton">
+                    <property name="label" translatable="yes">Start Pitch Graph</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">True</property>
+                    <property name="yalign">0.54000002145767212</property>
+                    <signal name="clicked" handler="onPitchPosStartButtonClicked"/>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkButton" id="depthPosStartButton">
+                    <property name="label" translatable="yes">Start Depth Graph</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">True</property>
+                    <signal name="clicked" handler="onDepthPosStartButtonClicked"/>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="position">2</property>
+                  </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="position">4</property>
+              </packing>
+            </child>
+            <child>
               <object class="GtkHBox" id="Graphs">
                 <property name="visible">True</property>
                 <property name="homogeneous">True</property>
@@ -289,7 +339,27 @@
               </object>
               <packing>
                 <property name="expand">False</property>
-                <property name="position">4</property>
+                <property name="position">5</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkHBox" id="Kill Motors">
+                <property name="visible">True</property>
+                <child>
+                  <object class="GtkCheckButton" id="checkKill">
+                    <property name="label" translatable="yes">Kill</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">False</property>
+                    <property name="draw_indicator">True</property>
+                  </object>
+                  <packing>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="position">6</property>
               </packing>
             </child>
           </object>
@@ -307,15 +377,14 @@
     <property name="page_increment">10</property>
   </object>
   <object class="GtkAdjustment" id="adjDesYawAngle">
-    <property name="lower">-179</property>
-    <property name="upper">180</property>
+    <property name="upper">359</property>
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
   </object>
   <object class="GtkAdjustment" id="adjDesDepth">
     <property name="value">1</property>
     <property name="upper">8000</property>
-    <property name="step_increment">0.10000000000000001</property>
+    <property name="step_increment">5</property>
     <property name="page_increment">10</property>
   </object>
   <object class="GtkAdjustment" id="adjMaxLinSpeed">
