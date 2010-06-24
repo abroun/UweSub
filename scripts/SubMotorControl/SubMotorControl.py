@@ -69,9 +69,9 @@ class MainWindow:
 
 
         try:
-            self.j = pygame.joystick.Joystick(0) # create a joystick instance
-            self.j.init() # init instance
-            print 'Enabled joystick: ' + self.j.get_name()
+            self.joystick = pygame.joystick.Joystick(0) # create a joystick instance
+            self.joystick.init() # init instance
+            print 'Enabled joystick: ' + self.joystick.get_name()
         except pygame.error:
             print 'no joystick found.'
 
@@ -195,6 +195,10 @@ class MainWindow:
                 self.vscaleBackMotor.set_value( self.vscaleFrontMotor.get_value() )
     
     #---------------------------------------------------------------------------
+    def onBtnResetVerticalMotorsClicked( self, widget, event = None ):
+        self.resetVerticalMotors()
+    
+    #---------------------------------------------------------------------------
     def onDwgControlAreaButtonPressEvent( self, widget, event ):
         
         if event.button == 1:
@@ -292,12 +296,18 @@ class MainWindow:
         return imgRect
 
     #---------------------------------------------------------------------------
+    def resetVerticalMotors( self ):
+        self.vscaleFrontMotor.set_value( 0.0 )
+        self.vscaleBackMotor.set_value( 0.0 )
+
+    #---------------------------------------------------------------------------
     def update( self ):
     
         MAX_DEFLECTION = self.HALF_CONTROL_BOX_WIDTH
         MAX_UPDATES_PER_SECOND = 30.0
         TIME_BETWEEN_UPDATES = 1.0 / MAX_UPDATES_PER_SECOND
         DIVE_CHANGE = 1.0 / 500.0
+        RESET_VERTICAL_MOTORS_BUTTON_ID = 1
         
         zeroPosPose = player_pose3d_t()
         velocityPose = player_pose3d_t()
@@ -308,7 +318,7 @@ class MainWindow:
             for e in pygame.event.get(): # iterate over event stack
                
                 if e.type == pygame.locals.JOYAXISMOTION: # 7
-                    x , y = self.j.get_axis(0), self.j.get_axis(1)
+                    x , y = self.joystick.get_axis(0), self.joystick.get_axis(1)
                     #print 'x and y : ' + str(x) +' , '+ str(y)
                     
                     # Apply the dead zone
@@ -330,7 +340,7 @@ class MainWindow:
                     self.dwgControlArea.queue_draw()
                     
                     # Vertical control
-                    z = self.j.get_axis(4)
+                    z = self.joystick.get_axis(4)
                     if abs( z ) > 0.15:
                         self.chkLinkVerticalMotors.set_active( True )
                     
@@ -340,6 +350,10 @@ class MainWindow:
                         else:
                             self.vscaleFrontMotor.set_value(
                                 self.vscaleFrontMotor.get_value() + DIVE_CHANGE )
+                                
+                elif e.type == pygame.locals.JOYBUTTONDOWN:
+                    if self.joystick.get_button( RESET_VERTICAL_MOTORS_BUTTON_ID ):
+                        self.resetVerticalMotors()
                 
             #print self.normalisedJoystickDeflection
             
@@ -367,7 +381,7 @@ class MainWindow:
                 frontMotorSpeed = self.vscaleFrontMotor.get_value()
                 backMotorSpeed = self.vscaleBackMotor.get_value()
             
-                print "Sending ", leftMotorSpeed, rightMotorSpeed, frontMotorSpeed, backMotorSpeed
+                #print "Sending ", leftMotorSpeed, rightMotorSpeed, frontMotorSpeed, backMotorSpeed
             
                 velocityPose.px = leftMotorSpeed
                 velocityPose.py = rightMotorSpeed
