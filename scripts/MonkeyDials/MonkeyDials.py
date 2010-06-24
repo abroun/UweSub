@@ -36,8 +36,6 @@ class MainWindow:
 
         self.controlActive = False
         self.normalisedLinearSpeed = 0.0
-        self.normalisedAngularSpeed = 0.0
-        self.normalisedDepthSpeed = 0.0
         self.depthSpeed = 0.0
         self.linearSpeed = 0.0
         self.angularSpeed = 0.0
@@ -83,12 +81,8 @@ class MainWindow:
         builder.add_from_file( os.path.dirname( __file__ ) + "/MonkeyDials.glade" )
         
         self.window = builder.get_object( "winMain" )
-        self.spinMaxDepthSpeed = builder.get_object( "spinMaxDepthSpeed" )
         self.spinMaxLinearSpeed = builder.get_object( "spinMaxLinearSpeed" )
-        self.spinMaxAngularSpeed = builder.get_object( "spinMaxAngularSpeed" )
         self.linearSpeed = builder.get_object( "scaleLinearSpeed" )
-        self.angularSpeed = builder.get_object( "scaleAngularSpeed" )
-        self.depthSpeed = builder.get_object( "scaleDepthSpeed" )
         self.spinDesiredPitchAngle = builder.get_object( "spinDesiredPitchAngle" )
         self.spinDesiredYawAngle = builder.get_object( "spinDesiredYawAngle" )
         self.spinDesiredDepth = builder.get_object( "spinDesiredDepth" )
@@ -96,10 +90,6 @@ class MainWindow:
         self.lblCompassPitchAngle = builder.get_object( "lblCompassPitchAngle" )
         self.lblCompassYawAngle = builder.get_object( "lblCompassYawAngle" )
         self.lblDepthSensorDepth = builder.get_object( "lblDepthSensorDepth" )
-        
-        self.spinMaxLinearSpeed.set_value( 2.0 )
-        self.spinMaxAngularSpeed.set_value( 30.0 )
-        self.spinMaxDepthSpeed.set_value( 2.0 )
         
         self.spinDesiredPitchAngle.set_value( 0.0 )
         self.spinDesiredYawAngle.set_value( 0.0 )
@@ -182,20 +172,6 @@ class MainWindow:
         dialog.set_title( "Error" )
         dialog.run()
         dialog.destroy()
-
-#---------------------------------------------------------------------------
-    def updateNormalisedZ( self, z ):
-	# z -> depth speed
-        
-        maxDepthSpeed = self.spinMaxDepthSpeed.get_value()
-
-        if self.controlActive:
-            
-            # Apply the dead zone
-            if z >= -self.DEAD_ZONE and z <= self.DEAD_ZONE:
-                z = 0.0
-
-        self.normalisedDepthSpeed = z / self.RANGE
    
 #---------------------------------------------------------------------------
     def updateNormalisedY( self, y ):
@@ -209,38 +185,12 @@ class MainWindow:
                 y = 0.0
 
         self.normalisedLinearSpeed = y / self.RANGE
-        
-#---------------------------------------------------------------------------
-    def updateNormalisedX( self, x ):
-	# x -> angular speed
-        maxAngularSpeed = self.spinMaxAngularSpeed.get_value()*math.pi/180.0    # from degrees to rad
-
-        if self.controlActive:
-
-            # Apply the dead zone
-            if x >= -self.DEAD_ZONE and x <= self.DEAD_ZONE:
-                x = 0.0
-
-        self.normalisedAngularSpeed = x / self.RANGE
-
-#---------------------------------------------------------------------------
-    def onScaleDepthSpeedValueChanged( self, widget, data = None ):
-        z = gtk.Range.get_value(widget);
-        self.updateNormalisedZ( z )
-        self.controlActive = True
 
 #---------------------------------------------------------------------------
     def onScaleLinearSpeedValueChanged( self, widget, data = None ):
 
         y = gtk.Range.get_value(widget);
         self.updateNormalisedY( y )
-        self.controlActive = True
-        
-#---------------------------------------------------------------------------
-    def onScaleAngularSpeedValueChanged( self, widget, data = None ):
-
-        x = gtk.Range.get_value(widget);
-        self.updateNormalisedX( x )
         self.controlActive = True
         
 #---------------------------------------------------------------------------
@@ -302,19 +252,11 @@ class MainWindow:
                 self.lblDepthSensorDepth.set_text( "{0:2.3f}".format( self.depthSensorDepth ) )  
             
             maxLinearSpeed = self.spinMaxLinearSpeed.get_value() 
-            maxAngularSpeed = self.spinMaxAngularSpeed.get_value()*math.pi/180.0    # from degrees to rad
-            maxDepthSpeed = self.spinMaxDepthSpeed.get_value()      
             
-            if self.controlActive:
-                newDepthSpeed = -self.normalisedDepthSpeed*maxDepthSpeed
-                if newDepthSpeed == 0.0:
-                    newDepthSpeed = 0.05     # positive boyancy - it can also fly after a while           
+            if self.controlActive:      
                 newLinearSpeed = self.normalisedLinearSpeed*maxLinearSpeed
-                newAngularSpeed = self.normalisedAngularSpeed*maxAngularSpeed
-            else:
-                newDepthSpeed = 0.0  
+            else: 
                 newLinearSpeed = 0.0
-                newAngularSpeed = 0.0
             
             newDesiredPitchAngle = self.spinDesiredPitchAngle.get_value()*math.pi/180.0    # from degrees to rad
             newDesiredYawAngle = self.spinDesiredYawAngle.get_value()*math.pi/180.0    # from degrees to rad
@@ -364,14 +306,9 @@ class MainWindow:
             self.arbitrator.setDesiredState( newDesiredPitchAngle, newDesiredYawAngle, newDesiredDepth )   # rad
             self.arbitrator.update( newLinearSpeed )         
             
-            if newLinearSpeed != self.linearSpeed \
-                or newAngularSpeed != self.angularSpeed \
-		        or newDepthSpeed != self.depthSpeed:
-
-                # Store the speeds
+            if newLinearSpeed != self.linearSpeed:
+                # Store the speed
                 self.linearSpeed = newLinearSpeed
-                self.angularSpeed = newAngularSpeed
-                self.depthSpeed = newDepthSpeed
                 
             yield True
             

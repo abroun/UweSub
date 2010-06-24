@@ -32,7 +32,7 @@ class PitchControl:
     #----------------------Updates the control loop------------------------------
     def update( self ):
 
-        Kp = 0.1
+        Kp = 2.0
         Ki = 0.00
         Kd = 0.00
         iMax = 1.57

@@ -301,19 +301,21 @@ int MotorDriver::ProcessMessage( QueuePointer& respQueue,
         
         player_position3d_cmd_pos_t* pCmd = (player_position3d_cmd_pos_t*)pData;
         
-        F32 normalisedLeftPWM = -MAX( -1.0f, MIN( (F32)pCmd->vel.px, 1.0f ) );
-        F32 normalisedRightPWM = -MAX( -1.0f, MIN( (F32)pCmd->vel.py, 1.0f ) );
-        F32 normalisedForwardPWM = MAX( -1.0f, MIN( (F32)pCmd->vel.proll, 1.0f ) );
-        F32 normalisedBackPWM = MAX( -1.0f, MIN( (F32)pCmd->vel.ppitch, 1.0f ) );
+        const F32 MOTOR_PER = 0.8;
+        F32 normalisedLeftPWM = MOTOR_PER*MAX( -1.0f, MIN( (F32)pCmd->vel.px, 1.0f ) );
+        F32 normalisedRightPWM = MOTOR_PER*MAX( -1.0f, MIN( (F32)pCmd->vel.py, 1.0f ) );
+        F32 normalisedFrontPWM = -MOTOR_PER*MAX( -1.0f, MIN( (F32)pCmd->vel.proll, 1.0f ) );
+        F32 normalisedBackPWM = -MOTOR_PER*MAX( -1.0f, MIN( (F32)pCmd->vel.ppitch, 1.0f ) );
+       
         
         normalisedLeftPWM = (normalisedLeftPWM + 1.0f)/2.0f;
         normalisedRightPWM = (normalisedRightPWM + 1.0f)/2.0f;
-        normalisedForwardPWM = (normalisedForwardPWM + 1.0f)/2.0f;
+        normalisedFrontPWM = (normalisedFrontPWM + 1.0f)/2.0f;
         normalisedBackPWM = (normalisedBackPWM + 1.0f)/2.0f;
         
         U32 leftDuty = MIN_DUTY_CYCLE_US + (U32)((MAX_DUTY_CYCLE_US-MIN_DUTY_CYCLE_US)*normalisedLeftPWM);
         U32 rightDuty = MIN_DUTY_CYCLE_US + (U32)((MAX_DUTY_CYCLE_US-MIN_DUTY_CYCLE_US)*normalisedRightPWM);
-        U32 frontDuty = MIN_DUTY_CYCLE_US + (U32)((MAX_DUTY_CYCLE_US-MIN_DUTY_CYCLE_US)*normalisedForwardPWM);
+        U32 frontDuty = MIN_DUTY_CYCLE_US + (U32)((MAX_DUTY_CYCLE_US-MIN_DUTY_CYCLE_US)*normalisedFrontPWM);
         U32 backDuty = MIN_DUTY_CYCLE_US + (U32)((MAX_DUTY_CYCLE_US-MIN_DUTY_CYCLE_US)*normalisedBackPWM);
         
         //printf( "Seting PWMS %i, %i, %i, %i\n",
@@ -370,7 +372,7 @@ void MotorDriver::Main()
             
             F32 degCompassYawAngle = radCompassYawAngle*180.0f/M_PI;
             F32 degCompassPitchAngle = radCompassPitchAngle*180.0f/M_PI;
-            F32 DepthSensorDepth = -mDepthSensorDepth;
+            F32 DepthSensorDepth = mDepthSensorDepth;
             
             
             printf( "Compass angle (degrees): yaw = %2.3f, pitch = %2.3f | Sensor depth (m): %2.3f \n", degCompassYawAngle, degCompassPitchAngle, DepthSensorDepth );
@@ -379,4 +381,3 @@ void MotorDriver::Main()
         }
     }
 }
-

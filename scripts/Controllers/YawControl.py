@@ -32,9 +32,9 @@ class YawControl:
     #----------------------Updates the control loop------------------------------
     def update( self ):
 
-        Kp = 1.0
+        Kp = 2.0
         Ki = 0.00
-        Kd = 1.15
+        Kd = 0.0
         iMax = 1.57
         iMin = -1.57
         
