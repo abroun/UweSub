@@ -32,7 +32,7 @@ class PitchControl:
     #----------------------Updates the control loop------------------------------
     def update( self ):
 
-        Kp = 0.1
+        Kp = 3.0
         Ki = 0.00
         Kd = 0.00
         iMax = 1.57
@@ -52,7 +52,7 @@ class PitchControl:
         #--------------------- PID loop ---------------------#
 
         # Proportional
-        pitchAngleError = self.desiredPitchAngle - radCompassPitchAngle    # rad
+        pitchAngleError = -self.desiredPitchAngle + radCompassPitchAngle    # rad
         #print pitchAngleError
         self.pitchpTerm = Kp*pitchAngleError
         

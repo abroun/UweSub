@@ -32,17 +32,14 @@ class YawControl:
     #----------------------Updates the control loop------------------------------
     def update( self ):
 
-        Kp = 1.0
+        Kp = 0.08
         Ki = 0.00
-        Kd = 1.15
+        Kd = 0.05
         iMax = 1.57
         iMin = -1.57
         
         # Feedback from the Compass
         radCompassYawAngle = self.playerCompass.pose.pyaw
-        if radCompassYawAngle > math.pi:
-            radCompassYawAngle = 2*math.pi - radCompassYawAngle
-        
         if self.desiredYawAngle == None:
             # Cope with the case where DesiredYawAngle is not set
             self.desiredYawAngle = radCompassYawAngle
@@ -51,10 +48,15 @@ class YawControl:
         #--------------------- PID loop ---------------------#
 
         # Proportional
+        
         yawAngleError = -self.desiredYawAngle + radCompassYawAngle    # rad
-        if yawAngleError > math.pi:
-            yawAngleError = 2*math.pi - yawAngleError
-        #print yawAngleError
+        # normalise the error:        
+        while yawAngleError >= math.pi:
+            yawAngleError -= 2*math.pi
+        while yawAngleError < -math.pi:
+            yawAngleError += 2*math.pi
+        print "normalised yawAngleError =", yawAngleError
+
         self.yawpTerm = Kp*yawAngleError
         
         # Integral
@@ -68,7 +70,7 @@ class YawControl:
         self.yawiTerm = Ki*self.yawiState
         
         # Derivative
-        yawdState = yawAngleError - self.lastYawAngleError
+        yawdState = yawAngleError + self.lastYawAngleError
         self.yawdTerm = Kd*yawdState
         self.lastYawAngleError = yawAngleError
 

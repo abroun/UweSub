@@ -7,7 +7,7 @@ import sys
 import os.path
 import shutil
 import math
-from pylab import *
+import matplotlib.pyplot as plt
 from optparse import OptionParser
 
 import pygtk
@@ -25,6 +25,7 @@ from Controllers import PitchControl
 from Controllers import YawControl
 from Controllers import DepthControl
 from Controllers import Arbitrator
+from Controllers import KillMotors
 
 #-------------------------------------------------------------------------------
 class MainWindow:
@@ -36,8 +37,6 @@ class MainWindow:
 
         self.controlActive = False
         self.normalisedLinearSpeed = 0.0
-        self.normalisedAngularSpeed = 0.0
-        self.normalisedDepthSpeed = 0.0
         self.depthSpeed = 0.0
         self.linearSpeed = 0.0
         self.angularSpeed = 0.0
@@ -78,17 +77,15 @@ class MainWindow:
         self.arbitrator = Arbitrator( self.playerPos3d,
             self.playerCompass, self.playerDepthSensor, self.playerSimPos3d )
         
+        self.killing = KillMotors( self.playerPos3d )
+        
         # Setup the GUI
         builder = gtk.Builder()
         builder.add_from_file( os.path.dirname( __file__ ) + "/MonkeyDials.glade" )
         
         self.window = builder.get_object( "winMain" )
-        self.spinMaxDepthSpeed = builder.get_object( "spinMaxDepthSpeed" )
         self.spinMaxLinearSpeed = builder.get_object( "spinMaxLinearSpeed" )
-        self.spinMaxAngularSpeed = builder.get_object( "spinMaxAngularSpeed" )
         self.linearSpeed = builder.get_object( "scaleLinearSpeed" )
-        self.angularSpeed = builder.get_object( "scaleAngularSpeed" )
-        self.depthSpeed = builder.get_object( "scaleDepthSpeed" )
         self.spinDesiredPitchAngle = builder.get_object( "spinDesiredPitchAngle" )
         self.spinDesiredYawAngle = builder.get_object( "spinDesiredYawAngle" )
         self.spinDesiredDepth = builder.get_object( "spinDesiredDepth" )
@@ -97,14 +94,11 @@ class MainWindow:
         self.lblCompassYawAngle = builder.get_object( "lblCompassYawAngle" )
         self.lblDepthSensorDepth = builder.get_object( "lblDepthSensorDepth" )
         
-        self.spinMaxLinearSpeed.set_value( 2.0 )
-        self.spinMaxAngularSpeed.set_value( 30.0 )
-        self.spinMaxDepthSpeed.set_value( 2.0 )
+        self.checkKill = builder.get_object( "checkKill" )
         
         self.spinDesiredPitchAngle.set_value( 0.0 )
-        self.spinDesiredYawAngle.set_value( 0.0 )
-        self.spinDesiredDepth.set_value( 7340.0 )
-        
+        self.spinDesiredYawAngle.set_value( 150.0 )
+        self.spinDesiredDepth.set_value( 7150.0 )
         
     	self.RANGE = 100
         self.DEAD_ZONE = self.RANGE*0.01
@@ -182,20 +176,6 @@ class MainWindow:
         dialog.set_title( "Error" )
         dialog.run()
         dialog.destroy()
-
-#---------------------------------------------------------------------------
-    def updateNormalisedZ( self, z ):
-	# z -> depth speed
-        
-        maxDepthSpeed = self.spinMaxDepthSpeed.get_value()
-
-        if self.controlActive:
-            
-            # Apply the dead zone
-            if z >= -self.DEAD_ZONE and z <= self.DEAD_ZONE:
-                z = 0.0
-
-        self.normalisedDepthSpeed = z / self.RANGE
    
 #---------------------------------------------------------------------------
     def updateNormalisedY( self, y ):
@@ -208,26 +188,7 @@ class MainWindow:
             if y >= -self.DEAD_ZONE and y <= self.DEAD_ZONE:
                 y = 0.0
 
-        self.normalisedLinearSpeed = y / self.RANGE
-        
-#---------------------------------------------------------------------------
-    def updateNormalisedX( self, x ):
-	# x -> angular speed
-        maxAngularSpeed = self.spinMaxAngularSpeed.get_value()*math.pi/180.0    # from degrees to rad
-
-        if self.controlActive:
-
-            # Apply the dead zone
-            if x >= -self.DEAD_ZONE and x <= self.DEAD_ZONE:
-                x = 0.0
-
-        self.normalisedAngularSpeed = x / self.RANGE
-
-#---------------------------------------------------------------------------
-    def onScaleDepthSpeedValueChanged( self, widget, data = None ):
-        z = gtk.Range.get_value(widget);
-        self.updateNormalisedZ( z )
-        self.controlActive = True
+        self.normalisedLinearSpeed = -y / self.RANGE
 
 #---------------------------------------------------------------------------
     def onScaleLinearSpeedValueChanged( self, widget, data = None ):
@@ -237,39 +198,60 @@ class MainWindow:
         self.controlActive = True
         
 #---------------------------------------------------------------------------
-    def onScaleAngularSpeedValueChanged( self, widget, data = None ):
-
-        x = gtk.Range.get_value(widget);
-        self.updateNormalisedX( x )
-        self.controlActive = True
-        
-#---------------------------------------------------------------------------
     def onYawPosButtonClicked( self, button ):
         time = len( self.arrayYawAngles )
-        figure(1)
-        plot( range( time ), self.arrayYawAngles )
-        ylabel( 'Yaw angle [deg/s]' )
-        xlabel( 'Time' )
-        show()
+        plt.clf()
+        #plt.figure(1)
+        plt.plot( range( time ), self.arrayYawAngles )
+        plt.ylabel( 'Yaw angle [deg/s]' )
+        plt.xlabel( 'Time' )
+        self.startYawGraph = False
+        plt.show()
 
+    def onYawPosStartButtonClicked( self, button ):
+        self.startYawGraph = True
+        self.arrayYawValues = []
+        self.yawpTest = []
+        self.yawdTest = []
+        
 #---------------------------------------------------------------------------
     def onPitchPosButtonClicked( self, button ):
         time = len( self.arrayPitchAngles )
-        figure(2)
-        plot( range( time ), self.arrayPitchAngles )
-        ylabel( 'Pitch angle [deg/s]' )
-        xlabel( 'Time' )
-        show()
+        plt.clf()
+        #plt.figure(2)
+        plt.plot( range( time ), self.arrayPitchAngles )
+        plt.ylabel( 'Pitch angle [deg/s]' )
+        plt.xlabel( 'Time' )
+        self.startPitchGraph = False
+        plt.show()
 
+    def onPitchPosStartButtonClicked( self, button ):
+        self.startPitchGraph = True
+        self.arrayPitchAngles = []
+        self.pitchpTest = []
+        self.pitchdTest = []
+        
 #---------------------------------------------------------------------------
     def onDepthPosButtonClicked( self, button ):
         time = len( self.arrayDepthValues )
-        figure(1)
-        plot( range( time ), self.arrayDepthValues )
-        ylabel( 'Pitch angle [deg/s]' )
-        xlabel( 'Time' )
-        show()
+        plt.clf()
+        #plt.figure(1)
+        plt.plot( range( time ), self.arrayDepthValues )
+        plt.ylabel( 'Depth angle [deg/s]' )
+        plt.xlabel( 'Time' )
+        self.startDepthGraph = False
+        plt.show()
 
+    def onDepthPosStartButtonClicked( self, button ):
+        self.startDepthGraph = True
+        self.arrayDepthValues = []
+        self.depthpTest = []
+        self.depthdTest = []
+        
+#---------------------------------------------------------------------------
+    def onKillMotorsButtonClicked( self, button ):
+        self.killing.update( )
+        
 #---------------------------------------------------------------------------    
     def update( self ):
     
@@ -302,44 +284,38 @@ class MainWindow:
                 self.lblDepthSensorDepth.set_text( "{0:2.3f}".format( self.depthSensorDepth ) )  
             
             maxLinearSpeed = self.spinMaxLinearSpeed.get_value() 
-            maxAngularSpeed = self.spinMaxAngularSpeed.get_value()*math.pi/180.0    # from degrees to rad
-            maxDepthSpeed = self.spinMaxDepthSpeed.get_value()      
             
-            if self.controlActive:
-                newDepthSpeed = -self.normalisedDepthSpeed*maxDepthSpeed
-                if newDepthSpeed == 0.0:
-                    newDepthSpeed = 0.05     # positive boyancy - it can also fly after a while           
+            if self.controlActive:      
                 newLinearSpeed = self.normalisedLinearSpeed*maxLinearSpeed
-                newAngularSpeed = self.normalisedAngularSpeed*maxAngularSpeed
-            else:
-                newDepthSpeed = 0.0  
+            else: 
                 newLinearSpeed = 0.0
-                newAngularSpeed = 0.0
             
             newDesiredPitchAngle = self.spinDesiredPitchAngle.get_value()*math.pi/180.0    # from degrees to rad
             newDesiredYawAngle = self.spinDesiredYawAngle.get_value()*math.pi/180.0    # from degrees to rad
             newDesiredDepth = self.spinDesiredDepth.get_value()
             
-            if self.degCompassPitchAngle > 0.05:
-                self.startPitchGraph = True
             if self.startPitchGraph:
                 self.arrayPitchAngles.append( self.degCompassPitchAngle)
                 self.pitchpTest.append (self.pitchController.pitchpTerm)
                 self.pitchdTest.append(self.pitchController.pitchdTerm)
-                if radCompassPitchAngle - newDesiredPitchAngle < 0.01 \
-                    and radCompassPitchAngle - newDesiredPitchAngle> -0.01:
-                    self.pitchController.iState = 0.0
-                    self.startPitchGraph = False
+                #if radCompassPitchAngle - newDesiredPitchAngle < 0.01 \
+                #    and radCompassPitchAngle - newDesiredPitchAngle> -0.01:
+                #    self.pitchController.iState = 0.0
+                #    self.startPitchGraph = False
 
-            if self.degCompassYawAngle > 0.05:
-                self.startYawGraph = True
             if self.startYawGraph:
-                self.arrayYawAngles.append( self.degCompassYawAngle)
+                mydegCompassYawAngle = self.degCompassYawAngle
+                while mydegCompassYawAngle >= math.pi:
+                    mydegCompassYawAngle -= 2*math.pi
+                while mydegCompassYawAngle < -math.pi:
+                    mydegCompassYawAngle += 2*math.pi
+                
+                self.arrayYawAngles.append( mydegCompassYawAngle )
                 self.yawpTest.append (self.yawController.yawpTerm)
                 self.yawdTest.append(self.yawController.yawdTerm)
-                if radCompassYawAngle - newDesiredYawAngle < 0.01 \
-                    and radCompassYawAngle - newDesiredYawAngle> -0.01:
-                    self.yawController.iState = 0.0
+              #  if radCompassYawAngle - newDesiredYawAngle < 0.01 \
+               #     and radCompassYawAngle - newDesiredYawAngle> -0.01:
+                #    self.yawController.iState = 0.0
                     
                     #figure(2)
                     #plot(range(len(self.yawpTest)),self.pTest,'r',\
@@ -348,30 +324,26 @@ class MainWindow:
                     #xlabel('Time')
                     #ylabel('yaw pTerm, yaw iTerm & yaw dTerm')
                     #show()
-                    self.startYawGraph = False
+                #    self.startYawGraph = False
                     
-            if self.depthSensorDepth > 7365:
-                self.startDepthGraph = True
             if self.startDepthGraph:
                 self.arrayDepthValues.append( self.depthSensorDepth)
                 self.depthpTest.append (self.depthController.depthpTerm)
                 self.depthdTest.append(self.depthController.depthdTerm)
-                if self.depthSensorDepth - newDesiredDepth < 0.01 \
-                    and self.depthSensorDepth - newDesiredDepth> -0.01:
-                    self.depthController.iState = 0.0
-                    self.startDepthGraph = False
-                            
-            self.arbitrator.setDesiredState( newDesiredPitchAngle, newDesiredYawAngle, newDesiredDepth )   # rad
-            self.arbitrator.update( newLinearSpeed )         
+               #if self.depthSensorDepth - newDesiredDepth < 0.01 \
+                #    and self.depthSensorDepth - newDesiredDepth> -0.01:
+                 #   self.depthController.iState = 0.0
+                  #  self.startDepthGraph = False
+               
+            if self.checkKill.get_active():
+                self.killing.update( )
+            else:
+                self.arbitrator.setDesiredState( newDesiredPitchAngle, newDesiredYawAngle, newDesiredDepth )   # rad
+                self.arbitrator.update( newLinearSpeed )         
             
-            if newLinearSpeed != self.linearSpeed \
-                or newAngularSpeed != self.angularSpeed \
-		        or newDepthSpeed != self.depthSpeed:
-
-                # Store the speeds
+            if newLinearSpeed != self.linearSpeed:
+                # Store the speed
                 self.linearSpeed = newLinearSpeed
-                self.angularSpeed = newAngularSpeed
-                self.depthSpeed = newDepthSpeed
                 
             yield True
             
