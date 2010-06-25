@@ -194,7 +194,7 @@ class MainWindow:
                     #    rgbImage = scaledImage
         
                     # Display the image
-                    self.displayPixBuf = gtk.gdk.pixbuf_new_from_data( 
+                    self.sonarPixBuf = gtk.gdk.pixbuf_new_from_data( 
                         rgbImage.tostring(), 
                         gtk.gdk.COLORSPACE_RGB,
                         False,

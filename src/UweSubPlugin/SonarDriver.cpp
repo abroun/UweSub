@@ -293,7 +293,8 @@ int SonarDriver::ProcessMessage( QueuePointer& respQueue,
     else if ( Message::MatchMessage( pHeader, PLAYER_MSGTYPE_CMD, 
         PLAYER_MICRONSONAR_CMD_SCAN, this->device_addr ) )
     {
-        if ( pmicron->getState() == Micron::stAliveSonar )
+        if ( pmicron->getState() == Micron::stAliveSonar 
+            || pmicron->getState() == Micron::stExpectHeadData )
         {
             // Start a scan
             player_micronsonar_cmd_scan_t* pCmd = (player_micronsonar_cmd_scan_t*)pData;
