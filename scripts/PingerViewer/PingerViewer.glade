@@ -51,6 +51,17 @@
             <property name="position">3</property>
           </packing>
         </child>
+        <child>
+          <object class="GtkEntry" id="entry2">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="editable">False</property>
+            <property name="invisible_char">&#x25CF;</property>
+          </object>
+          <packing>
+            <property name="position">4</property>
+          </packing>
+        </child>
       </object>
     </child>
   </object>

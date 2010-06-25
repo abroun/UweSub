@@ -46,13 +46,16 @@ class MainWindow:
         
         self.window = builder.get_object( "winMain" )
         self.dwgDisplay = builder.get_object( "dwgDisplay" )
-        self.textentry = builder.get_object( "entry1")        
+        self.textentry1 = builder.get_object( "entry1") 
+        self.textentry2 = builder.get_object( "entry2")       
         builder.connect_signals( self )
         
         self.window.show()
 
         updateLoop = self.update()
         gobject.idle_add( updateLoop.next )
+        
+
 
         # Slightly crappy way to start up the joystick...
         #subJoyWindow = SubJoy.MainWindow( config )
@@ -70,10 +73,10 @@ class MainWindow:
             if self.playerClient.connect() != 0:
                 raise Exception( playerc_error_str() )
             
-            # Speech interface is used to send debug messages
-            self.playerSpeech = playerc_speech( self.playerClient, 0 )
-            if self.playerSpeech.subscribe( PLAYERC_OPEN_MODE ) != 0:
-                print "Unable to connect to speech:0"
+            # dspic interface 
+            self.playerPIC = playerc_dspic( self.playerClient, 0 )
+            if self.playerPIC.subscribe( PLAYERC_OPEN_MODE ) != 0:
+                print "Unable to connect to dsPIC:0"
                 raise Exception( playerc_error_str() )
             
             # And for the camera
@@ -118,7 +121,7 @@ class MainWindow:
 
     #---------------------------------------------------------------------------
     def onBtnTestClicked( self, widget, data = None ):
-        self.playerSpeech.say( self.textentry.get_text() )
+        self.playerPIC.say( self.textentry1.get_text() )
 
     #---------------------------------------------------------------------------
     def onDwgDisplayExposeEvent( self, widget, event ):
@@ -173,37 +176,12 @@ class MainWindow:
             if self.playerClient.peek( 0 ):
                 self.playerClient.read()
 
-                if self.isNewFrameAvailable():
-                    cameraFrameTime = self.playerCamera.info.datatime
-
-                    if self.playerCamera.compression != PLAYER_CAMERA_COMPRESS_RAW:
-                        self.playerCamera.decompress()
-            
-                    if self.playerCamera.compression != PLAYER_CAMERA_COMPRESS_RAW:
-                        print "Error: Unable to decompress frame"
-                        sys.exit( -1 )
-
-                    # Give the image to OpenCV as a very inefficient way to
-                    # save it as a jpeg
-                    rgbImage = cv.CreateImageHeader( ( self.playerCamera.width, self.playerCamera.height ), cv.IPL_DEPTH_8U, 3 )       
-                    cv.SetData( rgbImage, self.playerCamera.image[:self.playerCamera.image_count], self.playerCamera.width*3 )
-
-                    # Display the image
-                    self.displayPixBuf = gtk.gdk.pixbuf_new_from_data( 
-                        rgbImage.tostring(), 
-                        gtk.gdk.COLORSPACE_RGB,
-                        False,
-                        rgbImage.depth,
-                        rgbImage.width,
-                        rgbImage.height,
-                        rgbImage.width*rgbImage.nChannels )
-
-                    # Resize the drawing area if necessary
-                    if self.dwgDisplay.get_size_request() != ( rgbImage.width, rgbImage.height ):
-                        self.dwgDisplay.set_size_request( rgbImage.width, rgbImage.height )
-
-                    self.dwgDisplay.queue_draw()
-                    self.lastCameraFrameTime = cameraFrameTime
+                if (self.playerPIC.msgtype ==0) or (self.playerPIC.msgtype==1) or (self.playerPIC.msgtype==2):
+                    self.textentry2.set_text(str(self.playerPIC.reading))
+                elif (self.playerPIC.msgtype==4):
+                    self.textentry2.set_text(str(self.playerPIC.distance))
+                elif (self.playerPIC.msgtype==5):
+                    self.textentry2.set_text(str(self.playerPIC.intensity))
                 
             yield True
             
