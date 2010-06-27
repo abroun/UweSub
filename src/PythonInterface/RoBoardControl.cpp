@@ -16,6 +16,7 @@
 #include <highgui.h>
 
 #include "ColourTracker/ColourTracker.h"
+#include "CornerFinder/CornerFinder.h"
 
 #include "sba.h"
 #include "imgproj.h"
@@ -395,10 +396,39 @@ static PyObject* RBC_BundleAdjustment( PyObject* pSelf, PyObject* pArgs )
 }
 
 //------------------------------------------------------------------------------
+static PyObject* RBC_FindCorner( PyObject* pSelf, PyObject* pArgs )
+{
+    PyObject* pFrame = NULL;
+
+    if ( !PyArg_ParseTuple( pArgs, "O", &pFrame ) )
+    {
+        return NULL;
+    }
+
+    IplImage *pIplFrame = NULL;
+    if ( !RBC_ConvertPyObjectToIplImage( pFrame, &pIplFrame ) )
+    {
+        return NULL;
+    }
+    IplImage* pProcessedFrame;
+    CF_FindCorner( pIplFrame, &pProcessedFrame );
+    
+    PyObject* pResult = PyTuple_New( 3 );
+    PyTuple_SetItem( pResult, 0, PyList_New( 0 ) );
+    PyTuple_SetItem( pResult, 1, PyString_FromStringAndSize(pProcessedFrame->imageData, pProcessedFrame->imageSize) );
+    PyTuple_SetItem( pResult, 2, Py_None );
+    cvReleaseImage( &pProcessedFrame );
+    
+    return pResult;
+}
+
+
+//------------------------------------------------------------------------------
 static PyMethodDef RoBoardControlMethods[] = 
 {
     { "sin", RBC_Sin, METH_VARARGS, "Calculates the sine of the input" },
     { "bundleAdjustment", RBC_BundleAdjustment, METH_VARARGS, "Interface to the sba library" },
+    { "findCorner", RBC_FindCorner, METH_VARARGS, "Finds a corner in a sonar image" },
 
     { NULL, NULL, 0, NULL }        // Sentinel
 };

@@ -29,6 +29,7 @@ SET_SOURCE_FILES_PROPERTIES( ${global_sources}
 
 ADD_SUBDIRECTORY( ColourTracker )
 ADD_SUBDIRECTORY( Common )
+ADD_SUBDIRECTORY( CornerFinder )
 ADD_SUBDIRECTORY( PythonInterface )
 ADD_SUBDIRECTORY( UweSubPlugin )
 

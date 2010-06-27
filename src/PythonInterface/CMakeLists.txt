@@ -29,6 +29,7 @@ IF ( ENABLE_PYTHON )
 
     TARGET_LINK_LIBRARIES( PythonRoBoardControl 
         ColourTracker
+        CornerFinder
         ${global_link_libs}
         sba
         lapack

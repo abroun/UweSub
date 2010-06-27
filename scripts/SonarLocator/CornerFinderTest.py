@@ -10,13 +10,15 @@ import gtk
 import gobject
 import cv
 
-import CornerFinder
+#from CornerFinder import findCorner as CF_FindCorner
+from RoBoardControl import findCorner as CF_FindCorner
 
 #-------------------------------------------------------------------------------
 class MainWindow:
 
-    TEST_IMAGE_NAME = "../../data/SonarTest/black_sonar_90m.png"
-    #TEST_IMAGE_NAME = "../../data/SonarTest/black_sonar_pool.png"
+    #TEST_IMAGE_NAME = "../../data/SonarTest/black_sonar_90m.png"
+    TEST_IMAGE_NAME = "../../data/SonarTest/black_sonar_pool.png"
+    #TEST_IMAGE_NAME = "../../data/SonarTest/corner.png"
  
     #---------------------------------------------------------------------------
     def __init__( self ):
@@ -25,6 +27,7 @@ class MainWindow:
         self.rawImagePixBuf = None
         self.processedImagePixBuf = None
         self.lines = None
+        self.corner = None
         
         # Setup the GUI
         builder = gtk.Builder()
@@ -102,7 +105,19 @@ class MainWindow:
             #drawFilledArc = True
             #graphicsContext = widget.window.new_gc()
             
+            if self.corner != None:
+                
+                arcX = int( imgRect.x + self.corner[ 0 ] - 5 )
+                arcY = int( imgRect.y + self.corner[ 1 ] - 5 )
+                arcWidth = arcHeight = 10
             
+                drawFilledArc = True
+                graphicsContext.set_rgb_fg_color( gtk.gdk.Color( 0, 65535, 0 ) )
+
+                widget.window.draw_arc( graphicsContext, 
+                    drawFilledArc, arcX, arcY, arcWidth, arcHeight, 0, 360 * 64 )
+
+
             #for featureIdx in range( len( self.features ) ):
                 
                 #feature = self.features[ featureIdx ]
@@ -215,12 +230,14 @@ class MainWindow:
         cv.CvtColor( self.rawImage, self.rawImageGray, cv.CV_RGB2GRAY )
         
         # Process the image
-        self.lines, thresholdedImage = CornerFinder.findCorner( self.rawImageGray )
+        self.lines, thresholdedImage, self.corner = CF_FindCorner( self.rawImageGray )
+        temp = cv.CreateImageHeader( ( self.rawImage.width, self.rawImage.height ), cv.IPL_DEPTH_8U, 1 )       
+        cv.SetData( temp, thresholdedImage, self.rawImage.width )
+        thresholdedImage = temp
             
         rgbThresholdedImage = cv.CreateImage( ( thresholdedImage.width, thresholdedImage.height ), cv.IPL_DEPTH_8U, 3 )
         cv.CvtColor( thresholdedImage, rgbThresholdedImage, cv.CV_GRAY2RGB )
 
-        
         #processedImage = self.rawImage
         processedImage = rgbThresholdedImage
         
