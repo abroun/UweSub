@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<interface>
+  <requires lib="gtk+" version="2.16"/>
+  <!-- interface-naming-policy project-wide -->
+  <object class="GtkWindow" id="winMain">
+    <signal name="destroy" handler="onWinMainDestroy"/>
+    <child>
+      <object class="GtkVBox" id="vbox1">
+        <property name="visible">True</property>
+        <child>
+          <object class="GtkLabel" id="lblCameraView">
+            <property name="visible">True</property>
+            <property name="xalign">0</property>
+            <property name="xpad">2</property>
+            <property name="label" translatable="yes">Camera View</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">False</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkHBox" id="hbox1">
+            <property name="visible">True</property>
+            <child>
+              <object class="GtkDrawingArea" id="dwgRaw">
+                <property name="visible">True</property>
+                <signal name="expose_event" handler="onDwgRawExposeEvent"/>
+              </object>
+              <packing>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkDrawingArea" id="dwgProcessed">
+                <property name="visible">True</property>
+                <signal name="expose_event" handler="onDwgProcessedExposeEvent"/>
+              </object>
+              <packing>
+                <property name="position">1</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="position">1</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>
