@@ -35,6 +35,34 @@ class Arbitrator:
         self.pitchController.setDesiredPitchAngle( pitchAngle )     # rad
         self.yawController.setDesiredYawAngle( yawAngle )           # rad
         self.depthController.setDesiredDepth( depth )               # m
+        
+    #---------------------------------------------------------------------------
+    def setDesiredYaw( self, yawAngle ):
+        self.yawController.setDesiredYawAngle( yawAngle )
+
+    #---------------------------------------------------------------------------
+    def setDesiredDepth( self, depth ):
+        self.depthController.setDesiredDepth( depth )
+        
+    #---------------------------------------------------------------------------
+    def atDesiredYaw( self ):
+        yawAngleError = -self.yawController.desiredYawAngle 
+            + self.playerCompass.pose.pyaw
+            
+        # normalise the error:        
+        while yawAngleError >= math.pi:
+            yawAngleError -= 2*math.pi
+        while yawAngleError < -math.pi:
+            yawAngleError += 2*math.pi
+            
+        return ( abs( yawAngleError ) < 5.0*math.pi/180.0 )
+        
+    #---------------------------------------------------------------------------
+    def atDesiredDepth( self ):
+        
+        depthError = self.depthController.desiredDepth - self.playerDepthSensor.pos
+        
+        return ( abs( depthError ) < 0.1 )
 
     #---------------------------------------------------------------------------
     # Updates the control loop and sends commands down to the position3D

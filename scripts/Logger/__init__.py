@@ -25,7 +25,7 @@ class Logger:
             self.outputFiles.append( outputFile )
             
     #---------------------------------------------------------------------------
-    def outputToStdOut( self ):
+    def addOutputToStdOut( self ):
         self.addOutputFile( sys.stdout )
             
     #---------------------------------------------------------------------------

@@ -10,6 +10,13 @@ import time
 sys.path.append( "../" )
 from Controllers import Arbitrator
 
+# TODO: Put these into some kind of central module
+def degToRad( degrees ):
+    return degrees*math.pi/180.0
+    
+def radToDeg( degrees ):
+    return degrees*180.0/math.pi
+
 #-------------------------------------------------------------------------------
 class TimeBasedGatesScript( ControlScript ):
     
@@ -31,6 +38,7 @@ class TimeBasedGatesScript( ControlScript ):
             playerDepthSensor, playerSonar )
             
         self.arbitrator.setDesiredDepth( -1.0 )
+        self.linearSpeed = 0.0
         self.setState( self.STATE_DIVING )
         self.driveTimer = time.time()
     
@@ -42,48 +50,48 @@ class TimeBasedGatesScript( ControlScript ):
         if self.state == self.STATE_DIVING:
             
             if self.arbitrator.atDesiredDepth():
-                self.arbitrator.setDesiredYaw( 45.0 )
+                self.arbitrator.setDesiredYaw( degToRad( 45.0 ) )
                 self.setState( self.STATE_TURNING_TO_GATE_1 )
             
         elif self.state == self.STATE_TURNING_TO_GATE_1:
             
             if self.arbitrator.atDesiredYaw():
-                self.arbitrator.setLinearSpeed( 10.0 )
+                self.linearSpeed = 10.0
                 self.driveTimer = time.time()
                 self.setState( self.STATE_DRIVING_THROUGH_GATE_1 )
                         
         elif self.state == self.STATE_DRIVING_THROUGH_GATE_1:
             
             if curTime - self.driveTimer >= 20.0:
-                self.arbitrator.setLinearSpeed( 0.0 )
-                self.arbitrator.setDesiredYaw( 225.0 )
+                self.linearSpeed = 0.0
+                self.arbitrator.setDesiredYaw( degToRad( 225.0 ) )
                 self.setState( self.STATE_TURNING_TO_GATE_2 )
             
         elif self.state == self.STATE_TURNING_TO_GATE_2:
             
             if self.arbitrator.atDesiredYaw():
-                self.arbitrator.setLinearSpeed( 10.0 )
+                self.linearSpeed = 10.0
                 self.driveTimer = time.time()
                 self.setState( self.STATE_DRIVING_THROUGH_GATE_2 )
             
         elif self.state == self.STATE_DRIVING_THROUGH_GATE_2:
             
             if curTime - self.driveTimer >= 40.0:
-                self.arbitrator.setLinearSpeed( 0.0 )
-                self.arbitrator.setDesiredYaw( 45.0 )
+                self.linearSpeed = 0.0
+                self.arbitrator.setDesiredYaw( degToRad( 45.0 ) )
                 self.setState( self.STATE_TURNING_TO_START )
             
         elif self.state == self.STATE_TURNING_TO_START:
             
             if self.arbitrator.atDesiredYaw():
-                self.arbitrator.setLinearSpeed( 10.0 )
+                self.linearSpeed = 10.0
                 self.driveTimer = time.time()
                 self.setState( self.STATE_DRIVING_BACK_TO_START )
             
         elif self.state == self.STATE_DRIVING_BACK_TO_START:
             
             if curTime - self.driveTimer >= 20.0:
-                self.arbitrator.setLinearSpeed( 0.0 )
+                self.linearSpeed = 0.0
                 self.arbitrator.setDesiredDepth( 0.0 )
                 self.setState( self.STATE_SURFACING )
             
@@ -99,5 +107,5 @@ class TimeBasedGatesScript( ControlScript ):
             self.logger.logError( "Unrecognised state - surfacing" )
             self.setState( self.STATE_SURFACING )
         
+        self.arbitrator.update( self.linearSpeed )
         
-
