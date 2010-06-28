@@ -12,13 +12,7 @@ from ControlScripts import ControlScript
 # Add common packages directory to path
 sys.path.append( "../" )
 from Controllers import Arbitrator
-
-# TODO: Put these into some kind of central module
-def degToRad( degrees ):
-    return degrees*math.pi/180.0
-    
-def radToDeg( degrees ):
-    return degrees*180.0/math.pi
+import Maths
 
 #-------------------------------------------------------------------------------
 class TimeBasedGatesScript( ControlScript ):
@@ -52,9 +46,9 @@ class TimeBasedGatesScript( ControlScript ):
         curTime = time.time()
         
         if self.state == self.STATE_DIVING:
-            
+
             if self.arbitrator.atDesiredDepth():
-                self.arbitrator.setDesiredYaw( degToRad( 0.0 ) )
+                self.arbitrator.setDesiredYaw( Maths.degToRad( 0.0 ) )
                 self.setState( self.STATE_TURNING_TO_GATE_1 )
             
         elif self.state == self.STATE_TURNING_TO_GATE_1:
@@ -68,7 +62,7 @@ class TimeBasedGatesScript( ControlScript ):
             
             if curTime - self.driveTimer >= 20.0:
                 self.linearSpeed = 0.0
-                self.arbitrator.setDesiredYaw( degToRad( 180.0 ) )
+                self.arbitrator.setDesiredYaw( Maths.degToRad( 180.0 ) )
                 self.setState( self.STATE_TURNING_TO_GATE_2 )
             
         elif self.state == self.STATE_TURNING_TO_GATE_2:
@@ -82,7 +76,7 @@ class TimeBasedGatesScript( ControlScript ):
             
             if curTime - self.driveTimer >= 40.0:
                 self.linearSpeed = 0.0
-                self.arbitrator.setDesiredYaw( degToRad( 0.0 ) )
+                self.arbitrator.setDesiredYaw( Maths.degToRad( 0.0 ) )
                 self.setState( self.STATE_TURNING_TO_START )
             
         elif self.state == self.STATE_TURNING_TO_START:
