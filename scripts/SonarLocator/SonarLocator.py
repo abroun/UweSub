@@ -10,12 +10,7 @@ import math
 # Add common packages directory to path
 sys.path.append( "../" )
 from SubControllerConfig import SubControllerConfig
-
-def degToRad( degrees ):
-    return degrees*math.pi/180.0
-    
-def radToDeg( degrees ):
-    return degrees*180.0/math.pi
+import Maths
 
 class SonarLocator:
     
@@ -27,8 +22,8 @@ class SonarLocator:
     # All angles here are like compass bearings so 0 degrees is north
     # and angles increase in a clock-wise direction
     
-    SONAR_HEADING_OFFSET = degToRad( 0.0 )    # Offset from sub heading to sonar
-    POOL_HEADING = degToRad( 184.0 )    # Heading of the pool in degrees converted to radians
+    SONAR_HEADING_OFFSET = Maths.degToRad( 0.0 )    # Offset from sub heading to sonar
+    POOL_HEADING = Maths.degToRad( 184.0 )    # Heading of the pool in degrees converted to radians
     
     #---------------------------------------------------------------------------
     def __init__( self, playerCompass, playerSonar, config = SubControllerConfig() ):
@@ -50,13 +45,13 @@ class SonarLocator:
         headingDiff = subHeading - self.POOL_HEADING    # Diff from pool to sub heading
         
         # Scan when the sub is aligned with the pool to find the bottom right corner
-        startScanAngle = self.SONAR_HEADING_OFFSET + degToRad( 315.0 ) - headingDiff # (degToRad( 80.0 ) - headingDiff)
-        endScanAngle = self.SONAR_HEADING_OFFSET + degToRad( 45.0 ) - headingDiff # (degToRad( 190.0 ) - headingDiff)
+        startScanAngle = self.SONAR_HEADING_OFFSET + Maths.degToRad( 315.0 ) - headingDiff # (Maths.degToRad( 80.0 ) - headingDiff)
+        endScanAngle = self.SONAR_HEADING_OFFSET + Maths.degToRad( 45.0 ) - headingDiff # (Maths.degToRad( 190.0 ) - headingDiff)
         
-        startScanAngle = subHeading + degToRad( 260.0 ) - 275.0
-        endScanAngle = subHeading + degToRad( 10.0 ) - 275.0
+        startScanAngle = subHeading + Maths.degToRad( 260.0 ) - Maths.degToRad( 275.0 )
+        endScanAngle = subHeading + Maths.degToRad( 10.0 ) - Maths.degToRad( 275.0 )
         
-        print "From", radToDeg( startScanAngle ), "To", radToDeg( endScanAngle )
+        print "From", Maths.radToDeg( startScanAngle ), "To", Maths.radToDeg( endScanAngle )
         
         # Normalise the start and end scan angle
         while startScanAngle < 0.0:
@@ -76,8 +71,8 @@ class SonarLocator:
         self.playerSonar.scan( startScanAngle, endScanAngle )
         
         print "Requested scan"
-        print "SubHeading", radToDeg( subHeading )
-        print "From", radToDeg( startScanAngle ), "To", radToDeg( endScanAngle )
+        print "SubHeading", Maths.radToDeg( subHeading )
+        print "From", Maths.radToDeg( startScanAngle ), "To", Maths.radToDeg( endScanAngle )
         
         self.lastScanTime = time.time()
         self.waitingForScan = True

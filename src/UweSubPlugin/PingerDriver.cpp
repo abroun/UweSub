@@ -82,7 +82,7 @@ const U16 PingerDriver::DATA_PACKET_ID = 0xEFBE;    // Will appear as 0xBEEF in 
 //------------------------------------------------------------------------------
 PingerDriver::PingerDriver( ConfigFile* pConfigFile, int section )
     : ThreadedDriver( pConfigFile, section, false, 
-        PLAYER_MSGQUEUE_DEFAULT_MAXLEN, PLAYER_SPEECH_CODE ),
+        PLAYER_MSGQUEUE_DEFAULT_MAXLEN, PLAYER_DSPIC_CODE ),
     mBufferSize( "buffer_size", DEFAULT_BUFFER_SIZE, false )
 {
     this->alwayson = true;
@@ -106,6 +106,8 @@ PingerDriver::PingerDriver( ConfigFile* pConfigFile, int section )
     remainingBytes = 0;
     
     state = stIdle;
+    
+    transducer = 0;
 }
 
 //------------------------------------------------------------------------------
@@ -168,9 +170,9 @@ int PingerDriver::ProcessMessage( QueuePointer& respQueue,
         return 0;
     }
     else if ( Message::MatchMessage(
-        pHeader, PLAYER_MSGTYPE_CMD, PLAYER_SPEECH_CMD_SAY, this->device_addr ) )
+        pHeader, PLAYER_MSGTYPE_CMD, PLAYER_DSPIC_CMD_SAY, this->device_addr ) )
     {
-        player_speech_cmd_t* pCmd = (player_speech_cmd_t*)pData;
+        player_dspic_cmd_say* pCmd = (player_dspic_cmd_say*)pData;
         U8* str;
         
         player_opaque_data_t mData;
@@ -188,7 +190,9 @@ int PingerDriver::ProcessMessage( QueuePointer& respQueue,
                                        str[2] = (U8)'0';
                                        str[3] = (U8)'\r';
                                        mData.data = str;
-       
+                                        
+                                       transducer = 0;
+                                       
                                         mpOpaque->PutMsg(this->InQueue, 
                                                           PLAYER_MSGTYPE_CMD, 
                                                           PLAYER_OPAQUE_CMD_DATA, 
@@ -204,7 +208,9 @@ int PingerDriver::ProcessMessage( QueuePointer& respQueue,
                                        str[2] = (U8)'1';
                                        str[3] = (U8)'\r';
                                        mData.data = str;
-       
+                                        
+                                       transducer = 1;
+                                       
                                         mpOpaque->PutMsg(this->InQueue, 
                                                           PLAYER_MSGTYPE_CMD, 
                                                           PLAYER_OPAQUE_CMD_DATA, 
@@ -220,7 +226,9 @@ int PingerDriver::ProcessMessage( QueuePointer& respQueue,
                                        str[2] = (U8)'0';
                                        str[3] = (U8)'\r';
                                        mData.data = str;
-       
+                                        
+                                       transducer = 0;
+                                       
                                         mpOpaque->PutMsg(this->InQueue, 
                                                           PLAYER_MSGTYPE_CMD, 
                                                           PLAYER_OPAQUE_CMD_DATA, 
@@ -237,6 +245,8 @@ int PingerDriver::ProcessMessage( QueuePointer& respQueue,
                                        str[3] = (U8)'\r';
                                        mData.data = str;
        
+                                       transducer = 1;
+                                       
                                         mpOpaque->PutMsg(this->InQueue, 
                                                           PLAYER_MSGTYPE_CMD, 
                                                           PLAYER_OPAQUE_CMD_DATA, 
@@ -309,6 +319,7 @@ void PingerDriver::Main()
 {
     for (;;)
     {
+      
         // Wait for messages to arrive
         base::Wait();
         
@@ -374,20 +385,38 @@ void PingerDriver::transitionAction(PICPacket* pack) {
     U32 msglen = pack->MsgLen - 3;
     U8 msgtype = pack->MsgType;
     U8 highb, lowb;
+    
+    player_dspic_data_t data;
+    
+    
+    data.intensity = -1;
+    data.distance = -1;
+    data.reading = 0;
+    data.transducer = PingerDriver::transducer;
     switch(msgtype) {
         case PICComm::msgGyro: // must publish angular velocity value here
                       lowb = pack->Message[0];
                       highb = pack->Message[1];
                       AngularVelocity = calcAngularVelocity(lowb+256*highb);
+                      
+                      data.reading = AngularVelocity;
+                      data.msgtype = msgtype;
+                      
                       printf("Angular Velocity: %f\n", AngularVelocity);
                       
+                      base::Publish( this->device_addr,PLAYER_MSGTYPE_DATA, PLAYER_DSPIC_DATA_STATE, &data );
                       state = stIdle;
                       break;
         case PICComm::msgAccelerometerX: // must publish acceleration in the X (vertical) axis (positive is DOWN)
                                 lowb = pack->Message[0];
                                 highb = pack->Message[1];
                                 AccelerationX = calcAccelerationX(lowb+256*highb);
+                                data.reading = AccelerationX;
+                                data.msgtype = msgtype;
+                                
                                 printf ("Acceleration in X: %f\n", AccelerationX);
+                                
+                                base::Publish( this->device_addr,PLAYER_MSGTYPE_DATA, PLAYER_DSPIC_DATA_STATE, &data );
                                 
                                 state = stIdle;
                                 break;
@@ -395,24 +424,41 @@ void PingerDriver::transitionAction(PICPacket* pack) {
                                 lowb = pack->Message[0];
                                 highb = pack->Message[1];
                                 AccelerationY = calcAccelerationY(lowb+256*highb);
+                                
+                                data.reading = AccelerationY;
+                                data.msgtype = msgtype;
+                                
                                 printf("Acceleration in Y: %f\n", AccelerationY);
                                 
+                                base::Publish( this->device_addr,PLAYER_MSGTYPE_DATA, PLAYER_DSPIC_DATA_STATE, &data );
                                 state = stIdle;
                                 break;
         case PICComm::msgSonarEcho: 
                                if (state==stWaitingActiveECho) {
                                 ObjectDistance = locateObstacle(pack->Message);
+                                data.distance = ObjectDistance;
+                                data.msgtype = PICComm::msgSonarActiveEcho;
                                 // publish the distance
-                                if (ObjectDistance!=-1)
+                                if (ObjectDistance!=-1) 
+                                    
                                     printf("Distance of Object in beam: %f\n", ObjectDistance);
-                                else printf("No object in beam");
+                                else printf("No object in beam\n");
+                               
+                                base::Publish( this->device_addr,PLAYER_MSGTYPE_DATA, PLAYER_DSPIC_DATA_STATE, &data );
+                                
                             } else if (state==stWaitingPassiveEcho) {
                                 PingIntensity = observeEcho(pack->Message);
+                                data.intensity = PingIntensity;
+                                data.msgtype = PICComm::msgSonarPassiveEcho;
+                                
                                 // must publish result
                                 if (PingIntensity<0) 
                                         printf("No noise in the transducers \n");
                                 else 
                                     printf("Intensity of noise in the transducer: %i\n", PingIntensity);
+                                
+                                base::Publish( this->device_addr,PLAYER_MSGTYPE_DATA, PLAYER_DSPIC_DATA_STATE, &data );
+                                
                             }
                             state = stIdle;
                             break;
@@ -426,8 +472,8 @@ void PingerDriver::transitionAction(PICPacket* pack) {
 F32 PingerDriver::calcAngularVelocity(U32 analog) {
     F32 angvel;
     
-    if ((analog >= 345) && (analog <= 351)) angvel = 0;
-            else angvel = ((F32)analog - 347.0) * 5 / (1023 * 0.0027);
+    if ((analog >= 328) && (analog <= 333)) angvel = 0;
+            else angvel = (analog - 331.0) * 5 / (1023 * 0.0027);
  return angvel;
 }
 
@@ -452,13 +498,13 @@ F32 PingerDriver::calcAccelerationX(U32 analog) {
 
 F32 PingerDriver::locateObstacle(U8* data) {
     U8 beam[1200];
-    U32 i;
+    U32 i, j;
     S32 maxcount, maxindex, lowindex, lowcount;
     F32 objectdistance;
     bool counting;
     // clearing out the beam with a threshold - 80 is file
     for (i=0; i<1200; i++)
-        beam[i] = (data[i]<80) ? 0 : 100;
+        beam[i] = (data[i]<50) ? 0 : 100;
     // done
     // Now locating the longest low period
     maxindex = -1;
@@ -466,7 +512,10 @@ F32 PingerDriver::locateObstacle(U8* data) {
     lowindex = -1;
     maxcount = -1;
     counting = false;
-    for (i=0; i<1200; i++) {
+    j=0;
+    while ((beam[j]==0)&&(j<1200)) j++;
+    
+    for (i=j; i<1200; i++) {
         if (beam[i]==0) {
             if (counting==false) { // start counting 
                 counting = true;
@@ -481,10 +530,11 @@ F32 PingerDriver::locateObstacle(U8* data) {
                     maxcount = lowcount;
                     maxindex = lowindex;
                 }
+                lowcount=0;
             }
         }
     }
-    if (maxindex>-1) objectdistance = 4.5*0.0015*maxindex/2.0; // in meters
+    if (maxindex>-1) objectdistance = 45*0.0015*maxindex/2.0; // in meters
         else objectdistance = -1;
    
    return objectdistance;

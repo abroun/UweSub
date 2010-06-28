@@ -91,6 +91,8 @@ class PingerDriver : public ThreadedDriver
     private: int remainingBytes;
     private: U8 bufhead[7];
     
+    private: U8 transducer;
+    
     private: static const U32 DEFAULT_BUFFER_SIZE;
     private: static const U16 DATA_PACKET_ID;
     // state constants
