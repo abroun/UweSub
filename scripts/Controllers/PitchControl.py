@@ -24,19 +24,38 @@ class PitchControl:
         self.pitchdTerm = 0.0
         # output of the pid:
         self.pitchSpeed = 0.0
+        # control gains
+        self.Kp = None
+        self.Ki = None
+        self.Kd = None
+        self.iMax = None
+        self.iMin = None
 
+    #---------------------------------------------------------------------------
+    def setPitchGains( self,  Kp, Ki, iMin, iMax, Kd  ):
+        self.Kp = Kp
+        self.Ki = Ki
+        self.Kd = iMin
+        self.iMax = iMax
+        self.iMin = Kd
+        
     #---------------------------------------------------------------------------
     def setDesiredPitchAngle( self, pitchAngle ):
         self.desiredPitchAngle = pitchAngle     # rad
 
     #----------------------Updates the control loop------------------------------
     def update( self ):
-
-        Kp = 3.0
-        Ki = 0.00
-        Kd = 0.00
-        iMax = 1.57
-        iMin = -1.57
+        
+        if self.Kp == None:
+            self.Kp = 3.0
+        if self.Ki == None:
+            self.Ki = 0.0
+        if self.iMin == None:
+            self.iMin = -1.57
+        if self.iMax == None:
+            self.iMax = 1.57
+        if self.Kd == None:
+            self.Kd = 0.0
         
         # Feedback from the Compass
         radCompassPitchAngle = self.playerCompass.pose.ppitch

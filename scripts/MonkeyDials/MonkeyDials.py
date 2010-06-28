@@ -86,6 +86,25 @@ class MainWindow:
         self.window = builder.get_object( "winMain" )
         self.spinMaxLinearSpeed = builder.get_object( "spinMaxLinearSpeed" )
         self.linearSpeed = builder.get_object( "scaleLinearSpeed" )
+        
+        self.spinPitchKp = builder.get_object( "spinPitchKp" )
+        self.spinPitchKi = builder.get_object( "spinPitchKi" )
+        self.spinPitchiMin = builder.get_object( "spinPitchiMin" )
+        self.spinPitchiMax = builder.get_object( "spinPitchiMax" )
+        self.spinPitchKd = builder.get_object( "spinPitchKd" )
+
+        self.spinYawKp = builder.get_object( "spinYawKp" )
+        self.spinYawKi = builder.get_object( "spinYawKi" )
+        self.spinYawiMin = builder.get_object( "spinYawiMin" )
+        self.spinYawiMax = builder.get_object( "spinYawiMax" )
+        self.spinYawKd = builder.get_object( "spinYawKd" )
+
+        self.spinDepthKp = builder.get_object( "spinDepthKp" )
+        self.spinDepthKi = builder.get_object( "spinDepthKi" )
+        self.spinDepthiMin = builder.get_object( "spinDepthiMin" )
+        self.spinDepthiMax = builder.get_object( "spinDepthiMax" )
+        self.spinDepthKd = builder.get_object( "spinDepthKd" )
+        
         self.spinDesiredPitchAngle = builder.get_object( "spinDesiredPitchAngle" )
         self.spinDesiredYawAngle = builder.get_object( "spinDesiredYawAngle" )
         self.spinDesiredDepth = builder.get_object( "spinDesiredDepth" )
@@ -96,9 +115,28 @@ class MainWindow:
         
         self.checkKill = builder.get_object( "checkKill" )
         
+        self.spinMaxLinearSpeed.set_value( 1.0 )
         self.spinDesiredPitchAngle.set_value( 0.0 )
-        self.spinDesiredYawAngle.set_value( 150.0 )
-        self.spinDesiredDepth.set_value( 7150.0 )
+        self.spinDesiredYawAngle.set_value( 230.0 )
+        self.spinDesiredDepth.set_value( 7408.0 )
+        
+        self.spinPitchKp.set_value( 3.0 )
+        self.spinPitchKi.set_value( 0.0 )
+        self.spinPitchiMin.set_value( -1.57 )
+        self.spinPitchiMax.set_value( 1.57 )
+        self.spinPitchKd.set_value( 0.0 )
+
+        self.spinYawKp.set_value( 0.08 )
+        self.spinYawKi.set_value( 0.0 )
+        self.spinYawiMin.set_value( -1.57 )
+        self.spinYawiMax.set_value( 1.57 )
+        self.spinYawKd.set_value( 0.05 )
+
+        self.spinDepthKp.set_value( 0.3 )
+        self.spinDepthKi.set_value( 0.0 )
+        self.spinDepthiMin.set_value( -1.57 )
+        self.spinDepthiMax.set_value( 1.57 )
+        self.spinDepthKd.set_value( 0.0 )        
         
     	self.RANGE = 100
         self.DEAD_ZONE = self.RANGE*0.01
@@ -290,6 +328,24 @@ class MainWindow:
             else: 
                 newLinearSpeed = 0.0
             
+            pitchKp = self.spinPitchKp.get_value()
+            pitchKi = self.spinPitchKi.get_value()
+            pitchiMin = self.spinPitchiMin.get_value()
+            pitchiMax = self.spinPitchiMax.get_value()
+            pitchKd = self.spinPitchKd.get_value()
+
+            yawKp = self.spinYawKp.get_value()
+            yawKi = self.spinYawKi.get_value()
+            yawiMin = self.spinYawiMin.get_value()
+            yawiMax = self.spinPitchiMax.get_value()
+            yawKd = self.spinYawKd.get_value()
+            
+            depthKp = self.spinDepthKp.get_value()
+            depthKi = self.spinDepthKi.get_value()
+            depthiMin = self.spinDepthiMin.get_value()
+            depthiMax = self.spinDepthiMax.get_value()
+            depthKd = self.spinDepthKd.get_value()
+                        
             newDesiredPitchAngle = self.spinDesiredPitchAngle.get_value()*math.pi/180.0    # from degrees to rad
             newDesiredYawAngle = self.spinDesiredYawAngle.get_value()*math.pi/180.0    # from degrees to rad
             newDesiredDepth = self.spinDesiredDepth.get_value()
@@ -338,6 +394,9 @@ class MainWindow:
             if self.checkKill.get_active():
                 self.killing.update( )
             else:
+                self.arbitrator.setControlGains( pitchKp, pitchKi, pitchiMin, pitchiMax, pitchKd,
+                                                   yawKp,   yawKi,   yawiMin,   yawiMax,    yawKd,
+                                                 depthKp, depthKi, depthiMin, depthiMax, depthKd )
                 self.arbitrator.setDesiredState( newDesiredPitchAngle, newDesiredYawAngle, newDesiredDepth )   # rad
                 self.arbitrator.update( newLinearSpeed )         
             

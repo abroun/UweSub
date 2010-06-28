@@ -24,20 +24,39 @@ class YawControl:
         self.yawdTerm = 0.0
         # output of the pid:
         self.yawSpeed = 0.0        
+        # control gains
+        self.Kp = None
+        self.Ki = None
+        self.Kd = None
+        self.iMax = None
+        self.iMin = None
 
+    #---------------------------------------------------------------------------
+    def setYawGains( self,  Kp, Ki, iMin, iMax, Kd  ):
+        self.Kp = Kp
+        self.Ki = Ki
+        self.Kd = iMin
+        self.iMax = iMax
+        self.iMin = Kd
+                
     #---------------------------------------------------------------------------
     def setDesiredYawAngle( self, yawAngle ):
         self.desiredYawAngle = yawAngle         # rad
     
     #----------------------Updates the control loop------------------------------
     def update( self ):
-
-        Kp = 0.08
-        Ki = 0.00
-        Kd = 0.05
-        iMax = 1.57
-        iMin = -1.57
         
+        if self.Kp == None:
+            self.Kp = 0.08
+        if self.Ki == None:
+            self.Ki = 0.0
+        if self.iMin == None:
+            self.iMin = -1.57
+        if self.iMax == None:
+            self.iMax = 1.57
+        if self.Kd == None:
+            self.Kd = 0.05
+
         # Feedback from the Compass
         radCompassYawAngle = self.playerCompass.pose.pyaw
         if self.desiredYawAngle == None:

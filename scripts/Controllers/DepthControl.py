@@ -23,8 +23,22 @@ class DepthControl:
         self.depthiTerm = 0.0
         self.depthdTerm = 0.0
         # output of the pid:
-        self.depthSpeed = 0.0        
+        self.depthSpeed = 0.0
+        # control gains
+        self.Kp = None
+        self.Ki = None
+        self.Kd = None
+        self.iMax = None
+        self.iMin = None        
 
+    #---------------------------------------------------------------------------
+    def setDepthGains( self,  Kp, Ki, iMin, iMax, Kd  ):
+        self.Kp = Kp
+        self.Ki = Ki
+        self.Kd = iMin
+        self.iMax = iMax
+        self.iMin = Kd
+        
     #---------------------------------------------------------------------------
     def setDesiredDepth( self, depth ):
         self.desiredDepth = depth               # metres
@@ -33,13 +47,18 @@ class DepthControl:
     # Updates the control loop and sends commands down to the position3D
     # interfaces if needed.
     def update( self ):
-
-        Kp = 0.3
-        Ki = 0.00
-        Kd = 0.0
-        iMax = 1.57
-        iMin = -1.57
         
+        if self.Kp == None:
+            self.Kp = 0.3
+        if self.Ki == None:
+            self.Ki = 0.0
+        if self.iMin == None:
+            self.iMin = -1.57
+        if self.iMax == None:
+            self.iMax = 1.57
+        if self.Kd == None:
+            self.Kd = 0.0
+
         # Feedback from the Depth Sensor
         depthSensorDepth = self.playerDepthSensor.pos
         

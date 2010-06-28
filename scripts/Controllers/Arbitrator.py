@@ -31,6 +31,14 @@ class Arbitrator:
         self.lastTime = time.time()
 
     #---------------------------------------------------------------------------
+    def setControlGains( self,  pitchKp, pitchKi, pitchiMin, pitchiMax, pitchKd,
+                                  yawKp,   yawKi,   yawiMin,   yawiMax,    yawKd,
+                                depthKp, depthKi, depthiMin, depthiMax, depthKd ):
+        self.pitchController.setPitchGains( pitchKp, pitchKi, pitchiMin, pitchiMax, pitchKd )
+        self.yawController.setYawGains( yawKp, yawKi, yawiMin, yawiMax, yawKd  )
+        self.depthController.setDepthGains( depthKp, depthKi, depthiMin, depthiMax, depthKd  )
+
+    #---------------------------------------------------------------------------
     def setDesiredState( self, pitchAngle, yawAngle, depth ):        
         self.pitchController.setDesiredPitchAngle( pitchAngle )     # rad
         self.yawController.setDesiredYawAngle( yawAngle )           # rad
