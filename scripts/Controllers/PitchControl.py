@@ -73,21 +73,21 @@ class PitchControl:
         # Proportional
         pitchAngleError = -self.desiredPitchAngle + radCompassPitchAngle    # rad
         #print pitchAngleError
-        self.pitchpTerm = Kp*pitchAngleError
+        self.pitchpTerm = self.Kp*pitchAngleError
         
         # Integral
         self.pitchiState += pitchAngleError
         
         # Integral wind-up
-        if self.pitchiState > iMax:
-            self.pitchiState = iMax
-        elif self.pitchiState < iMin:
-            self.pitchiState = iMin
-        self.pitchiTerm = Ki*self.pitchiState
+        if self.pitchiState > self.iMax:
+            self.pitchiState = self.iMax
+        elif self.pitchiState < self.iMin:
+            self.pitchiState = self.iMin
+        self.pitchiTerm = self.Ki*self.pitchiState
 
         # Derivative
         pitchdState = pitchAngleError - self.lastPitchAngleError
-        self.pitchdTerm = Kd*pitchdState
+        self.pitchdTerm = self.Kd*pitchdState
         self.lastPitchAngleError = pitchAngleError
 
         self.pitchSpeed = self.pitchpTerm + self.pitchiTerm + self.pitchdTerm    # rad/s

@@ -71,21 +71,21 @@ class DepthControl:
         # Proportional
         depthError = self.desiredDepth - depthSensorDepth    # rad
         #print depthError
-        self.depthpTerm = Kp*depthError
+        self.depthpTerm = self.Kp*depthError
         
         # Integral
         self.depthiState += depthError
         
         # Integral wind-up
-        if self.depthiState > iMax:
-            self.depthiState = iMax
-        elif self.depthiState < iMin:
-            self.depthiState = iMin
-        self.depthiTerm = Ki*self.depthiState
+        if self.depthiState > self.iMax:
+            self.depthiState = self.iMax
+        elif self.depthiState < self.iMin:
+            self.depthiState = self.iMin
+        self.depthiTerm = self.Ki*self.depthiState
         
         # Derivative
         depthdState = depthError - self.lastDepthError
-        self.depthdTerm = Kd*depthdState
+        self.depthdTerm = self.Kd*depthdState
         self.lastDepthError = depthError
 
         self.depthSpeed = self.depthpTerm + self.depthiTerm + self.depthdTerm    # rad/s

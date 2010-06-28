@@ -76,21 +76,21 @@ class YawControl:
             yawAngleError += 2*math.pi
         print "normalised yawAngleError =", yawAngleError
 
-        self.yawpTerm = Kp*yawAngleError
+        self.yawpTerm = self.Kp*yawAngleError
         
         # Integral
         self.yawiState += yawAngleError
         
         # Integral wind-up
-        if self.yawiState > iMax:
-            self.yawiState = iMax
-        elif self.yawiState < iMin:
-            self.yawiState = iMin
-        self.yawiTerm = Ki*self.yawiState
+        if self.yawiState > self.iMax:
+            self.yawiState = self.iMax
+        elif self.yawiState < self.iMin:
+            self.yawiState = self.iMin
+        self.yawiTerm = self.Ki*self.yawiState
         
         # Derivative
         yawdState = yawAngleError + self.lastYawAngleError
-        self.yawdTerm = Kd*yawdState
+        self.yawdTerm = self.Kd*yawdState
         self.lastYawAngleError = yawAngleError
 
         self.yawSpeed = self.yawpTerm + self.yawiTerm + self.yawdTerm    # rad/s
