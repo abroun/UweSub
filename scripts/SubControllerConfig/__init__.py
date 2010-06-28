@@ -39,4 +39,4 @@ class SubControllerConfig( yaml.YAMLObject ):
         self.yawSpeed = self.YAW_SPEED
         self.screenRadiusOfCloseBuoy = self.SCREEN_RADIUS_OF_CLOSE_BUOY
         
-        self.logFileDir = "${HOME}/uwe/UweSub/logs"
+        self.logFileDir = "${HOME}/dev/uwe/UweSub/logs"

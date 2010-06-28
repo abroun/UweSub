@@ -9,7 +9,7 @@ class ControlScript:
     
     #---------------------------------------------------------------------------
     def __init__( self, config, logger, playerPos3D, playerCompass = None, 
-        playerDepthSensor = None, playerSonar = None, config ):
+        playerDepthSensor = None, playerSonar = None ):
             
         self.logger = logger
         self.playerPos3D = playerPos3D

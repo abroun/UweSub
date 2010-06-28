@@ -5,6 +5,9 @@
 
 import sys
 import time
+import math
+
+from ControlScripts import ControlScript
 
 # Add common packages directory to path
 sys.path.append( "../" )
@@ -26,7 +29,7 @@ class TimeBasedGatesScript( ControlScript ):
     STATE_TURNING_TO_GATE_2 = "TurningToGate_2"
     STATE_DRIVING_THROUGH_GATE_2 = "DrivingThroughGate_2"
     STATE_TURNING_TO_START = "TurningToStart"
-    STATE_DRIVING_BACK_TO_START = "DrivingBackToStart":
+    STATE_DRIVING_BACK_TO_START = "DrivingBackToStart"
     STATE_SURFACING = "Surfacing"
     STATE_FINISHED = "Finished"
     
@@ -36,7 +39,8 @@ class TimeBasedGatesScript( ControlScript ):
         
         ControlScript.__init__( self, config, logger, playerPos3D, playerCompass, 
             playerDepthSensor, playerSonar )
-            
+        
+        self.arbitrator = Arbitrator( playerPos3D, playerCompass, playerDepthSensor )
         self.arbitrator.setDesiredDepth( -1.0 )
         self.linearSpeed = 0.0
         self.setState( self.STATE_DIVING )
@@ -45,18 +49,18 @@ class TimeBasedGatesScript( ControlScript ):
     #---------------------------------------------------------------------------
     def update( self ):
         
-        curTime = timer.time()
+        curTime = time.time()
         
         if self.state == self.STATE_DIVING:
             
             if self.arbitrator.atDesiredDepth():
-                self.arbitrator.setDesiredYaw( degToRad( 45.0 ) )
+                self.arbitrator.setDesiredYaw( degToRad( 0.0 ) )
                 self.setState( self.STATE_TURNING_TO_GATE_1 )
             
         elif self.state == self.STATE_TURNING_TO_GATE_1:
             
             if self.arbitrator.atDesiredYaw():
-                self.linearSpeed = 10.0
+                self.linearSpeed = 1.0
                 self.driveTimer = time.time()
                 self.setState( self.STATE_DRIVING_THROUGH_GATE_1 )
                         
@@ -64,13 +68,13 @@ class TimeBasedGatesScript( ControlScript ):
             
             if curTime - self.driveTimer >= 20.0:
                 self.linearSpeed = 0.0
-                self.arbitrator.setDesiredYaw( degToRad( 225.0 ) )
+                self.arbitrator.setDesiredYaw( degToRad( 180.0 ) )
                 self.setState( self.STATE_TURNING_TO_GATE_2 )
             
         elif self.state == self.STATE_TURNING_TO_GATE_2:
             
             if self.arbitrator.atDesiredYaw():
-                self.linearSpeed = 10.0
+                self.linearSpeed = 1.0
                 self.driveTimer = time.time()
                 self.setState( self.STATE_DRIVING_THROUGH_GATE_2 )
             
@@ -78,13 +82,13 @@ class TimeBasedGatesScript( ControlScript ):
             
             if curTime - self.driveTimer >= 40.0:
                 self.linearSpeed = 0.0
-                self.arbitrator.setDesiredYaw( degToRad( 45.0 ) )
+                self.arbitrator.setDesiredYaw( degToRad( 0.0 ) )
                 self.setState( self.STATE_TURNING_TO_START )
             
         elif self.state == self.STATE_TURNING_TO_START:
             
             if self.arbitrator.atDesiredYaw():
-                self.linearSpeed = 10.0
+                self.linearSpeed = 1.0
                 self.driveTimer = time.time()
                 self.setState( self.STATE_DRIVING_BACK_TO_START )
             

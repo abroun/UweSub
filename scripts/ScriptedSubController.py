@@ -6,6 +6,7 @@
 
 import os
 from optparse import OptionParser
+import sys
 
 import cv
 import yaml
@@ -106,8 +107,8 @@ class ScriptedSubController:
         # TODO: Come up with a good way of choosing the control script so that
         # we can choose between control scripts without the risk of typos
         
-        self.script = TimeBasedGatesScript( self.config, self.logger,
-            self.playerCompass, self.playerDepthSensor, self.playerSonar )
+        self.script = TimeBasedGatesScript.TimeBasedGatesScript( self.config, self.logger,
+            self.playerPos3d, self.playerCompass, self.playerDepthSensor, self.playerSonar )
 
     #---------------------------------------------------------------------------
     def update( self ):

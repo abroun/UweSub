@@ -2,6 +2,8 @@
 # Provides logging services for AUV control scripts
 #-------------------------------------------------------------------------------
 
+from __future__ import print_function
+
 import os
 import string
 import sys
@@ -14,9 +16,9 @@ class Logger:
     def __init__( self, config ):
         
         self.logFileDir = string.Template( config.logFileDir ).safe_substitute( os.environ )
-        self.logFilename = self.logFileDir + "/" + datetime.now() + ".log"
+        self.logFilename = self.logFileDir + "/" + str( datetime.now() ) + ".log"
             
-        self.outputFiles = [ open( self.logFilename ) ]
+        self.outputFiles = [ open( self.logFilename, "w" ) ]
         pass
     
     #---------------------------------------------------------------------------

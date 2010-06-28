@@ -46,7 +46,7 @@ class Arbitrator:
         
     #---------------------------------------------------------------------------
     def atDesiredYaw( self ):
-        yawAngleError = -self.yawController.desiredYawAngle 
+        yawAngleError = -self.yawController.desiredYawAngle \
             + self.playerCompass.pose.pyaw
             
         # normalise the error:        
