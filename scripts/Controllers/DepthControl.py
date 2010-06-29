@@ -19,6 +19,9 @@ class DepthControl:
         # Depth PID loop variables:
         self.depthiState = 0.0
         self.lastDepthError = 0.0
+        self.lastDepthSpeed = 0.0
+        self.errorFlag = 0.0
+        self.depthSpeed = 0.0
         self.depthpTerm = 0.0
         self.depthiTerm = 0.0
         self.depthdTerm = 0.0
@@ -70,6 +73,8 @@ class DepthControl:
 
         # Proportional
         depthError = self.desiredDepth - depthSensorDepth    # rad
+        if depthError > 0.05 or depthError < -0.05:
+            self.errorFlag = 0.0
         #print depthError
         self.depthpTerm = self.Kp*depthError
         
@@ -87,9 +92,15 @@ class DepthControl:
         depthdState = depthError - self.lastDepthError
         self.depthdTerm = self.Kd*depthdState
         self.lastDepthError = depthError
-
+        
         self.depthSpeed = self.depthpTerm + self.depthiTerm + self.depthdTerm    # rad/s
-             
-        #print "accumulating error ="
-        #print self.depthiState
+        if (depthError < 0.05 or depthError < -0.05) and self.errorFlag == 0.0:
+            self.lastDepthSpeed = self.depthSpeed
+            self.errorFlag = 1.0
+        
+        if (depthError < 0.05 or depthError < -0.05) and self.errorFlag == 1.0:
+            self.depthSpeed = self.lastDepthSpeed
+        
+        print "depthError  =", depthError
+        print "depthSpeed  =", self.depthSpeed
         

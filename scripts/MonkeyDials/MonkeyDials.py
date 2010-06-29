@@ -51,6 +51,7 @@ class MainWindow:
         
         self.depthSensorDepth = 0.0
         self.arrayDepthValues = [ 0 ]
+        self.arrayDepthSpeeds = [ 0 ]
         self.startDepthGraph = False
 
         self.pitchpTest = []
@@ -123,7 +124,7 @@ class MainWindow:
         self.spinMaxLinearSpeed.set_value( 1.0 )
         self.spinDesiredPitchAngle.set_value( 0.0 )
         self.spinDesiredYawAngle.set_value( 230.0 )
-        self.spinDesiredDepth.set_value( 7434.0 )
+        self.spinDesiredDepth.set_value( 7457.0 )
         
         self.spinPitchKp.set_value( 3.0 )
         self.spinPitchKi.set_value( 0.0 )
@@ -278,16 +279,24 @@ class MainWindow:
     def onDepthPosButtonClicked( self, button ):
         time = len( self.arrayDepthValues )
         plt.clf()
-        #plt.figure(1)
+        plt.figure(1)
         plt.plot( range( time ), self.arrayDepthValues )
         plt.ylabel( 'Depth angle [deg/s]' )
         plt.xlabel( 'Time' )
+        
+        plt.figure(2)
+        plt.plot( range( time ), self.arrayDepthValues )
+        plt.ylabel( 'Depth angle [deg/s]' )
+        plt.xlabel( 'Time' )
+        
+        self.depthSpeed
         self.startDepthGraph = False
         plt.show()
 
     def onDepthPosStartButtonClicked( self, button ):
         self.startDepthGraph = True
         self.arrayDepthValues = []
+        arrayDepthSpeeds = []
         self.depthpTest = []
         self.depthdTest = []
         
@@ -389,6 +398,7 @@ class MainWindow:
                     
             if self.startDepthGraph:
                 self.arrayDepthValues.append( self.depthSensorDepth)
+                self.arrayDepthSpeeds.append( self.depthController.depthSpeed)
                 self.depthpTest.append (self.depthController.depthpTerm)
                 self.depthdTest.append(self.depthController.depthdTerm)
                #if self.depthSensorDepth - newDesiredDepth < 0.01 \

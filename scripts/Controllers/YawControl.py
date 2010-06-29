@@ -68,13 +68,13 @@ class YawControl:
 
         # Proportional
         
-        yawAngleError = self.desiredYawAngle - radCompassYawAngle    # rad
+        yawAngleError = 0 #self.desiredYawAngle - radCompassYawAngle    # rad
         # normalise the error:        
         while yawAngleError >= math.pi:
             yawAngleError -= 2*math.pi
         while yawAngleError < -math.pi:
             yawAngleError += 2*math.pi
-        print "normalised yawAngleError =", yawAngleError
+        #print "normalised yawAngleError =", yawAngleError
 
         self.yawpTerm = self.Kp*yawAngleError
         
