@@ -9,7 +9,6 @@ from Controllers import PitchControl
 from Controllers import YawControl
 from Controllers import DepthControl
 
-
 #-------------------------------------------------------------------------------
 class Arbitrator:
     
@@ -27,6 +26,10 @@ class Arbitrator:
             self.playerCompass, self.playerSimPos3D )
         self.depthController = DepthControl( self.playerPos3D,
             self.playerDepthSensor, self.playerSimPos3D )
+        self.leftMotorUncontrolled = False
+        self.rightMotorUncontrolled = False
+        self.frontMotorUncontrolled = False
+        self.backMotorUncontrolled = False
         
         self.lastTime = time.time()
 
@@ -51,6 +54,16 @@ class Arbitrator:
     #---------------------------------------------------------------------------
     def setDesiredDepth( self, depth ):
         self.depthController.setDesiredDepth( depth )
+        
+    #---------------------------------------------------------------------------
+    def setUncontrolledMotors( self, 
+        leftMotorUncontrolled, rightMotorUncontrolled,
+        frontMotorUncontrolled, backMotorUncontrolled ):
+        
+        self.leftMotorUncontrolled = leftMotorUncontrolled
+        self.rightMotorUncontrolled = rightMotorUncontrolled
+        self.frontMotorUncontrolled = frontMotorUncontrolled
+        self.backMotorUncontrolled = backMotorUncontrolled
         
     #---------------------------------------------------------------------------
     def atDesiredYaw( self ):
@@ -92,15 +105,19 @@ class Arbitrator:
             self.yawController.update()  
             ySpeed = self.yawController.yawSpeed                      # rad/s
 
+            motorControl = (self.leftMotorUncontrolled << 3) \
+                | (self.rightMotorUncontrolled << 2) \
+                | (self.frontMotorUncontrolled << 1) \
+                | self.backMotorUncontrolled
 
             #------------ Send the new speeds to player ----------#
             
             self.playerPos3D.set_velocity( linearSpeed, 0.0, dSpeed, # x, y, z
                                            0.0, pSpeed, ySpeed, # roll, pitch, yaw
-                                           0 )   # State
+                                           motorControl )   # State
             if self.playerSimPos3D != None:
                 self.playerSimPos3D.set_velocity( linearSpeed, 0.0, dSpeed, # x, y, z
                                                   0.0, pSpeed, ySpeed, # roll, pitch, yaw
-                                                  0 )   # State
+                                                  motorControl )   # State
             
             self.lastTime = curTime     
