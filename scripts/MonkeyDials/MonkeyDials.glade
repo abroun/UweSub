@@ -294,6 +294,7 @@
                 <property name="visible">True</property>
               </object>
               <packing>
+                <property name="expand">False</property>
                 <property name="position">1</property>
               </packing>
             </child>
@@ -399,7 +400,7 @@
                             <property name="can_focus">True</property>
                             <property name="invisible_char">&#x25CF;</property>
                             <property name="adjustment">adjYawKp</property>
-                            <property name="digits">2</property>
+                            <property name="digits">3</property>
                             <property name="numeric">True</property>
                             <property name="wrap">True</property>
                           </object>
@@ -435,7 +436,7 @@
                                 <property name="can_focus">True</property>
                                 <property name="invisible_char">&#x25CF;</property>
                                 <property name="adjustment">adjYawKi</property>
-                                <property name="digits">2</property>
+                                <property name="digits">3</property>
                                 <property name="numeric">True</property>
                                 <property name="wrap">True</property>
                               </object>
@@ -550,7 +551,7 @@
                             <property name="can_focus">True</property>
                             <property name="invisible_char">&#x25CF;</property>
                             <property name="adjustment">adjYawKd</property>
-                            <property name="digits">2</property>
+                            <property name="digits">3</property>
                             <property name="numeric">True</property>
                             <property name="wrap">True</property>
                           </object>
@@ -580,6 +581,7 @@
                 <property name="visible">True</property>
               </object>
               <packing>
+                <property name="expand">False</property>
                 <property name="position">3</property>
               </packing>
             </child>
@@ -599,7 +601,7 @@
                           <object class="GtkLabel" id="lblDesiredDepthName">
                             <property name="visible">True</property>
                             <property name="xalign">0.98000001907348633</property>
-                            <property name="label" translatable="yes">Desired Depth (m):</property>
+                            <property name="label" translatable="yes">Desired Depth (mbars):</property>
                           </object>
                           <packing>
                             <property name="expand">False</property>
@@ -867,6 +869,7 @@
                 <property name="visible">True</property>
               </object>
               <packing>
+                <property name="expand">False</property>
                 <property name="position">5</property>
               </packing>
             </child>

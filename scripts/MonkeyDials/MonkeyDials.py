@@ -118,7 +118,7 @@ class MainWindow:
         self.spinMaxLinearSpeed.set_value( 1.0 )
         self.spinDesiredPitchAngle.set_value( 0.0 )
         self.spinDesiredYawAngle.set_value( 230.0 )
-        self.spinDesiredDepth.set_value( 7408.0 )
+        self.spinDesiredDepth.set_value( 7434.0 )
         
         self.spinPitchKp.set_value( 3.0 )
         self.spinPitchKi.set_value( 0.0 )
