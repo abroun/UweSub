@@ -34,6 +34,11 @@ void MotorDriverRegister( DriverTable* pTable )
 //------------------------------------------------------------------------------
 // MotorDriver
 //------------------------------------------------------------------------------
+#define MOTOR_CONTROLLED 0
+#define MOTOR_UNCONTROLLED 1
+
+#define BIT_VALUE( x, bit ) ( (x >> bit) & 0x1 )
+
 const U32 MotorDriver::PWM_FREQUENCY_US = 20000;
 const U32 MotorDriver::MIN_DUTY_CYCLE_US = 1000;
 const U32 MotorDriver::MAX_DUTY_CYCLE_US = 2000;
@@ -225,12 +230,24 @@ int MotorDriver::ProcessMessage( QueuePointer& respQueue,
         
         if ( mbInitialisedPWM )
         {
-            //printf("front Duty = %f\n", frontDuty);
-            //printf("back Duty = %f\n", backDuty);
-            pwm_SetPulse( FRONT_MOTOR_CHANNEL, PWM_FREQUENCY_US, frontDuty );
-            pwm_SetPulse( BACK_MOTOR_CHANNEL, PWM_FREQUENCY_US, backDuty );
-            pwm_SetPulse( LEFT_MOTOR_CHANNEL, PWM_FREQUENCY_US, leftDuty );
-            pwm_SetPulse( RIGHT_MOTOR_CHANNEL, PWM_FREQUENCY_US, rightDuty );
+            U8 motorControlFlags = (S32)pCmd->state;
+            
+            if ( BIT_VALUE( motorControlFlags, 3 ) == MOTOR_CONTROLLED )
+            {
+                pwm_SetPulse( LEFT_MOTOR_CHANNEL, PWM_FREQUENCY_US, leftDuty );
+            }
+            if ( BIT_VALUE( motorControlFlags, 2 ) == MOTOR_CONTROLLED )
+            {
+                pwm_SetPulse( RIGHT_MOTOR_CHANNEL, PWM_FREQUENCY_US, rightDuty );
+            }
+            if ( BIT_VALUE( motorControlFlags, 1 ) == MOTOR_CONTROLLED )
+            {
+                pwm_SetPulse( FRONT_MOTOR_CHANNEL, PWM_FREQUENCY_US, frontDuty );
+            }
+            if ( BIT_VALUE( motorControlFlags, 0 ) == MOTOR_CONTROLLED )
+            {
+                pwm_SetPulse( BACK_MOTOR_CHANNEL, PWM_FREQUENCY_US, backDuty );
+            }
         }
         
         return 0;
@@ -271,6 +288,7 @@ int MotorDriver::ProcessMessage( QueuePointer& respQueue,
         // y = right
         // roll = forward
         // pitch = back
+        // yaw = Motor control bits (0 == controlled, 1 == uncontrolled)
         
         player_position3d_cmd_pos_t* pCmd = (player_position3d_cmd_pos_t*)pData;
 
@@ -278,7 +296,6 @@ int MotorDriver::ProcessMessage( QueuePointer& respQueue,
         F32 normalisedRightPWM = -MOTOR_PER*MAX( -1.0f, MIN( (F32)pCmd->vel.py, 1.0f ) );
         F32 normalisedFrontPWM = -MOTOR_PER*MAX( -1.0f, MIN( (F32)pCmd->vel.proll, 1.0f ) );
         F32 normalisedBackPWM = -MOTOR_PER*MAX( -1.0f, MIN( (F32)pCmd->vel.ppitch, 1.0f ) );
-       
         
         normalisedLeftPWM = (normalisedLeftPWM + 1.0f)/2.0f;
         normalisedRightPWM = (normalisedRightPWM + 1.0f)/2.0f;
@@ -295,10 +312,24 @@ int MotorDriver::ProcessMessage( QueuePointer& respQueue,
         
         if ( mbInitialisedPWM )
         {
-            pwm_SetPulse( LEFT_MOTOR_CHANNEL, PWM_FREQUENCY_US, leftDuty );
-            pwm_SetPulse( RIGHT_MOTOR_CHANNEL, PWM_FREQUENCY_US, rightDuty );
-            pwm_SetPulse( FRONT_MOTOR_CHANNEL, PWM_FREQUENCY_US, frontDuty );
-            pwm_SetPulse( BACK_MOTOR_CHANNEL, PWM_FREQUENCY_US, backDuty );
+            S32 motorControlFlags = (S32)pCmd->vel.pyaw;
+            
+            if ( BIT_VALUE( motorControlFlags, 3 ) == MOTOR_CONTROLLED )
+            {
+                pwm_SetPulse( LEFT_MOTOR_CHANNEL, PWM_FREQUENCY_US, leftDuty );
+            }
+            if ( BIT_VALUE( motorControlFlags, 2 ) == MOTOR_CONTROLLED )
+            {
+                pwm_SetPulse( RIGHT_MOTOR_CHANNEL, PWM_FREQUENCY_US, rightDuty );
+            }
+            if ( BIT_VALUE( motorControlFlags, 1 ) == MOTOR_CONTROLLED )
+            {
+                pwm_SetPulse( FRONT_MOTOR_CHANNEL, PWM_FREQUENCY_US, frontDuty );
+            }
+            if ( BIT_VALUE( motorControlFlags, 0 ) == MOTOR_CONTROLLED )
+            {
+                pwm_SetPulse( BACK_MOTOR_CHANNEL, PWM_FREQUENCY_US, backDuty );
+            }
         }
         return 0;
     }
@@ -348,7 +379,7 @@ void MotorDriver::Main()
             F32 DepthSensorDepth = mDepthSensorDepth;
             
             
-            printf( "Compass angle (degrees): yaw = %2.3f, pitch = %2.3f | Sensor depth (m): %2.3f \n", degCompassYawAngle, degCompassPitchAngle, DepthSensorDepth );
+            //printf( "Compass angle (degrees): yaw = %2.3f, pitch = %2.3f | Sensor depth (m): %2.3f \n", degCompassYawAngle, degCompassPitchAngle, DepthSensorDepth );
             mLastDisplayedCompassAngleTimestamp = mCompassAngleTimestamp;
             mLastDisplayedDepthSensorDepthTimestamp = mDepthSensorDepthTimestamp;
         }

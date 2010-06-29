@@ -115,6 +115,11 @@ class MainWindow:
         
         self.checkKill = builder.get_object( "checkKill" )
         
+        self.chkControlLeftMotor = builder.get_object( "chkControlLeftMotor" )
+        self.chkControlRightMotor = builder.get_object( "chkControlRightMotor" )
+        self.chkControlFrontMotor = builder.get_object( "chkControlFrontMotor" )
+        self.chkControlBackMotor = builder.get_object( "chkControlBackMotor" )
+        
         self.spinMaxLinearSpeed.set_value( 1.0 )
         self.spinDesiredPitchAngle.set_value( 0.0 )
         self.spinDesiredYawAngle.set_value( 230.0 )
@@ -398,6 +403,9 @@ class MainWindow:
                                                    yawKp,   yawKi,   yawiMin,   yawiMax,    yawKd,
                                                  depthKp, depthKi, depthiMin, depthiMax, depthKd )
                 self.arbitrator.setDesiredState( newDesiredPitchAngle, newDesiredYawAngle, newDesiredDepth )   # rad
+                self.arbitrator.setUncontrolledMotors(
+                    self.chkControlLeftMotor.get_active(), self.chkControlRightMotor.get_active(),
+                    self.chkControlFrontMotor.get_active(), self.chkControlBackMotor.get_active() )
                 self.arbitrator.update( newLinearSpeed )         
             
             if newLinearSpeed != self.linearSpeed:

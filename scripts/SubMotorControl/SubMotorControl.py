@@ -53,6 +53,10 @@ class MainWindow:
         self.vscaleFrontMotor = builder.get_object( "vscaleFrontMotor" )
         self.vscaleBackMotor = builder.get_object( "vscaleBackMotor" )
         self.chkLinkVerticalMotors = builder.get_object( "chkLinkVerticalMotors" )
+        self.chkControlLeftMotor = builder.get_object( "chkControlLeftMotor" )
+        self.chkControlRightMotor = builder.get_object( "chkControlRightMotor" )
+        self.chkControlFrontMotor = builder.get_object( "chkControlFrontMotor" )
+        self.chkControlBackMotor = builder.get_object( "chkControlBackMotor" )
 
         (self.CONTROL_AREA_WIDTH, self.CONTROL_AREA_HEIGHT) = self.dwgControlArea.get_size_request()
         self.CONTROL_BOX_WIDTH = self.CONTROL_AREA_WIDTH*0.95
@@ -383,10 +387,20 @@ class MainWindow:
             
                 #print "Sending ", leftMotorSpeed, rightMotorSpeed, frontMotorSpeed, backMotorSpeed
             
+                # Build the motor control bitfield. If we send 0 then /all/
+                # motors are controlled. Otherwise set bits turn off control
+                # of selected motors so that the application can work with
+                # other motor control applications such as MonkeyDials
+                motorControl = (self.chkControlLeftMotor.get_active() << 3) \
+                    | (self.chkControlRightMotor.get_active() << 2) \
+                    | (self.chkControlFrontMotor.get_active() << 1) \
+                    | self.chkControlBackMotor.get_active()
+            
                 velocityPose.px = leftMotorSpeed
                 velocityPose.py = rightMotorSpeed
                 velocityPose.proll = frontMotorSpeed
                 velocityPose.ppitch = backMotorSpeed
+                velocityPose.pyaw = int( motorControl )
             
                 self.playerPos3d.set_pose_with_vel( zeroPosPose, velocityPose )
                     
