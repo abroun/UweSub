@@ -38,9 +38,9 @@ class DepthControl:
     def setDepthGains( self,  Kp, Ki, iMin, iMax, Kd  ):
         self.Kp = Kp
         self.Ki = Ki
-        self.Kd = iMin
+        self.Kd = Kd
         self.iMax = iMax
-        self.iMin = Kd
+        self.iMin = iMin
         
     #---------------------------------------------------------------------------
     def setDesiredDepth( self, depth ):
@@ -101,6 +101,6 @@ class DepthControl:
         if (depthError < 0.05 or depthError < -0.05) and self.errorFlag == 1.0:
             self.depthSpeed = self.lastDepthSpeed
         
-        print "depthError  =", depthError
-        print "depthSpeed  =", self.depthSpeed
+        #print "depthError  =", depthError
+        #print "depthSpeed  =", self.depthSpeed
         

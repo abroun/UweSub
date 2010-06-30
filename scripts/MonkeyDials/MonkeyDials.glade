@@ -400,7 +400,7 @@
                             <property name="can_focus">True</property>
                             <property name="invisible_char">&#x25CF;</property>
                             <property name="adjustment">adjYawKp</property>
-                            <property name="digits">3</property>
+                            <property name="digits">10</property>
                             <property name="numeric">True</property>
                             <property name="wrap">True</property>
                           </object>
@@ -436,7 +436,7 @@
                                 <property name="can_focus">True</property>
                                 <property name="invisible_char">&#x25CF;</property>
                                 <property name="adjustment">adjYawKi</property>
-                                <property name="digits">3</property>
+                                <property name="digits">6</property>
                                 <property name="numeric">True</property>
                                 <property name="wrap">True</property>
                               </object>
@@ -551,7 +551,7 @@
                             <property name="can_focus">True</property>
                             <property name="invisible_char">&#x25CF;</property>
                             <property name="adjustment">adjYawKd</property>
-                            <property name="digits">3</property>
+                            <property name="digits">10</property>
                             <property name="numeric">True</property>
                             <property name="wrap">True</property>
                           </object>
@@ -688,7 +688,7 @@
                             <property name="can_focus">True</property>
                             <property name="invisible_char">&#x25CF;</property>
                             <property name="adjustment">adjDepthKp</property>
-                            <property name="digits">2</property>
+                            <property name="digits">6</property>
                             <property name="numeric">True</property>
                             <property name="wrap">True</property>
                           </object>
@@ -724,7 +724,7 @@
                                 <property name="can_focus">True</property>
                                 <property name="invisible_char">&#x25CF;</property>
                                 <property name="adjustment">adjDepthKi</property>
-                                <property name="digits">2</property>
+                                <property name="digits">6</property>
                                 <property name="numeric">True</property>
                                 <property name="wrap">True</property>
                               </object>
@@ -839,7 +839,7 @@
                             <property name="can_focus">True</property>
                             <property name="invisible_char">&#x25CF;</property>
                             <property name="adjustment">adjDepthKd</property>
-                            <property name="digits">2</property>
+                            <property name="digits">6</property>
                             <property name="numeric">True</property>
                             <property name="wrap">True</property>
                           </object>
