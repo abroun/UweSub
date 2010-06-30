@@ -15,15 +15,16 @@ import Maths
 class SonarLocator:
     
     MAX_TIME_BETWEEN_SCANS = 30.0
-    SCAN_RANGE = 10
-    NUM_BINS = 400
-    GAIN = 0.1
+    NUM_FAILED_SCANS_BETWEEN_REBOOTS = 2
+    SCAN_RANGE = 3
+    NUM_BINS = 300
+    GAIN = 0.3
     
     # All angles here are like compass bearings so 0 degrees is north
     # and angles increase in a clock-wise direction
     
     SONAR_HEADING_OFFSET = Maths.degToRad( 0.0 )    # Offset from sub heading to sonar
-    POOL_HEADING = Maths.degToRad( 184.0 )    # Heading of the pool in degrees converted to radians
+    POOL_HEADING = Maths.degToRad( 0.0 )    # Heading of the pool in degrees converted to radians
     
     #---------------------------------------------------------------------------
     def __init__( self, playerCompass, playerSonar, config = SubControllerConfig() ):
@@ -96,7 +97,7 @@ class SonarLocator:
                 print "Warning: Timed out waiting for scan, requesting new one"
                 self.numFailedScans += 1
                 
-                if self.numFailedScans <= 1:
+                if self.numFailedScans <= NUM_FAILED_SCANS_BETWEEN_REBOOTS:
                     self.startScan()
                 else:
                     self.playerSonar.say( "REBOOT" )

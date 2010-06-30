@@ -185,9 +185,6 @@ int SonarDriver::ProcessMessage( QueuePointer& respQueue,
                     Utils::Sleep( HighPrecisionTime::ConvertFromSeconds( 6.0 ) );
                     // most probably sonar 's fine
                     
-                    // Now killing the alives
-                    pmicron->sendStopAlives(mpOpaque, this->InQueue);
-                    
                     // set default values for micron members */
                     pmicron->reset(); 
                     
