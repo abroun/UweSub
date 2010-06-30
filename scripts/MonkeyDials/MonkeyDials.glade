@@ -400,7 +400,11 @@
                             <property name="can_focus">True</property>
                             <property name="invisible_char">&#x25CF;</property>
                             <property name="adjustment">adjYawKp</property>
+<<<<<<< HEAD
                             <property name="digits">5</property>
+=======
+                            <property name="digits">10</property>
+>>>>>>> dac56e565d918aa6a566ad3195f96e396fd9e442
                             <property name="numeric">True</property>
                             <property name="wrap">True</property>
                           </object>
@@ -436,7 +440,11 @@
                                 <property name="can_focus">True</property>
                                 <property name="invisible_char">&#x25CF;</property>
                                 <property name="adjustment">adjYawKi</property>
+<<<<<<< HEAD
                                 <property name="digits">5</property>
+=======
+                                <property name="digits">6</property>
+>>>>>>> dac56e565d918aa6a566ad3195f96e396fd9e442
                                 <property name="numeric">True</property>
                                 <property name="wrap">True</property>
                               </object>
@@ -551,7 +559,11 @@
                             <property name="can_focus">True</property>
                             <property name="invisible_char">&#x25CF;</property>
                             <property name="adjustment">adjYawKd</property>
+<<<<<<< HEAD
                             <property name="digits">5</property>
+=======
+                            <property name="digits">10</property>
+>>>>>>> dac56e565d918aa6a566ad3195f96e396fd9e442
                             <property name="numeric">True</property>
                             <property name="wrap">True</property>
                           </object>
@@ -688,7 +700,11 @@
                             <property name="can_focus">True</property>
                             <property name="invisible_char">&#x25CF;</property>
                             <property name="adjustment">adjDepthKp</property>
+<<<<<<< HEAD
                             <property name="digits">3</property>
+=======
+                            <property name="digits">6</property>
+>>>>>>> dac56e565d918aa6a566ad3195f96e396fd9e442
                             <property name="numeric">True</property>
                             <property name="wrap">True</property>
                           </object>
@@ -724,7 +740,11 @@
                                 <property name="can_focus">True</property>
                                 <property name="invisible_char">&#x25CF;</property>
                                 <property name="adjustment">adjDepthKi</property>
+<<<<<<< HEAD
                                 <property name="digits">3</property>
+=======
+                                <property name="digits">6</property>
+>>>>>>> dac56e565d918aa6a566ad3195f96e396fd9e442
                                 <property name="numeric">True</property>
                                 <property name="wrap">True</property>
                               </object>
@@ -839,7 +859,11 @@
                             <property name="can_focus">True</property>
                             <property name="invisible_char">&#x25CF;</property>
                             <property name="adjustment">adjDepthKd</property>
+<<<<<<< HEAD
                             <property name="digits">3</property>
+=======
+                            <property name="digits">6</property>
+>>>>>>> dac56e565d918aa6a566ad3195f96e396fd9e442
                             <property name="numeric">True</property>
                             <property name="wrap">True</property>
                           </object>

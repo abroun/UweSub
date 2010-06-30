@@ -39,9 +39,9 @@ class DepthControl:
     def setDepthGains( self,  Kp, Ki, iMin, iMax, Kd  ):
         self.Kp = Kp
         self.Ki = Ki
-        self.Kd = iMin
+        self.Kd = Kd
         self.iMax = iMax
-        self.iMin = Kd
+        self.iMin = iMin
         
     #---------------------------------------------------------------------------
     def setDesiredDepth( self, depth ):

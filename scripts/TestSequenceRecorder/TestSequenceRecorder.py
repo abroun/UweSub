@@ -55,8 +55,8 @@ class MainWindow:
         gobject.idle_add( updateLoop.next )
 
         # Slightly crappy way to start up the joystick...
-        subJoyWindow = SubJoy.MainWindow( config )
-        subJoyWindow.main()
+        #subJoyWindow = SubJoy.MainWindow( config )
+        #subJoyWindow.main()
     
     #---------------------------------------------------------------------------
     def connectToPlayer( self ):

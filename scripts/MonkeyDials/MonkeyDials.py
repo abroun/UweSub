@@ -132,11 +132,11 @@ class MainWindow:
         self.spinPitchiMax.set_value( 1.57 )
         self.spinPitchKd.set_value( 0.0 )
 
-        self.spinYawKp.set_value( 0.008 )
+        self.spinYawKp.set_value( -1.4 )
         self.spinYawKi.set_value( 0.0 )
         self.spinYawiMin.set_value( -1.57 )
         self.spinYawiMax.set_value( 1.57 )
-        self.spinYawKd.set_value( 0.010 )
+        self.spinYawKd.set_value( 0.25 )
 
         self.spinDepthKp.set_value( 0.3 )
         self.spinDepthKi.set_value( 0.0 )

@@ -185,9 +185,6 @@ int SonarDriver::ProcessMessage( QueuePointer& respQueue,
                     Utils::Sleep( HighPrecisionTime::ConvertFromSeconds( 6.0 ) );
                     // most probably sonar 's fine
                     
-                    // Now killing the alives
-                    pmicron->sendStopAlives(mpOpaque, this->InQueue);
-                    
                     // set default values for micron members */
                     pmicron->reset(); 
                     
@@ -437,7 +434,7 @@ void SonarDriver::Main()
                 data.format = PLAYER_MICRONSONAR_FORMAT_MONO8;
                 data.image_count = data.width*data.height;
                 data.image = new U8[ data.image_count ];
-                memset( data.image, 127, data.image_count );    // Clear image
+                memset( data.image, 0, data.image_count );    // Clear image
             
                 F32 angleIncrement = Micron::convertSonarAngleToRadians(
                     pScanData->mSettings.mStepAngle );

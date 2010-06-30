@@ -136,7 +136,56 @@ class MainWindow:
             widget.window.draw_pixbuf( widget.get_style().fg_gc[ gtk.STATE_NORMAL ],
                 self.sonarPixBuf, srcX, srcY, 
                 imgRect.x, imgRect.y, imgRect.width, imgRect.height )
+            
+            # Draw any detected features
+            graphicsContext = widget.window.new_gc()
+            self.drawLines( imgRect, widget.window, 
+                graphicsContext, self.sonarLocator.detectedLines )
+            #drawFilledArc = True
+            #graphicsContext = widget.window.new_gc()
+            
+            cornerPos = self.sonarLocator.cornerPos
+            if cornerPos != None:
+                
+                arcX = int( imgRect.x + cornerPos[ 0 ] - 5 )
+                arcY = int( imgRect.y + cornerPos[ 1 ] - 5 )
+                arcWidth = arcHeight = 10
+            
+                drawFilledArc = True
+                graphicsContext.set_rgb_fg_color( gtk.gdk.Color( 0, 65535, 0 ) )
 
+                widget.window.draw_arc( graphicsContext, 
+                    drawFilledArc, arcX, arcY, arcWidth, arcHeight, 0, 360 * 64 )
+
+
+    #---------------------------------------------------------------------------
+    def drawLines( self, imgRect, drawable, graphicsContext, lines ):
+        
+        graphicsContext.set_rgb_fg_color( gtk.gdk.Color( 65535, 0, 0 ) )
+        
+        #lines = [(100.0, 45.0*math.pi/180.0)]
+        
+        if lines != None:
+            
+            for line in lines:
+                
+                print line
+                
+                distance = line[ 0 ]
+                theta = line[ 1 ]
+                
+                centreX = distance*math.cos( theta )
+                centreY = distance*math.sin( theta )
+                dirX = math.sin( theta )
+                dirY = -math.cos( theta )
+                
+                x1 = int( centreX - 2000*dirX )
+                y1 = int( centreY - 2000*dirY )
+                x2 = int( centreX + 2000*dirX )
+                y2 = int( centreY + 2000*dirY )
+        
+                drawable.draw_line( graphicsContext, x1, y1, x2, y2 )            
+                
     #---------------------------------------------------------------------------
     def getImageRectangleInWidget( self, widget, imageWidth, imageHeight ):
         
@@ -167,49 +216,49 @@ class MainWindow:
     
         while 1:
             
-            self.sonarLocator.update()
-            
             if self.playerClient.peek( 0 ):
                 self.playerClient.read()
+            
+            self.sonarLocator.update()
+            
+            if self.isNewSonarFrameAvailable():
+                sonarFrameTime = self.playerSonar.info.datatime
 
-                if self.isNewSonarFrameAvailable():
-                    sonarFrameTime = self.playerSonar.info.datatime
+                # Give the image to OpenCV as a very inefficient way to
+                # convert to RGB
+                grayImage = cv.CreateImageHeader( ( self.playerSonar.width, self.playerSonar.height ), cv.IPL_DEPTH_8U, 1 )       
+                cv.SetData( grayImage, self.playerSonar.image[:self.playerSonar.image_count], self.playerSonar.width )
+    
+                rgbImage = cv.CreateImage( ( self.playerSonar.width, self.playerSonar.height ), cv.IPL_DEPTH_8U, 3 )
+                cv.CvtColor( grayImage, rgbImage, cv.CV_GRAY2RGB )
 
-                    # Give the image to OpenCV as a very inefficient way to
-                    # convert to RGB
-                    grayImage = cv.CreateImageHeader( ( self.playerSonar.width, self.playerSonar.height ), cv.IPL_DEPTH_8U, 1 )       
-                    cv.SetData( grayImage, self.playerSonar.image[:self.playerSonar.image_count], self.playerSonar.width )
-        
-                    rgbImage = cv.CreateImage( ( self.playerSonar.width, self.playerSonar.height ), cv.IPL_DEPTH_8U, 3 )
-                    cv.CvtColor( grayImage, rgbImage, cv.CV_GRAY2RGB )
+                #zoom = self.spinZoom.get_value()
+                #if zoom != 1.0:
+                #    scaledImage = cv.CreateImage( 
+                #        ( int( rgbImage.width*zoom ), 
+                #         int ( rgbImage.height*zoom ) ), 
+                #        rgbImage.depth, rgbImage.nChannels )
+                # 
+                #    cv.Resize( rgbImage, scaledImage )
+                #    rgbImage = scaledImage
+    
+                # Display the image
+                self.sonarPixBuf = gtk.gdk.pixbuf_new_from_data( 
+                    rgbImage.tostring(), 
+                    gtk.gdk.COLORSPACE_RGB,
+                    False,
+                    rgbImage.depth,
+                    rgbImage.width,
+                    rgbImage.height,
+                    rgbImage.width*rgbImage.nChannels )
 
-                    #zoom = self.spinZoom.get_value()
-                    #if zoom != 1.0:
-                    #    scaledImage = cv.CreateImage( 
-                    #        ( int( rgbImage.width*zoom ), 
-                    #         int ( rgbImage.height*zoom ) ), 
-                    #        rgbImage.depth, rgbImage.nChannels )
-                   # 
-                    #    cv.Resize( rgbImage, scaledImage )
-                    #    rgbImage = scaledImage
-        
-                    # Display the image
-                    self.sonarPixBuf = gtk.gdk.pixbuf_new_from_data( 
-                        rgbImage.tostring(), 
-                        gtk.gdk.COLORSPACE_RGB,
-                        False,
-                        rgbImage.depth,
-                        rgbImage.width,
-                        rgbImage.height,
-                        rgbImage.width*rgbImage.nChannels )
+                # Resize the drawing area if necessary
+                if self.dwgDisplay.get_size_request() != ( rgbImage.width, rgbImage.height ):
+                    self.dwgDisplay.set_size_request( rgbImage.width, rgbImage.height )
 
-                    # Resize the drawing area if necessary
-                    if self.dwgDisplay.get_size_request() != ( rgbImage.width, rgbImage.height ):
-                        self.dwgDisplay.set_size_request( rgbImage.width, rgbImage.height )
-
-                    self.dwgDisplay.queue_draw()
-                    
-                    self.lastSonarFrameTime = sonarFrameTime
+                self.dwgDisplay.queue_draw()
+                
+                self.lastSonarFrameTime = sonarFrameTime
                 
             yield True
             

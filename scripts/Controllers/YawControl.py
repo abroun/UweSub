@@ -35,9 +35,9 @@ class YawControl:
     def setYawGains( self,  Kp, Ki, iMin, iMax, Kd  ):
         self.Kp = Kp
         self.Ki = Ki
-        self.Kd = iMin
+        self.Kd = Kd
         self.iMax = iMax
-        self.iMin = Kd
+        self.iMin = iMin
                 
     #---------------------------------------------------------------------------
     def setDesiredYawAngle( self, yawAngle ):
@@ -77,6 +77,7 @@ class YawControl:
         #print "normalised yawAngleError =", yawAngleError
 
         self.yawpTerm = self.Kp*yawAngleError
+        #print "self.Kp =", self.Kp, "Ki", self.Ki, "Kd", self.Kd
         
         # Integral
         self.yawiState += yawAngleError
