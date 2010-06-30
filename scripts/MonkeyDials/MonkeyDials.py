@@ -123,8 +123,8 @@ class MainWindow:
         
         self.spinMaxLinearSpeed.set_value( 1.0 )
         self.spinDesiredPitchAngle.set_value( 0.0 )
-        self.spinDesiredYawAngle.set_value( 230.0 )
-        self.spinDesiredDepth.set_value( 7457.0 )
+        self.spinDesiredYawAngle.set_value( 180.0 )
+        self.spinDesiredDepth.set_value( 7436)
         
         self.spinPitchKp.set_value( 3.0 )
         self.spinPitchKi.set_value( 0.0 )
@@ -132,17 +132,17 @@ class MainWindow:
         self.spinPitchiMax.set_value( 1.57 )
         self.spinPitchKd.set_value( 0.0 )
 
-        self.spinYawKp.set_value( 0.08 )
+        self.spinYawKp.set_value( 0.008 )
         self.spinYawKi.set_value( 0.0 )
         self.spinYawiMin.set_value( -1.57 )
         self.spinYawiMax.set_value( 1.57 )
-        self.spinYawKd.set_value( 0.05 )
+        self.spinYawKd.set_value( 0.010 )
 
         self.spinDepthKp.set_value( 0.3 )
         self.spinDepthKi.set_value( 0.0 )
         self.spinDepthiMin.set_value( -1.57 )
         self.spinDepthiMax.set_value( 1.57 )
-        self.spinDepthKd.set_value( 0.0 )        
+        self.spinDepthKd.set_value( 0.5 )        
         
     	self.RANGE = 100
         self.DEAD_ZONE = self.RANGE*0.01
@@ -277,16 +277,18 @@ class MainWindow:
         
 #---------------------------------------------------------------------------
     def onDepthPosButtonClicked( self, button ):
-        time = len( self.arrayDepthValues )
+        time1 = len( self.arrayDepthValues )
         plt.clf()
         plt.figure(1)
-        plt.plot( range( time ), self.arrayDepthValues )
-        plt.ylabel( 'Depth angle [deg/s]' )
+        plt.plot( range( time1 ), self.arrayDepthValues )
+        plt.ylabel( 'Depth [mbars]' )
         plt.xlabel( 'Time' )
         
+        time2 = len( self.arrayDepthSpeeds )
+        plt.clf()
         plt.figure(2)
-        plt.plot( range( time ), self.arrayDepthValues )
-        plt.ylabel( 'Depth angle [deg/s]' )
+        plt.plot( range( time2 ), self.arrayDepthSpeeds )
+        plt.ylabel( 'Depth speed [deg/s]' )
         plt.xlabel( 'Time' )
         
         self.depthSpeed

@@ -208,26 +208,41 @@ int MotorDriver::ProcessMessage( QueuePointer& respQueue,
        
         F32 depthSpeed = MOTOR_PER*MAX( -1.0f, MIN( (F32)pCmd->vel.pz, 1.0f ) );
         F32 normalisedFrontPWM = (depthSpeed + 1.0f)/2.0f;
-        F32 frontDuty = MIN_DUTY_CYCLE_US 
+        U32 frontDuty = MIN_DUTY_CYCLE_US 
             + (U32)((MAX_DUTY_CYCLE_US-MIN_DUTY_CYCLE_US)*normalisedFrontPWM);
         
         F32 pitchSpeed = MOTOR_PER*MAX( -1.0f, MIN( (F32)pCmd->vel.ppitch, 1.0f ) );
         F32 normalisedBackPWM = (pitchSpeed + 1.0f)/2.0f;
-        F32 backDuty = MIN_DUTY_CYCLE_US 
+        U32 backDuty = MIN_DUTY_CYCLE_US 
             + (U32)((MAX_DUTY_CYCLE_US-MIN_DUTY_CYCLE_US)*normalisedBackPWM);
             
         F32 linearSpeed = MAX( -1.0f, MIN( (F32)pCmd->vel.px, 1.0f ) );
         F32 yawSpeed = MAX( -1.0f, MIN( (F32)pCmd->vel.pyaw, 1.0f ) );
-        F32 leftSpeed = MOTOR_PER*MAX( -1.0f, MIN( linearSpeed + yawSpeed, 1.0f ) );
-        F32 rightSpeed = MOTOR_PER*MAX( -1.0f, MIN( linearSpeed - yawSpeed, 1.0f ) );
+        //F32 leftSpeed = MOTOR_PER*MAX( -1.0f, MIN( linearSpeed + yawSpeed, 1.0f ) );
+        //F32 rightSpeed = MOTOR_PER*MAX( -1.0f, MIN( linearSpeed - yawSpeed, 1.0f ) );
+        
+        if ( yawSpeed > 0 )
+        {
+            F32 leftSpeed = MOTOR_PER*MAX( -1.0f, MIN( linearSpeed + yawSpeed, 1.0f ) );
+            F32 rightSpeed = MOTOR_PER*MAX( -1.0f, MIN( linearSpeed, 1.0f ) );       
+        }
+        else
+        {
+            F32 leftSpeed = MOTOR_PER*MAX( -1.0f, MIN( linearSpeed, 1.0f ) );
+            F32 rightSpeed = MOTOR_PER*MAX( -1.0f, MIN( linearSpeed - yawSpeed , 1.0f ) );
+        }   
 
         F32 normalisedLeftPWM = (leftSpeed + 1.0f)/2.0f;
         F32 normalisedRightPWM = (rightSpeed + 1.0f)/2.0f;
-        F32 leftDuty = MIN_DUTY_CYCLE_US 
+        U32 leftDuty = MIN_DUTY_CYCLE_US 
             + (U32)((MAX_DUTY_CYCLE_US-MIN_DUTY_CYCLE_US)*normalisedLeftPWM);
-        F32 rightDuty = MIN_DUTY_CYCLE_US 
+        U32 rightDuty = MIN_DUTY_CYCLE_US 
             + (U32)((MAX_DUTY_CYCLE_US-MIN_DUTY_CYCLE_US)*normalisedRightPWM);
         
+        // fixing the offset
+        rightDuty  = rightDuty - 20 ;
+        frontDuty = frontDuty - 20 ;
+            
         if ( mbInitialisedPWM )
         {
             U8 motorControlFlags = (S32)pCmd->state;
@@ -307,8 +322,8 @@ int MotorDriver::ProcessMessage( QueuePointer& respQueue,
         U32 frontDuty = MIN_DUTY_CYCLE_US + (U32)((MAX_DUTY_CYCLE_US-MIN_DUTY_CYCLE_US)*normalisedFrontPWM);
         U32 backDuty = MIN_DUTY_CYCLE_US + (U32)((MAX_DUTY_CYCLE_US-MIN_DUTY_CYCLE_US)*normalisedBackPWM);
         
-        //printf( "Seting PWMS %i, %i, %i, %i\n",
-        //    leftDuty, rightDuty, frontDuty, backDuty );
+        printf( "Seting PWMS %i, %i, %i, %i\n",
+            leftDuty, rightDuty, frontDuty, backDuty );
         
         if ( mbInitialisedPWM )
         {

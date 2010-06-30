@@ -113,7 +113,7 @@
                             <property name="can_focus">True</property>
                             <property name="invisible_char">&#x25CF;</property>
                             <property name="adjustment">adjPitchKp</property>
-                            <property name="digits">2</property>
+                            <property name="digits">3</property>
                             <property name="numeric">True</property>
                             <property name="wrap">True</property>
                           </object>
@@ -149,7 +149,7 @@
                                 <property name="can_focus">True</property>
                                 <property name="invisible_char">&#x25CF;</property>
                                 <property name="adjustment">adjPitchKi</property>
-                                <property name="digits">2</property>
+                                <property name="digits">3</property>
                                 <property name="numeric">True</property>
                                 <property name="wrap">True</property>
                               </object>
@@ -264,7 +264,7 @@
                             <property name="can_focus">True</property>
                             <property name="invisible_char">&#x25CF;</property>
                             <property name="adjustment">adjPitchKd</property>
-                            <property name="digits">2</property>
+                            <property name="digits">3</property>
                             <property name="numeric">True</property>
                             <property name="wrap">True</property>
                           </object>
@@ -400,7 +400,7 @@
                             <property name="can_focus">True</property>
                             <property name="invisible_char">&#x25CF;</property>
                             <property name="adjustment">adjYawKp</property>
-                            <property name="digits">3</property>
+                            <property name="digits">5</property>
                             <property name="numeric">True</property>
                             <property name="wrap">True</property>
                           </object>
@@ -436,7 +436,7 @@
                                 <property name="can_focus">True</property>
                                 <property name="invisible_char">&#x25CF;</property>
                                 <property name="adjustment">adjYawKi</property>
-                                <property name="digits">3</property>
+                                <property name="digits">5</property>
                                 <property name="numeric">True</property>
                                 <property name="wrap">True</property>
                               </object>
@@ -551,7 +551,7 @@
                             <property name="can_focus">True</property>
                             <property name="invisible_char">&#x25CF;</property>
                             <property name="adjustment">adjYawKd</property>
-                            <property name="digits">3</property>
+                            <property name="digits">5</property>
                             <property name="numeric">True</property>
                             <property name="wrap">True</property>
                           </object>
@@ -688,7 +688,7 @@
                             <property name="can_focus">True</property>
                             <property name="invisible_char">&#x25CF;</property>
                             <property name="adjustment">adjDepthKp</property>
-                            <property name="digits">2</property>
+                            <property name="digits">3</property>
                             <property name="numeric">True</property>
                             <property name="wrap">True</property>
                           </object>
@@ -724,7 +724,7 @@
                                 <property name="can_focus">True</property>
                                 <property name="invisible_char">&#x25CF;</property>
                                 <property name="adjustment">adjDepthKi</property>
-                                <property name="digits">2</property>
+                                <property name="digits">3</property>
                                 <property name="numeric">True</property>
                                 <property name="wrap">True</property>
                               </object>
@@ -839,7 +839,7 @@
                             <property name="can_focus">True</property>
                             <property name="invisible_char">&#x25CF;</property>
                             <property name="adjustment">adjDepthKd</property>
-                            <property name="digits">2</property>
+                            <property name="digits">3</property>
                             <property name="numeric">True</property>
                             <property name="wrap">True</property>
                           </object>
@@ -1136,8 +1136,8 @@
   </object>
   <object class="GtkAdjustment" id="adjDesDepth">
     <property name="value">1</property>
-    <property name="upper">8500</property>
-    <property name="step_increment">2</property>
+    <property name="upper">9000</property>
+    <property name="step_increment">1</property>
     <property name="page_increment">10</property>
   </object>
   <object class="GtkAdjustment" id="adjMaxLinSpeed">
@@ -1152,6 +1152,7 @@
     <property name="page_increment">10</property>
   </object>
   <object class="GtkAdjustment" id="adjPitchKp">
+    <property name="lower">-100</property>
     <property name="upper">100</property>
     <property name="step_increment">0.10000000000000001</property>
     <property name="page_increment">10</property>
@@ -1163,7 +1164,7 @@
   </object>
   <object class="GtkAdjustment" id="adjPitchiMax">
     <property name="upper">10</property>
-    <property name="step_increment">1</property>
+    <property name="step_increment">0.5</property>
     <property name="page_increment">10</property>
   </object>
   <object class="GtkAdjustment" id="adjYawiMin">
@@ -1189,49 +1190,49 @@
   <object class="GtkAdjustment" id="adjPitchKi">
     <property name="lower">-100</property>
     <property name="upper">100</property>
-    <property name="step_increment">1</property>
+    <property name="step_increment">0.10000000000000001</property>
     <property name="page_increment">10</property>
   </object>
   <object class="GtkAdjustment" id="adjPitchKd">
     <property name="lower">-100</property>
     <property name="upper">100</property>
-    <property name="step_increment">1</property>
+    <property name="step_increment">0.10000000000000001</property>
     <property name="page_increment">10</property>
   </object>
   <object class="GtkAdjustment" id="adjYawKp">
     <property name="lower">-100</property>
     <property name="upper">100</property>
-    <property name="step_increment">1</property>
+    <property name="step_increment">0.01</property>
     <property name="page_increment">10</property>
   </object>
   <object class="GtkAdjustment" id="adjYawKi">
     <property name="lower">-100</property>
     <property name="upper">100</property>
-    <property name="step_increment">1</property>
+    <property name="step_increment">0.01</property>
     <property name="page_increment">10</property>
   </object>
   <object class="GtkAdjustment" id="adjYawKd">
     <property name="lower">-100</property>
     <property name="upper">100</property>
-    <property name="step_increment">1</property>
+    <property name="step_increment">0.01</property>
     <property name="page_increment">10</property>
   </object>
   <object class="GtkAdjustment" id="adjDepthKp">
     <property name="lower">-100</property>
     <property name="upper">100</property>
-    <property name="step_increment">1</property>
+    <property name="step_increment">0.10000000000000001</property>
     <property name="page_increment">10</property>
   </object>
   <object class="GtkAdjustment" id="adjDepthKi">
     <property name="lower">-100</property>
     <property name="upper">100</property>
-    <property name="step_increment">1</property>
+    <property name="step_increment">0.10000000000000001</property>
     <property name="page_increment">10</property>
   </object>
   <object class="GtkAdjustment" id="adjDepthKd">
     <property name="lower">-100</property>
     <property name="upper">100</property>
-    <property name="step_increment">1</property>
+    <property name="step_increment">0.10000000000000001</property>
     <property name="page_increment">10</property>
   </object>
 </interface>
