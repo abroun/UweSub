@@ -40,3 +40,8 @@ class SubControllerConfig( yaml.YAMLObject ):
         self.screenRadiusOfCloseBuoy = self.SCREEN_RADIUS_OF_CLOSE_BUOY
         
         self.logFileDir = "${HOME}/dev/uwe/UweSub/logs"
+        
+        # Sonar
+        self.safeSonarDepth = 1200 # We assume that pressure increases with depth
+        
+        # 

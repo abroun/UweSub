@@ -6,6 +6,7 @@ import sys
 import os
 import getpass
 import string
+import re
 from optparse import OptionParser
 from sshConnection import sshConnection
 
@@ -28,9 +29,6 @@ FILE_TRANSFER_LIST = [
     ( "${HOME}/dev/install/lib/libplayerudp.so.3.0.1", "/home/uwesub/dev/install/lib/libplayerudp.so.3.0.1" ),
    # ( "${HOME}/dev/install/lib/libpmap.so.3.0.1", "/home/uwesub/dev/install/lib/libpmap.so.3.0.1" ),
     ( "${HOME}/dev/install/lib/libwavefront_standalone.so.3.0.1", "/home/uwesub/dev/install/lib/libwavefront_standalone.so.3.0.1" ),
-    # Scripts
-    ( "${HOME}/dev/uwe/UweSub/scripts/SubController.py", 
-        "/home/uwesub/dev/uwe/UweSub/scripts/SubController.py" ),
     # Player Config files
     ( "${HOME}/dev/uwe/UweSub/data/PlayerConfigs/CompassTest.cfg", 
         "/home/uwesub/dev/uwe/UweSub/data/PlayerConfigs/CompassTest.cfg" ),
@@ -46,6 +44,21 @@ FILE_TRANSFER_LIST = [
     ( "${HOME}/dev/uwe/UweSub/data/SubControllerConfigs/RealWorld.cfg", 
         "/home/uwesub/dev/uwe/UweSub/data/SubControllerConfigs/RealWorld.cfg" ),
 ]
+
+# Class for defining a directory transfer from a folder somewhere 
+# in the HOME directory to the same directory in the HOME directory
+# of the RoBoard
+class HomeDirectoryTransfer:
+    
+    def __init__( self, relativeDir, filePatternList ):
+        self.relativeDir = relativeDir
+        self.filePatternList = filePatternList
+        
+DIRECTORY_TRANSFER_LIST = [ 
+    HomeDirectoryTransfer( "dev/uwe/UweSub/scripts", [ ".+\.py$", ".+\.glade$" ] ) ]
+
+SRC_HOME_DIR = string.Template( "${HOME}" ).safe_substitute( os.environ )
+DST_HOME_DIR = "/home/uwesub"
 
 # Substitute in environment variables
 for i in range( len( FILE_TRANSFER_LIST ) ):
@@ -91,6 +104,25 @@ sftpClient = uwesubConnection.openSFTPClient()
 for ( src, dst ) in FILE_TRANSFER_LIST:
     print src
     sftpClient.put( src, dst )
+    
+for directoryTransfer in DIRECTORY_TRANSFER_LIST:
+    srcDir = SRC_HOME_DIR + "/" + directoryTransfer.relativeDir
+    patterns = [ re.compile( p ) for p in directoryTransfer.filePatternList ]
+    
+    for root, dirs, files in os.walk( srcDir ):
+        dstRoot = re.sub( SRC_HOME_DIR, DST_HOME_DIR, root )
+        for srcFile in files:
+            
+            matchFound = False
+            for p in patterns:
+                if p.match( srcFile ) != None:
+                    matchFound = True
+                    break
+            
+            if matchFound:
+                dstFile = dstRoot + "/" + srcFile
+                print srcFile
+                sftpClient.put( srcFile, dstFile )
 
 print "Restarting UweSubPlayer"
 rootConnection.runCommand( "initctl start UweSubPlayer" )
