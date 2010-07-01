@@ -49,9 +49,13 @@ class MainWindow:
         self.window = builder.get_object( "winMain" )
         self.dwgControlArea = builder.get_object( "dwgControlArea" )
         self.vscaleLeftMotor = builder.get_object( "vscaleLeftMotor" )
+        self.spinLeftMotor = builder.get_object( "spinLeftMotor" )
         self.vscaleRightMotor = builder.get_object( "vscaleRightMotor" )
+        self.spinRightMotor = builder.get_object( "spinRightMotor" )
         self.vscaleFrontMotor = builder.get_object( "vscaleFrontMotor" )
+        self.spinFrontMotor = builder.get_object( "spinFrontMotor" )
         self.vscaleBackMotor = builder.get_object( "vscaleBackMotor" )
+        self.spinBackMotor = builder.get_object( "spinBackMotor" )
         self.chkLinkVerticalMotors = builder.get_object( "chkLinkVerticalMotors" )
         self.chkControlLeftMotor = builder.get_object( "chkControlLeftMotor" )
         self.chkControlRightMotor = builder.get_object( "chkControlRightMotor" )
@@ -376,14 +380,21 @@ class MainWindow:
                 leftMotorSpeed = 0.0
                 rightMotorSpeed = 0.0
             
-            self.vscaleLeftMotor.set_value( leftMotorSpeed )
-            self.vscaleRightMotor.set_value( rightMotorSpeed )
+            #self.vscaleLeftMotor.set_value( leftMotorSpeed )
+           #self.vscaleRightMotor.set_value( rightMotorSpeed )
 
             curTime = time.time()
             if curTime - lastTime > TIME_BETWEEN_UPDATES:
-                     
-                frontMotorSpeed = self.vscaleFrontMotor.get_value()
-                backMotorSpeed = self.vscaleBackMotor.get_value()
+                
+                #leftMotorSpeed = self.vscaleLeftMotor.get_value()
+                #rightMotorSpeed = self.vscaleRightMotor.get_value()
+                #frontMotorSpeed = self.vscaleFrontMotor.get_value()
+                #backMotorSpeed = self.vscaleBackMotor.get_value()
+                
+                leftMotorSpeed = self.spinLeftMotor.get_value()/5
+                rightMotorSpeed = self.spinRightMotor.get_value()/5
+                frontMotorSpeed = self.spinFrontMotor.get_value()/5
+                backMotorSpeed = self.spinBackMotor.get_value()/5
             
                 #print "Sending ", leftMotorSpeed, rightMotorSpeed, frontMotorSpeed, backMotorSpeed
             
@@ -396,6 +407,7 @@ class MainWindow:
                     | (self.chkControlFrontMotor.get_active() << 1) \
                     | self.chkControlBackMotor.get_active()
             
+                print "leftMotorSpeed", leftMotorSpeed
                 velocityPose.px = leftMotorSpeed
                 velocityPose.py = rightMotorSpeed
                 velocityPose.proll = frontMotorSpeed

@@ -86,14 +86,34 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkVScale" id="vscaleLeftMotor">
+                      <object class="GtkVBox" id="vbox7">
                         <property name="visible">True</property>
-                        <property name="sensitive">False</property>
-                        <property name="can_focus">True</property>
-                        <property name="adjustment">adjLeftMotor</property>
-                        <property name="inverted">True</property>
-                        <property name="show_fill_level">True</property>
-                        <property name="draw_value">False</property>
+                        <child>
+                          <object class="GtkVScale" id="vscaleLeftMotor">
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="adjustment">adjLeftMotor</property>
+                            <property name="inverted">True</property>
+                            <property name="show_fill_level">True</property>
+                            <property name="digits">3</property>
+                            <property name="draw_value">False</property>
+                          </object>
+                          <packing>
+                            <property name="position">0</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkSpinButton" id="spinLeftMotor">
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="invisible_char">&#x25CF;</property>
+                            <property name="adjustment">adjLeftMotor</property>
+                            <property name="digits">3</property>
+                          </object>
+                          <packing>
+                            <property name="position">1</property>
+                          </packing>
+                        </child>
                       </object>
                       <packing>
                         <property name="position">1</property>
@@ -118,14 +138,33 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkVScale" id="vscaleRightMotor">
+                      <object class="GtkVBox" id="vbox8">
                         <property name="visible">True</property>
-                        <property name="sensitive">False</property>
-                        <property name="can_focus">True</property>
-                        <property name="adjustment">adjRightMotor</property>
-                        <property name="inverted">True</property>
-                        <property name="show_fill_level">True</property>
-                        <property name="draw_value">False</property>
+                        <child>
+                          <object class="GtkVScale" id="vscaleRightMotor">
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="adjustment">adjRightMotor</property>
+                            <property name="inverted">True</property>
+                            <property name="show_fill_level">True</property>
+                            <property name="draw_value">False</property>
+                          </object>
+                          <packing>
+                            <property name="position">0</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkSpinButton" id="spinRightMotor">
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="invisible_char">&#x25CF;</property>
+                            <property name="adjustment">adjRightMotor</property>
+                            <property name="digits">3</property>
+                          </object>
+                          <packing>
+                            <property name="position">1</property>
+                          </packing>
+                        </child>
                       </object>
                       <packing>
                         <property name="position">1</property>
@@ -150,16 +189,36 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkVScale" id="vscaleFrontMotor">
+                      <object class="GtkVBox" id="vbox9">
                         <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="events">GDK_EXPOSURE_MASK | GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_MOTION_MASK | GDK_BUTTON1_MOTION_MASK | GDK_BUTTON2_MOTION_MASK | GDK_BUTTON3_MOTION_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_KEY_PRESS_MASK | GDK_KEY_RELEASE_MASK | GDK_ENTER_NOTIFY_MASK | GDK_LEAVE_NOTIFY_MASK | GDK_FOCUS_CHANGE_MASK | GDK_STRUCTURE_MASK | GDK_PROPERTY_CHANGE_MASK | GDK_VISIBILITY_NOTIFY_MASK | GDK_PROXIMITY_IN_MASK | GDK_PROXIMITY_OUT_MASK | GDK_SUBSTRUCTURE_MASK | GDK_SCROLL_MASK</property>
-                        <property name="adjustment">adjFrontMotor</property>
-                        <property name="lower_stepper_sensitivity">off</property>
-                        <property name="upper_stepper_sensitivity">off</property>
-                        <property name="show_fill_level">True</property>
-                        <property name="draw_value">False</property>
-                        <signal name="value_changed" handler="onVscaleFrontMotorValueChanged"/>
+                        <child>
+                          <object class="GtkVScale" id="vscaleFrontMotor">
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="events">GDK_EXPOSURE_MASK | GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_MOTION_MASK | GDK_BUTTON1_MOTION_MASK | GDK_BUTTON2_MOTION_MASK | GDK_BUTTON3_MOTION_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_KEY_PRESS_MASK | GDK_KEY_RELEASE_MASK | GDK_ENTER_NOTIFY_MASK | GDK_LEAVE_NOTIFY_MASK | GDK_FOCUS_CHANGE_MASK | GDK_STRUCTURE_MASK | GDK_PROPERTY_CHANGE_MASK | GDK_VISIBILITY_NOTIFY_MASK | GDK_PROXIMITY_IN_MASK | GDK_PROXIMITY_OUT_MASK | GDK_SUBSTRUCTURE_MASK | GDK_SCROLL_MASK</property>
+                            <property name="adjustment">adjFrontMotor</property>
+                            <property name="lower_stepper_sensitivity">off</property>
+                            <property name="upper_stepper_sensitivity">off</property>
+                            <property name="show_fill_level">True</property>
+                            <property name="draw_value">False</property>
+                            <signal name="value_changed" handler="onVscaleFrontMotorValueChanged"/>
+                          </object>
+                          <packing>
+                            <property name="position">0</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkSpinButton" id="spinFrontMotor">
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="invisible_char">&#x25CF;</property>
+                            <property name="adjustment">adjFrontMotor</property>
+                            <property name="digits">3</property>
+                          </object>
+                          <packing>
+                            <property name="position">1</property>
+                          </packing>
+                        </child>
                       </object>
                       <packing>
                         <property name="position">1</property>
@@ -184,13 +243,33 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkVScale" id="vscaleBackMotor">
+                      <object class="GtkVBox" id="vbox10">
                         <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="adjustment">adjBackMotor</property>
-                        <property name="show_fill_level">True</property>
-                        <property name="draw_value">False</property>
-                        <signal name="value_changed" handler="onVscaleBackMotorValueChanged"/>
+                        <child>
+                          <object class="GtkVScale" id="vscaleBackMotor">
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="adjustment">adjBackMotor</property>
+                            <property name="show_fill_level">True</property>
+                            <property name="draw_value">False</property>
+                            <signal name="value_changed" handler="onVscaleBackMotorValueChanged"/>
+                          </object>
+                          <packing>
+                            <property name="position">0</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkSpinButton" id="spinBackMotor">
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="invisible_char">&#x25CF;</property>
+                            <property name="adjustment">adjBackMotor</property>
+                            <property name="digits">3</property>
+                          </object>
+                          <packing>
+                            <property name="position">1</property>
+                          </packing>
+                        </child>
                       </object>
                       <packing>
                         <property name="position">1</property>
@@ -283,23 +362,23 @@
     <property name="page_increment">10</property>
   </object>
   <object class="GtkAdjustment" id="adjLeftMotor">
-    <property name="lower">-1</property>
-    <property name="upper">1</property>
+    <property name="lower">-5</property>
+    <property name="upper">5</property>
     <property name="step_increment">0.01</property>
   </object>
   <object class="GtkAdjustment" id="adjRightMotor">
-    <property name="lower">-1</property>
-    <property name="upper">1</property>
+    <property name="lower">-5</property>
+    <property name="upper">5</property>
     <property name="step_increment">0.01</property>
   </object>
   <object class="GtkAdjustment" id="adjFrontMotor">
-    <property name="lower">-1</property>
-    <property name="upper">1</property>
+    <property name="lower">-5</property>
+    <property name="upper">5</property>
     <property name="step_increment">0.01</property>
   </object>
   <object class="GtkAdjustment" id="adjBackMotor">
-    <property name="lower">-1</property>
-    <property name="upper">1</property>
+    <property name="lower">-5</property>
+    <property name="upper">5</property>
     <property name="step_increment">0.01</property>
   </object>
 </interface>

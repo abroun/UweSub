@@ -47,7 +47,7 @@ class YawControl:
     def update( self ):
         
         if self.Kp == None:
-            self.Kp = 0.08
+            self.Kp = 0.001
         if self.Ki == None:
             self.Ki = 0.0
         if self.iMin == None:
@@ -55,7 +55,7 @@ class YawControl:
         if self.iMax == None:
             self.iMax = 1.57
         if self.Kd == None:
-            self.Kd = 0.05
+            self.Kd = 0.001
 
         # Feedback from the Compass
         radCompassYawAngle = self.playerCompass.pose.pyaw

@@ -41,6 +41,7 @@ class MotorDriver : public ThreadedDriver
     
     private: F32 mYawCompassAngle;
     private: F32 mPitchCompassAngle;
+    private: F32 mRollCompassAngle;
     private: bool mbCompassAngleValid;
     private: double mCompassAngleTimestamp;
     private: double mLastDisplayedCompassAngleTimestamp;

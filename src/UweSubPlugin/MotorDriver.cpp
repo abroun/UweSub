@@ -212,6 +212,7 @@ int MotorDriver::ProcessMessage( QueuePointer& respQueue,
        
         F32 depthSpeed = MOTOR_PER*MAX( -1.0f, MIN( (F32)pCmd->vel.pz, 1.0f ) );
         F32 normalisedFrontPWM = (depthSpeed + 1.0f)/2.0f;
+
         S32 frontDuty = MIN_DUTY_CYCLE_US 
             + (U32)((MAX_DUTY_CYCLE_US-MIN_DUTY_CYCLE_US)*normalisedFrontPWM);
         
@@ -224,6 +225,17 @@ int MotorDriver::ProcessMessage( QueuePointer& respQueue,
         F32 yawSpeed = MAX( -1.0f, MIN( (F32)pCmd->vel.pyaw, 1.0f ) );
         F32 leftSpeed = MOTOR_PER*MAX( -1.0f, MIN( linearSpeed + yawSpeed, 1.0f ) );
         F32 rightSpeed = MOTOR_PER*MAX( -1.0f, MIN( linearSpeed - yawSpeed, 1.0f ) );
+        
+//         if ( yawSpeed > 0 )
+//         {
+//             F32 leftSpeed = MOTOR_PER*MAX( -1.0f, MIN( linearSpeed + yawSpeed, 1.0f ) );
+//             F32 rightSpeed = MOTOR_PER*MAX( -1.0f, MIN( linearSpeed, 1.0f ) );       
+//         }
+//         else
+//         {
+//             F32 leftSpeed = MOTOR_PER*MAX( -1.0f, MIN( linearSpeed, 1.0f ) );
+//             F32 rightSpeed = MOTOR_PER*MAX( -1.0f, MIN( linearSpeed - yawSpeed , 1.0f ) );
+//         }   
 
         F32 normalisedLeftPWM = (leftSpeed + 1.0f)/2.0f;
         F32 normalisedRightPWM = (rightSpeed + 1.0f)/2.0f;
@@ -295,6 +307,7 @@ int MotorDriver::ProcessMessage( QueuePointer& respQueue,
         
         mYawCompassAngle = pCompassData->pose.pyaw;
         mPitchCompassAngle = pCompassData->pose.ppitch;
+        mRollCompassAngle = pCompassData->pose.proll;
         
         mbCompassAngleValid = true;
         mCompassAngleTimestamp = pHeader->timestamp;
@@ -331,13 +344,13 @@ int MotorDriver::ProcessMessage( QueuePointer& respQueue,
         S32 rightDuty = MIN_DUTY_CYCLE_US + (U32)((MAX_DUTY_CYCLE_US-MIN_DUTY_CYCLE_US)*normalisedRightPWM);
         S32 frontDuty = MIN_DUTY_CYCLE_US + (U32)((MAX_DUTY_CYCLE_US-MIN_DUTY_CYCLE_US)*normalisedFrontPWM);
         S32 backDuty = MIN_DUTY_CYCLE_US + (U32)((MAX_DUTY_CYCLE_US-MIN_DUTY_CYCLE_US)*normalisedBackPWM);
-        
+
         // Offset duty cycles to account for dodgy motor controllers
         leftDuty = MAX( MIN_DUTY_CYCLE_US, MIN( leftDuty + LEFT_PWM_OFFSET, MAX_DUTY_CYCLE_US ) );
         rightDuty = MAX( MIN_DUTY_CYCLE_US, MIN( rightDuty + RIGHT_PWM_OFFSET, MAX_DUTY_CYCLE_US ) );
         frontDuty = MAX( MIN_DUTY_CYCLE_US, MIN( frontDuty + FRONT_PWM_OFFSET, MAX_DUTY_CYCLE_US ) );
         backDuty = MAX( MIN_DUTY_CYCLE_US, MIN( backDuty + BACK_PWM_OFFSET, MAX_DUTY_CYCLE_US ) );
-        
+ 
         printf( "Seting PWMS %i, %i, %i, %i\n",
             leftDuty, rightDuty, frontDuty, backDuty );
         
@@ -405,12 +418,18 @@ void MotorDriver::Main()
                 radCompassPitchAngle -= 2*M_PI;
             }
             
+            F32 radCompassRollAngle = mRollCompassAngle;
+            while( radCompassRollAngle >= 2*M_PI)
+            {
+                radCompassRollAngle -= 2*M_PI;
+            }
+
             F32 degCompassYawAngle = radCompassYawAngle*180.0f/M_PI;
             F32 degCompassPitchAngle = radCompassPitchAngle*180.0f/M_PI;
+            F32 degCompassRollAngle = radCompassRollAngle*180.0f/M_PI;
             F32 DepthSensorDepth = mDepthSensorDepth;
             
-            
-            //printf( "Compass angle (degrees): yaw = %2.3f, pitch = %2.3f | Sensor depth (m): %2.3f \n", degCompassYawAngle, degCompassPitchAngle, DepthSensorDepth );
+            printf( "Compass angle (degrees): yaw = %2.2f, pitch = %2.2f, roll = %2.2f | Sensor depth (m): %2.2f \n", degCompassYawAngle, degCompassPitchAngle, degCompassRollAngle, DepthSensorDepth );
             mLastDisplayedCompassAngleTimestamp = mCompassAngleTimestamp;
             mLastDisplayedDepthSensorDepthTimestamp = mDepthSensorDepthTimestamp;
         }
