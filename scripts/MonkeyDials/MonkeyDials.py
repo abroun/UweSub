@@ -49,6 +49,8 @@ class MainWindow:
         self.arrayYawAngles = [ 0 ]
         self.startYawGraph = False
         
+        self.degCompassRollAngle = 0.0
+        
         self.depthSensorDepth = 0.0
         self.arrayDepthValues = [ 0 ]
         self.arrayDepthSpeeds = [ 0 ]
@@ -112,6 +114,7 @@ class MainWindow:
         
         self.lblCompassPitchAngle = builder.get_object( "lblCompassPitchAngle" )
         self.lblCompassYawAngle = builder.get_object( "lblCompassYawAngle" )
+        self.lblCompassRollAngle = builder.get_object( "lblCompassRollAngle" )
         self.lblDepthSensorDepth = builder.get_object( "lblDepthSensorDepth" )
         
         self.checkKill = builder.get_object( "checkKill" )
@@ -125,7 +128,7 @@ class MainWindow:
         self.spinDesiredPitchAngle.set_value( 0.0 )
         self.spinDesiredYawAngle.set_value( 180.0 )
         self.spinDesiredDepth.set_value( 7436)
-        
+
         self.spinPitchKp.set_value( 3.0 )
         self.spinPitchKi.set_value( 0.0 )
         self.spinPitchiMin.set_value( -1.57 )
@@ -318,16 +321,21 @@ class MainWindow:
                 # Get compass pitch and yaw angle
                 radCompassPitchAngle = self.playerCompass.pose.ppitch
                 radCompassYawAngle = self.playerCompass.pose.pyaw
+                radCompassRollAngle = self.playerCompass.pose.proll
                 # 0 < angle < 2*pi
                 while radCompassPitchAngle >= 2*math.pi:
                     radCompassPitchAngle -= 2*math.pi
                 while radCompassYawAngle >= 2*math.pi:
                     radCompassYawAngle -= 2*math.pi
+                while radCompassRollAngle >= 2*math.pi:
+                    radCompassRollAngle -= 2*math.pi
                 self.degCompassPitchAngle = radCompassPitchAngle*180.0/math.pi    # from rad to degrees
                 self.degCompassYawAngle = radCompassYawAngle*180.0/math.pi    # from rad to degrees
+                self.degCompassRollAngle = radCompassRollAngle*180.0/math.pi    # from rad to degrees
                 #print it on the GUI
                 self.lblCompassPitchAngle.set_text( "{0:.3}".format( self.degCompassPitchAngle ) )
                 self.lblCompassYawAngle.set_text( "{0:.3}".format( self.degCompassYawAngle ) )
+                self.lblCompassRollAngle.set_text( "{0:.3}".format( self.degCompassRollAngle ) )
             
             # Update the depth sensor value if needed                
             if self.playerDepthSensor != None and self.playerClient.peek( 0 ):

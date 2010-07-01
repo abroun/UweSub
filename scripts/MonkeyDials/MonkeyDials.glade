@@ -341,7 +341,7 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkHBox" id="desiredYawAngleValues">
+                      <object class="GtkHBox" id="compassYawAngleValues">
                         <property name="visible">True</property>
                         <property name="homogeneous">True</property>
                         <child>
@@ -400,11 +400,7 @@
                             <property name="can_focus">True</property>
                             <property name="invisible_char">&#x25CF;</property>
                             <property name="adjustment">adjYawKp</property>
-<<<<<<< HEAD
-                            <property name="digits">5</property>
-=======
                             <property name="digits">10</property>
->>>>>>> dac56e565d918aa6a566ad3195f96e396fd9e442
                             <property name="numeric">True</property>
                             <property name="wrap">True</property>
                           </object>
@@ -440,11 +436,7 @@
                                 <property name="can_focus">True</property>
                                 <property name="invisible_char">&#x25CF;</property>
                                 <property name="adjustment">adjYawKi</property>
-<<<<<<< HEAD
-                                <property name="digits">5</property>
-=======
                                 <property name="digits">6</property>
->>>>>>> dac56e565d918aa6a566ad3195f96e396fd9e442
                                 <property name="numeric">True</property>
                                 <property name="wrap">True</property>
                               </object>
@@ -559,11 +551,7 @@
                             <property name="can_focus">True</property>
                             <property name="invisible_char">&#x25CF;</property>
                             <property name="adjustment">adjYawKd</property>
-<<<<<<< HEAD
-                            <property name="digits">5</property>
-=======
                             <property name="digits">10</property>
->>>>>>> dac56e565d918aa6a566ad3195f96e396fd9e442
                             <property name="numeric">True</property>
                             <property name="wrap">True</property>
                           </object>
@@ -595,6 +583,64 @@
               <packing>
                 <property name="expand">False</property>
                 <property name="position">3</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkHBox" id="compassRollAngleValues">
+                <property name="visible">True</property>
+                <property name="homogeneous">True</property>
+                <child>
+                  <object class="GtkLabel" id="lblCompassRollAngleName">
+                    <property name="visible">True</property>
+                    <property name="xalign">0.98000001907348633</property>
+                    <property name="label" translatable="yes">Compass Roll Angle:</property>
+                  </object>
+                  <packing>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="lblCompassRollAngle">
+                    <property name="visible">True</property>
+                    <property name="xpad">5</property>
+                    <property name="label" translatable="yes">0.0</property>
+                  </object>
+                  <packing>
+                    <property name="padding">10</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="lblBlank">
+                    <property name="visible">True</property>
+                    <property name="xalign">0.98000001907348633</property>
+                  </object>
+                  <packing>
+                    <property name="position">2</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="lblBlank2">
+                    <property name="visible">True</property>
+                    <property name="xalign">0.98000001907348633</property>
+                  </object>
+                  <packing>
+                    <property name="position">3</property>
+                  </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="position">4</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkHSeparator" id="hseparator4">
+                <property name="visible">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="position">5</property>
               </packing>
             </child>
             <child>
@@ -700,11 +746,7 @@
                             <property name="can_focus">True</property>
                             <property name="invisible_char">&#x25CF;</property>
                             <property name="adjustment">adjDepthKp</property>
-<<<<<<< HEAD
-                            <property name="digits">3</property>
-=======
                             <property name="digits">6</property>
->>>>>>> dac56e565d918aa6a566ad3195f96e396fd9e442
                             <property name="numeric">True</property>
                             <property name="wrap">True</property>
                           </object>
@@ -740,11 +782,7 @@
                                 <property name="can_focus">True</property>
                                 <property name="invisible_char">&#x25CF;</property>
                                 <property name="adjustment">adjDepthKi</property>
-<<<<<<< HEAD
-                                <property name="digits">3</property>
-=======
                                 <property name="digits">6</property>
->>>>>>> dac56e565d918aa6a566ad3195f96e396fd9e442
                                 <property name="numeric">True</property>
                                 <property name="wrap">True</property>
                               </object>
@@ -859,11 +897,7 @@
                             <property name="can_focus">True</property>
                             <property name="invisible_char">&#x25CF;</property>
                             <property name="adjustment">adjDepthKd</property>
-<<<<<<< HEAD
-                            <property name="digits">3</property>
-=======
                             <property name="digits">6</property>
->>>>>>> dac56e565d918aa6a566ad3195f96e396fd9e442
                             <property name="numeric">True</property>
                             <property name="wrap">True</property>
                           </object>
@@ -885,7 +919,7 @@
               </object>
               <packing>
                 <property name="expand">False</property>
-                <property name="position">4</property>
+                <property name="position">6</property>
               </packing>
             </child>
             <child>
@@ -894,7 +928,7 @@
               </object>
               <packing>
                 <property name="expand">False</property>
-                <property name="position">5</property>
+                <property name="position">7</property>
               </packing>
             </child>
             <child>
@@ -953,7 +987,7 @@
               </object>
               <packing>
                 <property name="expand">False</property>
-                <property name="position">6</property>
+                <property name="position">8</property>
               </packing>
             </child>
             <child>
@@ -1066,7 +1100,7 @@
               </object>
               <packing>
                 <property name="expand">False</property>
-                <property name="position">7</property>
+                <property name="position">9</property>
               </packing>
             </child>
             <child>
@@ -1136,7 +1170,7 @@
                 </child>
               </object>
               <packing>
-                <property name="position">8</property>
+                <property name="position">10</property>
               </packing>
             </child>
           </object>

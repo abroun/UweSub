@@ -77,7 +77,6 @@ class DepthControl:
         self.lastdesiredDepth = self.desiredDepth
         
         #if self.desiredDepth != self.lastdesiredDepth
-        
         if depthError > 0.1 or depthError < -0.1:
             self.errorFlag = 0.0
         #print depthError
