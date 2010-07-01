@@ -54,6 +54,7 @@ static inline F32 READ_F32( U8* buffer )
 //------------------------------------------------------------------------------
 const U32 CompassDriver::DEFAULT_BUFFER_SIZE = 10000;
 const S32 CompassDriver::COMPASS_COMMAND_ID_PACKET_IDX = 2;
+const F32 CompassDriver::COMPASS_WAIT_TIME = 30.0f;
 
 //------------------------------------------------------------------------------
 // Constructor.  Retrieve options from the configuration file and do any
@@ -114,9 +115,9 @@ int CompassDriver::MainSetup()
         return -1;
     }
 
-    // Start by getting information about the compass
-    SendGetModInfoCommand();
-    mState = eS_GettingModInfo;
+    // Wait for the compass to start up
+    mbWaitingForCompass = true;
+    mWaitStartTime = HighPrecisionTime::GetTime();
 
     PLAYER_WARN( "Compass driver ready" );
 
@@ -165,12 +166,30 @@ void CompassDriver::Main()
 {
     for (;;)
     {
-        // Wait for messages to arrive
-        base::Wait();
+        if ( mbWaitingForCompass )
+        {
+            HighPrecisionTime curTime = HighPrecisionTime::GetTime();
+    
+            F32 timeDiff = HighPrecisionTime::ConvertToSeconds(
+                HighPrecisionTime::GetDiff( curTime, mWaitStartTime ) );
+            if ( timeDiff > COMPASS_WAIT_TIME )
+            {
+                mbWaitingForCompass = false;
 
-        base::ProcessMessages();
+                // Start by getting information about the compass
+                SendGetModInfoCommand();
+                mState = eS_GettingModInfo;
+            }
+        }
+        else
+        {        
+            // Wait for messages to arrive
+            base::Wait();
 
-        ProcessData();
+            base::ProcessMessages();
+
+            ProcessData();
+        }
     }
 }
 
