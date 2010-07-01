@@ -142,6 +142,7 @@ if __name__ == "__main__":
     
         configFile = file( options.configFilename, "r" )
         subControllerConfig = yaml.load( configFile )
+        subControllerConfig.addUnsetVariables()
         configFile.close()
 
     subController = ScriptedSubController( subControllerConfig )

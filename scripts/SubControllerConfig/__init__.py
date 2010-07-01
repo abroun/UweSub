@@ -27,41 +27,93 @@ class SubControllerConfig( yaml.YAMLObject ):
     YAW_SPEED = 0.3
     SCREEN_RADIUS_OF_CLOSE_BUOY = 0.2
     
+    #---------------------------------------------------------------------------
     def __init__( self ):
-        self.robotType = self.ROBOT_TYPE_REAL
-
-        self.playerServerAddress = self.PLAYER_SERVER_ADDRESS
-        self.playerServerPort = self.PLAYER_SERVER_PORT
-
-        self.trackedHue = self.TRACKED_HUE
-        self.maxAbsHueDiff = self.MAX_ABS_HUE_DIFF
-        self.trackedSaturation = self.TRACKED_SATURATION
-        self.maxAbsSaturationDiff = self.MAX_ABS_SATURATION_DIFF
-        self.trackedValue = self.TRACKED_VALUE
-        self.maxAbsValueDiff = self.MAX_ABS_VALUE_DIFF
-
-        self.forwardSpeed = self.FORWARD_SPEED
-        self.yawSpeed = self.YAW_SPEED
-        self.screenRadiusOfCloseBuoy = self.SCREEN_RADIUS_OF_CLOSE_BUOY
+        self.addUnsetVariables()
         
-        self.logFileDir = "${HOME}/dev/uwe/UweSub/logs"
+    #---------------------------------------------------------------------------
+    def addUnsetVariables( self ):
         
-        self.sonarImagesDir = "${HOME}/dev/uwe/UweSub/logs/sonar"
-        self.cameraImagesDir = "${HOME}/dev/uwe/UweSub/logs/camera"
+        setVariables = dir( self )
+        
+        if not "robotType" in setVariables:
+            self.robotType = self.ROBOT_TYPE_REAL
+
+        if not "playerServerAddress" in setVariables:
+            self.playerServerAddress = self.PLAYER_SERVER_ADDRESS
+        
+        if not "playerServerPort" in setVariables:
+            self.playerServerPort = self.PLAYER_SERVER_PORT
+
+        if not "trackedHue" in setVariables:
+            self.trackedHue = self.TRACKED_HUE
+            
+        if not "maxAbsHueDiff" in setVariables:
+            self.maxAbsHueDiff = self.MAX_ABS_HUE_DIFF
+            
+        if not "trackedSaturation" in setVariables:
+            self.trackedSaturation = self.TRACKED_SATURATION
+        
+        if not "maxAbsSaturationDiff" in setVariables:
+            self.maxAbsSaturationDiff = self.MAX_ABS_SATURATION_DIFF
+            
+        if not "trackedValue" in setVariables:
+            self.trackedValue = self.TRACKED_VALUE
+        
+        if not "maxAbsValueDiff" in setVariables:
+            self.maxAbsValueDiff = self.MAX_ABS_VALUE_DIFF
+
+        if not "forwardSpeed" in setVariables:
+            self.forwardSpeed = self.FORWARD_SPEED
+        
+        if not "yawSpeed" in setVariables:
+            self.yawSpeed = self.YAW_SPEED
+        
+        if not "screenRadiusOfCloseBuoy" in setVariables:
+            self.screenRadiusOfCloseBuoy = self.SCREEN_RADIUS_OF_CLOSE_BUOY
+        
+        if not "logFileDir" in setVariables:
+            self.logFileDir = "${HOME}/dev/uwe/UweSub/logs"
+        
+        if not "sonarImagesDir" in setVariables:
+            self.sonarImagesDir = "${HOME}/dev/uwe/UweSub/logs/sonar"
+        
+        if not "cameraImagesDir" in setVariables:
+            self.cameraImagesDir = "${HOME}/dev/uwe/UweSub/logs/camera"
         
         # Sonar
-        self.safeSonarDepth = 50 # We assume that pressure increases with depth
-        self.sonarMaxTimeBetweenScans = 30.0
-        self.sonarNumFailedScansBetweenReboots = 2
+        if not "safeSonarDepth" in setVariables:
+            self.safeSonarDepth = 50 # We assume that pressure increases with depth
+        
+        if not "sonarMaxTimeBetweenScans" in setVariables:
+            self.sonarMaxTimeBetweenScans = 30.0
+        
+        if not "sonarNumFailedScansBetweenReboots" in setVariables:
+            self.sonarNumFailedScansBetweenReboots = 2
         
         # Image Capture Script
-        self.IC_Script_sonarGain = 0.1
-        self.IC_Script_sonarRange = 70
-        self.IC_Script_sonarNumBins = 300
-        self.IC_Script_sonarScanStartAngle = Maths.degToRad( 270.0 )
-        self.IC_Script_sonarScanEndAngle = Maths.degToRad( 90.0 )
-        self.IC_Script_numImagesSavedPerSecond = 1.0
-        self.IC_Script_enableCamera = True
-        self.IC_Script_enableSonar = False
+        if not "IC_Script_sonarGain" in setVariables:
+            self.IC_Script_sonarGain = 0.1
+        
+        if not "IC_Script_sonarRange" in setVariables:
+            self.IC_Script_sonarRange = 70
+        
+        if not "IC_Script_sonarNumBins" in setVariables:
+            self.IC_Script_sonarNumBins = 300
+        
+        if not "IC_Script_sonarScanStartAngle" in setVariables:
+            self.IC_Script_sonarScanStartAngle = Maths.degToRad( 270.0 )
+        
+        if not "IC_Script_sonarScanEndAngle" in setVariables:
+            self.IC_Script_sonarScanEndAngle = Maths.degToRad( 90.0 )
+        
+        if not "IC_Script_numImagesSavedPerSecond" in setVariables:
+            self.IC_Script_numImagesSavedPerSecond = 1.0
+        
+        if not "IC_Script_enableCamera" in setVariables:
+            self.IC_Script_enableCamera = True
+        
+        if not "IC_Script_enableSonar" in setVariables:
+            self.IC_Script_enableSonar = False
         
         
