@@ -5,6 +5,7 @@
 
 import cv
 import time
+import sys
 
 # Add common packages directory to path
 sys.path.append( "../" )
@@ -39,13 +40,13 @@ class SonarScanner:
         self.active = active
    
     #---------------------------------------------------------------------------
-    def setSonarConfig( scanRange, numBins, gain ):
+    def setSonarConfig( self, scanRange, numBins, gain ):
         self.scanRange = scanRange
         self.numBins = numBins
         self.gain = gain
     
     #---------------------------------------------------------------------------
-    def setScanAngleRange( scanStartAngle, scanEndAngle ):
+    def setScanAngleRange( self, scanStartAngle, scanEndAngle ):
         self.scanStartAngle = scanStartAngle
         self.scanEndAngle = scanEndAngle
    
@@ -66,9 +67,8 @@ class SonarScanner:
         # Start the scan
         self.playerSonar.scan( self.scanStartAngle, self.scanEndAngle )
         
-        #print "Requested scan"
-        #print "SubHeading", Maths.radToDeg( subHeading )
-        #print "From", Maths.radToDeg( scanStartAngle ), "To", Maths.radToDeg( scanEndAngle )
+        self.logger.logMsg( "SonarScanner: Requested scan from {0:2.3f} to {1:2.3f}".format(
+            Maths.radToDeg( self.scanStartAngle ), Maths.radToDeg( self.scanEndAngle ) ) )
         
         self.lastScanTime = time.time()
         self.waitingForScan = True
@@ -82,17 +82,17 @@ class SonarScanner:
     
     #---------------------------------------------------------------------------
     def update( self ):
-        
+                
         curTime = time.time()
         
         # Perform a sonar scan
         if self.waitingForScan:
             
-            if curTime - self.lastScanTime > self.MAX_TIME_BETWEEN_SCANS:
+            if curTime - self.lastScanTime > self.config.sonarMaxTimeBetweenScans:
                 logger.logMsg( "SonarScanner: Timed out waiting for scan, requesting new one" )
                 self.numFailedScans += 1
                 
-                if self.numFailedScans <= self.NUM_FAILED_SCANS_BETWEEN_REBOOTS:
+                if self.numFailedScans <= self.config.sonarNumFailedScansBetweenReboots:
                     self.startScan()
                 else:
                     logger.logMsg( "SonarScanner: Trying to reboot sonar" )
@@ -104,6 +104,8 @@ class SonarScanner:
                     self.waitingForScan = False
                     self.numFailedScans = 0
                     self.lastSonarFrameTime = self.playerSonar.info.datatime
+                    
+                    self.logger.logMsg( "SonarScanner: Got scan" )
                     
                     # Get image from sonar
                     self.sonarImage = cv.CreateImageHeader( ( self.playerSonar.width, self.playerSonar.height ), cv.IPL_DEPTH_8U, 1 )       

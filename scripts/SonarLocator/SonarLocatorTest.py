@@ -16,7 +16,7 @@ import gobject
 from playerc import *
 import cv
 import yaml
-
+from Logger import Logger
 from SonarLocator import SonarLocator
 
 # Add common packages directory to path
@@ -30,12 +30,13 @@ class MainWindow:
     def __init__( self, config = SubControllerConfig() ):
     
         self.config = config
-        
+        self.logger = Logger( self.config, logToFile=False )
+        self.logger.addOutputToStdOut()
         self.sonarPixBuf = None
         self.lastSonarFrameTime = 0.0
 
         self.connectToPlayer()
-        self.sonarLocator = SonarLocator( self.playerCompass, self.playerSonar, config )
+        self.sonarLocator = SonarLocator( logger, self.playerCompass, self.playerSonar, config )
     
         # Setup the GUI
         builder = gtk.Builder()

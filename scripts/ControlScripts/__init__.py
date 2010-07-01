@@ -8,14 +8,18 @@ class ControlScript:
     STATE_INVALID = "Invalid"
     
     #---------------------------------------------------------------------------
-    def __init__( self, config, logger, playerPos3D, playerCompass = None, 
-        playerDepthSensor = None, playerSonar = None ):
+    def __init__( self, config, logger, 
+        playerPos3D, playerCompass = None, 
+        playerDepthSensor = None, playerSonar = None, 
+        playerFrontCamera = None, playerBottomCamera = None ):
             
         self.logger = logger
         self.playerPos3D = playerPos3D
         self.playerCompass = playerCompass
         self.playerDepthSensor = playerDepthSensor
         self.playerSonar = playerSonar
+        self.playerFrontCamera = playerFrontCamera
+        self.playerBottomCamera = playerBottomCamera
         self.config = config
         
         self.state = self.STATE_INVALID

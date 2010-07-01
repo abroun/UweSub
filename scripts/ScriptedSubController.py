@@ -17,6 +17,7 @@ import time
 from SubControllerConfig import SubControllerConfig
 from Logger import Logger
 from ControlScripts import TimeBasedGatesScript
+from ControlScripts import ImageCaptureScript
 
 #-------------------------------------------------------------------------------
 class ScriptedSubController:
@@ -107,8 +108,10 @@ class ScriptedSubController:
         # TODO: Come up with a good way of choosing the control script so that
         # we can choose between control scripts without the risk of typos
         
-        self.script = TimeBasedGatesScript.TimeBasedGatesScript( self.config, self.logger,
-            self.playerPos3d, self.playerCompass, self.playerDepthSensor, self.playerSonar )
+        #self.script = TimeBasedGatesScript.TimeBasedGatesScript( self.config, self.logger,
+        #    self.playerPos3d, self.playerCompass, self.playerDepthSensor, self.playerSonar )
+        self.script = ImageCaptureScript.ImageCaptureScript( self.config, self.logger,
+            self.playerPos3d, self.playerDepthSensor, self.playerSonar, self.playerFrontCamera )
 
     #---------------------------------------------------------------------------
     def update( self ):

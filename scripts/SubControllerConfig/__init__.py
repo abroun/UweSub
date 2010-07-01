@@ -1,4 +1,9 @@
 import yaml
+import sys
+
+# Add common packages directory to path
+sys.path.append( "../" )
+import Maths
 
 #-------------------------------------------------------------------------------
 class SubControllerConfig( yaml.YAMLObject ):
@@ -41,7 +46,22 @@ class SubControllerConfig( yaml.YAMLObject ):
         
         self.logFileDir = "${HOME}/dev/uwe/UweSub/logs"
         
-        # Sonar
-        self.safeSonarDepth = 1200 # We assume that pressure increases with depth
+        self.sonarImagesDir = "${HOME}/dev/uwe/UweSub/logs/sonar"
+        self.cameraImagesDir = "${HOME}/dev/uwe/UweSub/logs/camera"
         
-        # 
+        # Sonar
+        self.safeSonarDepth = 50 # We assume that pressure increases with depth
+        self.sonarMaxTimeBetweenScans = 30.0
+        self.sonarNumFailedScansBetweenReboots = 2
+        
+        # Image Capture Script
+        self.IC_Script_sonarGain = 0.1
+        self.IC_Script_sonarRange = 70
+        self.IC_Script_sonarNumBins = 300
+        self.IC_Script_sonarScanStartAngle = Maths.degToRad( 270.0 )
+        self.IC_Script_sonarScanEndAngle = Maths.degToRad( 90.0 )
+        self.IC_Script_numImagesSavedPerSecond = 1.0
+        self.IC_Script_enableCamera = True
+        self.IC_Script_enableSonar = False
+        
+        
