@@ -101,11 +101,11 @@ class SubControllerConfig( yaml.YAMLObject ):
         if not "IC_Script_sonarNumBins" in setVariables:
             self.IC_Script_sonarNumBins = 300
         
-        if not "IC_Script_sonarScanStartAngle" in setVariables:
-            self.IC_Script_sonarScanStartAngle = Maths.degToRad( 270.0 )
+        if not "IC_Script_sonarScanStartAngleDegrees" in setVariables:
+            self.IC_Script_sonarScanStartAngleDegrees = 270.0
         
-        if not "IC_Script_sonarScanEndAngle" in setVariables:
-            self.IC_Script_sonarScanEndAngle = Maths.degToRad( 90.0 )
+        if not "IC_Script_sonarScanEndAngleDegrees" in setVariables:
+            self.IC_Script_sonarScanEndAngleDegrees = 90.0
         
         if not "IC_Script_numImagesSavedPerSecond" in setVariables:
             self.IC_Script_numImagesSavedPerSecond = 1.0
@@ -114,7 +114,7 @@ class SubControllerConfig( yaml.YAMLObject ):
             self.IC_Script_enableCamera = True
         
         if not "IC_Script_enableSonar" in setVariables:
-            self.IC_Script_enableSonar = False
+            self.IC_Script_enableSonar = True
         
         # Control Gains
         if not "pitchKp" in setVariables:
@@ -161,5 +161,13 @@ class SubControllerConfig( yaml.YAMLObject ):
         
         if not "depthKd" in setVariables:
             self.depthKd=0.0
+            
+        # Arbitrator epsilons
+        if not "arbitratorDepthEpsilon" in setVariables:
+            self.arbitratorDepthEpsilon = 10
+        
+        if not "arbitratorYawEpsilonDegrees" in setVariables:
+            self.arbitratorYawEpsilonDegrees = 2.5
+        
         
         

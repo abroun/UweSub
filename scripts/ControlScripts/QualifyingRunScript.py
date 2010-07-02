@@ -56,6 +56,9 @@ class QualifyingRunScript( ControlScript ):
             depthKp=self.config.depthKp, 
             depthKi=self.config.depthKi, depthiMin=self.config.depthiMin, depthiMax=self.config.depthiMax,
             depthKd=self.config.depthKd )
+        self.arbitrator.setEpsilons( 
+            self.config.arbitratorDepthEpsilon, 
+            Maths.degToRad( self.config.arbitratorYawEpsilonDegrees ) )
         
         # Clear timers
         self.waitTimer = 0.0
