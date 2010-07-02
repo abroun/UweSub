@@ -116,4 +116,50 @@ class SubControllerConfig( yaml.YAMLObject ):
         if not "IC_Script_enableSonar" in setVariables:
             self.IC_Script_enableSonar = False
         
+        # Control Gains
+        if not "pitchKp" in setVariables:
+            self.pitchKp = 3.0
+        
+        if not "pitchKi" in setVariables:
+            self.pitchKi = 0.0
+        
+        if not "pitchiMin" in setVariables:
+            self.pitchiMin=-1.57
+        
+        if not "pitchiMax" in setVariables:
+            self.pitchiMax=1.57
+        
+        if not "pitchKd" in setVariables:
+            self.pitchKd=0.0
+        
+        if not "yawKp" in setVariables:
+            self.yawKp=-1.4
+        
+        if not "yawKi" in setVariables:
+            self.yawKi=0.0
+        
+        if not "yawiMin" in setVariables:
+            self.yawiMin=-1.57
+        
+        if not "yawiMax" in setVariables:
+            self.yawiMax=-1.57
+        
+        if not "yawKd" in setVariables:
+            self.yawKd=0.25
+        
+        if not "depthKp" in setVariables:
+            self.depthKp=0.3
+        
+        if not "depthKi" in setVariables:
+            self.depthKi=0.0
+        
+        if not "depthiMin" in setVariables:
+            self.depthiMin=-1.57
+        
+        if not "depthiMax" in setVariables:
+            self.depthiMax=1.57
+        
+        if not "depthKd" in setVariables:
+            self.depthKd=0.0
+        
         

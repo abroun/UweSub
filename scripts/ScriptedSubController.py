@@ -19,6 +19,7 @@ from Logger import Logger
 from ControlScripts import TimeBasedGatesScript
 from ControlScripts import ImageCaptureScript
 from ControlScripts import QualifyingRunScript
+from ControlScripts import DataLoggerScript
 
 #-------------------------------------------------------------------------------
 class ScriptedSubController:
@@ -32,6 +33,8 @@ class ScriptedSubController:
         
         self.connectToPlayer()
         self.setupControlScript()
+        self.dataLoggerScript = DataLoggerScript.DataLoggerScript(
+            self.config, self.logger, self.playerPos3d, self.playerDepthSensor, self.playerCompass )
         self.lastUpdateTime = time.time()
         
     #---------------------------------------------------------------------------
@@ -130,6 +133,7 @@ class ScriptedSubController:
         if curTime - self.lastUpdateTime >= TIME_BETWEEN_UPDATES:
             
             self.script.update()
+            self.dataLoggerScript.update()
             self.lastUpdateTime = curTime
 
 #-------------------------------------------------------------------------------
