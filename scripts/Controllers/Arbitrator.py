@@ -90,7 +90,7 @@ class Arbitrator:
     # interfaces if needed.
     def update( self, linearSpeed ):
         
-        MAX_UPDATES_PER_SECOND = 30.0
+        MAX_UPDATES_PER_SECOND = 20.0
         TIME_BETWEEN_UPDATES = 1.0 / MAX_UPDATES_PER_SECOND
         
         curTime = time.time()

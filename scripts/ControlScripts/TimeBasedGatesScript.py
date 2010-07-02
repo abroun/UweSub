@@ -99,11 +99,10 @@ class TimeBasedGatesScript( ControlScript ):
                 self.setState( self.STATE_FINISHED )
             
         elif self.state == self.STATE_FINISHED:
-            # Nothig to do
+            # Nothing to do
             pass
         else:
             self.logger.logError( "Unrecognised state - surfacing" )
             self.setState( self.STATE_SURFACING )
         
         self.arbitrator.update( self.linearSpeed )
-        
