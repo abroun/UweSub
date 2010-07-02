@@ -13,13 +13,15 @@ from datetime import datetime
 class Logger:
     
     #---------------------------------------------------------------------------
-    def __init__( self, config ):
+    def __init__( self, config, logToFile = True ):
         
         self.logFileDir = string.Template( config.logFileDir ).safe_substitute( os.environ )
         self.logFilename = self.logFileDir + "/" + str( datetime.now() ) + ".log"
             
-        self.outputFiles = [ open( self.logFilename, "w" ) ]
-        pass
+        if logToFile:
+            self.outputFiles = [ open( self.logFilename, "w" ) ]
+        else:
+            self.outputFiles = []
     
     #---------------------------------------------------------------------------
     def addOutputFile( self, outputFile ):

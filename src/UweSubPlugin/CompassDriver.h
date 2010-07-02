@@ -28,6 +28,7 @@
 //------------------------------------------------------------------------------
 #include <libplayercore/playercore.h>
 #include "Common.h"
+#include "Common/HighPrecisionTime.h"
 #include "DataStructures/RollingBuffer.h"
 
 //------------------------------------------------------------------------------
@@ -151,6 +152,7 @@ class CompassDriver : public ThreadedDriver
     
     private: static const U32 DEFAULT_BUFFER_SIZE;
     private: static const S32 COMPASS_COMMAND_ID_PACKET_IDX;
+    private: static const F32 COMPASS_WAIT_TIME;
     
     private: enum eState
     {
@@ -162,6 +164,8 @@ class CompassDriver : public ThreadedDriver
     
     private: eState mState;
     private: eCompassCommand mExpectedResponse;
+    private: bool mbWaitingForCompass;
+    private: HighPrecisionTime mWaitStartTime;
 };
 
 //------------------------------------------------------------------------------
