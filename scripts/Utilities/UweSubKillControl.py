@@ -7,7 +7,7 @@ import getpass
 from optparse import OptionParser
 from sshConnection import sshConnection
 
-hostName = "192.168.8.10"
+hostName = "192.168.8.12"
 
 # Read in options from the command line
 optionParser = OptionParser()

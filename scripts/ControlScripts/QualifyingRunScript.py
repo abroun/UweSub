@@ -12,6 +12,7 @@ from ControlScripts import ControlScript
 # Add common packages directory to path
 sys.path.append( "../" )
 from Controllers import Arbitrator
+from Controllers import KillMotors
 from ImageCaptureScript import ImageCaptureScript
 import Maths
 
@@ -24,14 +25,6 @@ class QualifyingRunScript( ControlScript ):
     STATE_DRIVING_THROUGH_GATE_1 = "DrivingThroughGate_1"
     STATE_SURFACING = "Surfacing"
     
-    RUN_DEPTH = 110
-    FORWARD_SPEED = 0.4
-    START_DELAY_TIME = 0.1*60.0
-    MOVE_FORWARD_TIME = 4.0*60.0  # Will probably be caught by the net
-    HEADING_TO_GATE_DEGREES = 262.0
-    
-    USE_IMAGE_CAPTURE = True
-    
     #---------------------------------------------------------------------------
     def __init__( self, config, logger, playerPos3d, playerCompass, 
         playerDepthSensor, playerSonar, playerFrontCamera ):
@@ -41,11 +34,22 @@ class QualifyingRunScript( ControlScript ):
             playerDepthSensor=playerDepthSensor, playerSonar=playerSonar, 
             playerFrontCamera=playerFrontCamera )
         
+        self.RUN_DEPTH = self.config.QR_runDepth
+        self.FORWARD_SPEED = self.config.QR_forwardSpeed
+        self.START_DELAY_TIME = self.config.QR_startDelayTime
+        self.MOVE_FORWARD_TIME = self.config.QR_moveForwardTime  # Will probably be caught by the net
+        self.HEADING_TO_GATE_DEGREES = self.config.QR_headingToGateDegrees
+    
+        self.USE_IMAGE_CAPTURE = self.config.QR_useImageCapture
+        
         self.imageCaptureScript = ImageCaptureScript( self.config, self.logger,
             self.playerPos3d, self.playerDepthSensor, self.playerSonar, self.playerFrontCamera )
         
+        self.motorKiller = KillMotors( self.playerPos3d )
+        
         # Setup the arbitrator
         self.arbitrator = Arbitrator( playerPos3d, playerCompass, playerDepthSensor )
+        self.arbitrator.setDesiredPitch( Maths.degToRad( -4.0 ) )
         self.arbitrator.setControlGains(
             pitchKp=self.config.pitchKp, 
             pitchKi=self.config.pitchKi, pitchiMin=self.config.pitchiMin, pitchiMax=self.config.pitchiMax, 
@@ -80,7 +84,11 @@ class QualifyingRunScript( ControlScript ):
         
         if self.state == self.STATE_WAITING_TO_START:
             
+            timeDiff = curTime - self.delayTimer
+            print "timeDiff is", timeDiff, "delay is", self.START_DELAY_TIME
+            
             if curTime - self.delayTimer >= self.START_DELAY_TIME:
+                self.logger.logMsg( "Going to " + str( self.RUN_DEPTH ) )
                 self.arbitrator.setDesiredDepth( self.RUN_DEPTH )
                 self.linearSpeed = 0.0
                 self.setState( self.STATE_DIVING )
@@ -103,10 +111,6 @@ class QualifyingRunScript( ControlScript ):
             
             if curTime - self.driveTimer >= self.MOVE_FORWARD_TIME:
                 self.linearSpeed = 0.0
-                # Turn off control to the vertical thrusters to surface
-                self.arbitrator.setUncontrolledMotors(
-                    leftMotorUncontrolled=False, rightMotorUncontrolled=False,
-                    frontMotorUncontrolled=True, backMotorUncontrolled=True )
                 self.setState( self.STATE_SURFACING )
             
         elif self.state == self.STATE_SURFACING:
@@ -117,5 +121,9 @@ class QualifyingRunScript( ControlScript ):
             self.linearSpeed = 0.0
             self.setState( self.STATE_SURFACING )
         
-        self.arbitrator.update( self.linearSpeed )
+        if self.state == self.STATE_SURFACING:
+            # Kill motors to come up and end mission
+            self.motorKiller.update()
+        else:
+            self.arbitrator.update( self.linearSpeed )
         

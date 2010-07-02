@@ -169,5 +169,24 @@ class SubControllerConfig( yaml.YAMLObject ):
         if not "arbitratorYawEpsilonDegrees" in setVariables:
             self.arbitratorYawEpsilonDegrees = 2.5
         
+        # Qualifying run script
+        if not "QR_runDepth" in setVariables:
+            self.QR_runDepth = 5400
+        
+        if not "QR_forwardSpeed" in setVariables:
+            self.QR_forwardSpeed = 0.8
+        
+        if not "QR_startDelayTime" in setVariables:
+            self.QR_startDelayTime = 0.5*60.0
+        
+        if not "QR_moveForwardTime" in setVariables:
+            self.QR_moveForwardTime = 2.0*60.0
+        
+        if not "QR_headingToGateDegrees" in setVariables:
+            self.QR_headingToGateDegrees = 262.0
+    
+        if not "QR_useImageCapture" in setVariables:
+            self.QR_useImageCapture = False
+        
         
         

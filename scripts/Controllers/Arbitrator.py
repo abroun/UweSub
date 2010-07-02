@@ -67,7 +67,11 @@ class Arbitrator:
     #---------------------------------------------------------------------------
     def setDesiredDepth( self, depth ):
         self.depthController.setDesiredDepth( depth )
-        
+   
+    #---------------------------------------------------------------------------
+    def setDesiredPitch( self, pitch ):
+        self.pitchController.setDesiredPitchAngle( pitch )
+   
     #---------------------------------------------------------------------------
     def setUncontrolledMotors( self, 
         leftMotorUncontrolled, rightMotorUncontrolled,
