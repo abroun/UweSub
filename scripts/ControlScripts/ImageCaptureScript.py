@@ -25,11 +25,11 @@ class ImageCaptureScript( ControlScript ):
     STATE_PERFORMING_SCANS = "Performing Scans"
     
     #---------------------------------------------------------------------------
-    def __init__( self, config, logger, playerPos3D, 
+    def __init__( self, config, logger, playerPos3d, 
         playerDepthSensor, playerSonar, playerFrontCamera ):
         
         ControlScript.__init__( self, config, logger, 
-            playerPos3D, playerCompass = None, 
+            playerPos3d, playerCompass = None, 
             playerDepthSensor = playerDepthSensor, playerSonar = playerSonar, 
             playerFrontCamera = playerFrontCamera )
             

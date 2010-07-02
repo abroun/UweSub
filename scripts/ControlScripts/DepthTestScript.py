@@ -21,15 +21,15 @@ class DepthTest( ControlScript ):
     STATE_SURFACING = "Surfacing"
     
     #---------------------------------------------------------------------------
-    def __init__( self, config, logger, playerPos3D, playerCompass, 
+    def __init__( self, config, logger, playerPos3d, playerCompass, 
         playerDepthSensor, playerSonar = None ):
         
-        ControlScript.__init__( self, config, logger, playerPos3D, playerCompass, 
+        ControlScript.__init__( self, config, logger, playerPos3d, playerCompass, 
             playerDepthSensor, playerSonar )
         
         self.scanDepth = -1.0   # TODO: Set from config file
         
-        self.arbitrator = Arbitrator( playerPos3D, playerCompass, playerDepthSensor )
+        self.arbitrator = Arbitrator( playerPos3d, playerCompass, playerDepthSensor )
         self.arbitrator.setDesiredDepth( self.scanDepth )
         self.linearSpeed = 0.0
         self.setState( self.STATE_DIVING )

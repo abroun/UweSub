@@ -9,12 +9,12 @@ class ControlScript:
     
     #---------------------------------------------------------------------------
     def __init__( self, config, logger, 
-        playerPos3D, playerCompass = None, 
+        playerPos3d, playerCompass = None, 
         playerDepthSensor = None, playerSonar = None, 
         playerFrontCamera = None, playerBottomCamera = None ):
             
         self.logger = logger
-        self.playerPos3D = playerPos3D
+        self.playerPos3d = playerPos3d
         self.playerCompass = playerCompass
         self.playerDepthSensor = playerDepthSensor
         self.playerSonar = playerSonar
