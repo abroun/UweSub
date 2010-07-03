@@ -37,6 +37,7 @@ class QualifyingRunScript( ControlScript ):
         self.RUN_DEPTH = self.config.QR_runDepth
         self.FORWARD_SPEED = self.config.QR_forwardSpeed
         self.START_DELAY_TIME = self.config.QR_startDelayTime
+        self.END_DELAY_TIME = 2.0
         self.MOVE_FORWARD_TIME = self.config.QR_moveForwardTime  # Will probably be caught by the net
         self.HEADING_TO_GATE_DEGREES = self.config.QR_headingToGateDegrees
     
@@ -111,14 +112,19 @@ class QualifyingRunScript( ControlScript ):
             
             if curTime - self.driveTimer >= self.MOVE_FORWARD_TIME:
                 self.linearSpeed = 0.0
+                self.delayTimer = time.time()
                 self.setState( self.STATE_SURFACING )
             
         elif self.state == self.STATE_SURFACING:
-            # Nothig to do
-            pass
+            # Wait for a bit and then exit the program
+            timeDiff = curTime - self.delayTimer    
+            if timeDiff >= self.END_DELAY_TIME:
+                sys.exit( 0 )   # Quit
+            
         else:
             self.logger.logError( "Unrecognised state - ({0}) - surfacing".format( self.state ) )
             self.linearSpeed = 0.0
+            self.delayTimer = time.time()
             self.setState( self.STATE_SURFACING )
         
         if self.state == self.STATE_SURFACING:

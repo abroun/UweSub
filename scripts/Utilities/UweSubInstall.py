@@ -82,7 +82,7 @@ hostName = "192.168.8.12"
 # Read in options from the command line
 optionParser = OptionParser()
 optionParser.add_option( "-d", "--hostname", dest="hostName", help="Hostname of remote machine" )
-optionParser.add_option( "-n", "--noPlayer", dest="noPlayer", action="store_true", help="Don't install Player files" )
+optionParser.add_option( "-p", "--withPlayer", dest="withPlayer", action="store_true", help="Don't install Player files" )
 
 
 (options, args) = optionParser.parse_args()
@@ -117,7 +117,7 @@ for ( src, dst ) in FILE_TRANSFER_LIST:
     print src
     sftpClient.put( src, dst )
     
-if not options.noPlayer == True:
+if options.withPlayer == True:
     for ( src, dst ) in PLAYER_TRANSFER_LIST:
         print src
         sftpClient.put( src, dst )
