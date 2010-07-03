@@ -34,6 +34,8 @@ class DataLoggerScript( ControlScript ):
             
         self.setState( self.STATE_GATHERING_DATA )
         self.lastLogTime = 0.0
+        self.numIdenticalDepthReadings = 0
+        self.lastDepth = 0
         
     #---------------------------------------------------------------------------
     def update( self ):
@@ -51,3 +53,12 @@ class DataLoggerScript( ControlScript ):
                     depth, Maths.radToDeg( yaw ), Maths.radToDeg( pitch ), Maths.radToDeg( roll ) ) )
                 
                 self.lastLogTime = curTime
+                
+                # Check to make sure that the depth sensor hasn't crashed
+                if depth == self.lastDepth:
+                    self.numIdenticalDepthReadings += 1
+                else:
+                    self.numIdenticalDepthReadings = 0
+                
+                if self.numIdenticalDepthReadings > 20:
+                    self.logger.logError( "Depth sensor unchanged" )

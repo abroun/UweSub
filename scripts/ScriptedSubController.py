@@ -114,11 +114,11 @@ class ScriptedSubController:
         
         #self.script = TimeBasedGatesScript.TimeBasedGatesScript( self.config, self.logger,
         #    self.playerPos3d, self.playerCompass, self.playerDepthSensor, self.playerSonar )
-        #self.script = ImageCaptureScript.ImageCaptureScript( self.config, self.logger,
-        #    self.playerPos3d, self.playerDepthSensor, self.playerSonar, self.playerFrontCamera )
-        self.script = QualifyingRunScript.QualifyingRunScript( self.config, self.logger,
-            self.playerPos3d, self.playerCompass, self.playerDepthSensor, 
-            self.playerSonar, self.playerFrontCamera )
+        self.script = ImageCaptureScript.ImageCaptureScript( self.config, self.logger,
+            self.playerPos3d, self.playerDepthSensor, self.playerSonar, self.playerFrontCamera )
+        #self.script = QualifyingRunScript.QualifyingRunScript( self.config, self.logger,
+        #    self.playerPos3d, self.playerCompass, self.playerDepthSensor, 
+        #    self.playerSonar, self.playerFrontCamera )
 
     #---------------------------------------------------------------------------
     def update( self ):
