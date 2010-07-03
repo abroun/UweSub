@@ -50,8 +50,8 @@ class ImageCaptureScript( ControlScript ):
             self.config.IC_Script_sonarNumBins, 
             self.config.IC_Script_sonarGain )
         self.sonarScanner.setScanAngleRange( 
-            self.config.IC_Script_sonarScanStartAngle, 
-            self.config.IC_Script_sonarScanEndAngle )
+            Maths.degToRad( self.config.IC_Script_sonarScanStartAngleDegrees ), 
+            Maths.degToRad( self.config.IC_Script_sonarScanEndAngleDegrees ) )
     
     #---------------------------------------------------------------------------
     def isNewSonarFrameAvailable( self ):

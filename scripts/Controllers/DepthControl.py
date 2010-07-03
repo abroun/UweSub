@@ -20,7 +20,6 @@ class DepthControl:
         self.depthiState = 0.0
         self.lastDepthError = 0.0
         self.lastDepthSpeed = 0.0
-        self.lastdesiredDepth = 0.0
         self.errorFlag = 0.0
         self.depthSpeed = 0.0
         self.depthpTerm = 0.0
@@ -74,7 +73,8 @@ class DepthControl:
 
         # Proportional
         depthError = self.desiredDepth - depthSensorDepth    # rad
-        self.lastdesiredDepth = self.desiredDepth
+
+#        self.lastdesiredDepth = self.desiredDepth
         
         if depthError > 0.05 or depthError < -0.05:
             self.errorFlag = 0.0
@@ -98,7 +98,9 @@ class DepthControl:
         
         self.depthSpeed = self.depthpTerm + self.depthiTerm + self.depthdTerm    # rad/s
         if (depthError < 0.05 or depthError < -0.05) and self.errorFlag == 0.0:
-            self.lastDepthSpeed = 0#self.depthSpeed
+
+ #           self.lastDepthSpeed = self.depthSpeed
+
             self.errorFlag = 1.0
         
         if (depthError < 0.05 or depthError < -0.05) and self.errorFlag == 1.0:

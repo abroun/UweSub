@@ -101,11 +101,11 @@ class SubControllerConfig( yaml.YAMLObject ):
         if not "IC_Script_sonarNumBins" in setVariables:
             self.IC_Script_sonarNumBins = 300
         
-        if not "IC_Script_sonarScanStartAngle" in setVariables:
-            self.IC_Script_sonarScanStartAngle = Maths.degToRad( 270.0 )
+        if not "IC_Script_sonarScanStartAngleDegrees" in setVariables:
+            self.IC_Script_sonarScanStartAngleDegrees = 270.0
         
-        if not "IC_Script_sonarScanEndAngle" in setVariables:
-            self.IC_Script_sonarScanEndAngle = Maths.degToRad( 90.0 )
+        if not "IC_Script_sonarScanEndAngleDegrees" in setVariables:
+            self.IC_Script_sonarScanEndAngleDegrees = 90.0
         
         if not "IC_Script_numImagesSavedPerSecond" in setVariables:
             self.IC_Script_numImagesSavedPerSecond = 1.0
@@ -114,6 +114,79 @@ class SubControllerConfig( yaml.YAMLObject ):
             self.IC_Script_enableCamera = True
         
         if not "IC_Script_enableSonar" in setVariables:
-            self.IC_Script_enableSonar = False
+            self.IC_Script_enableSonar = True
+        
+        # Control Gains
+        if not "pitchKp" in setVariables:
+            self.pitchKp = 3.0
+        
+        if not "pitchKi" in setVariables:
+            self.pitchKi = 0.0
+        
+        if not "pitchiMin" in setVariables:
+            self.pitchiMin=-1.57
+        
+        if not "pitchiMax" in setVariables:
+            self.pitchiMax=1.57
+        
+        if not "pitchKd" in setVariables:
+            self.pitchKd=0.0
+        
+        if not "yawKp" in setVariables:
+            self.yawKp=-1.4
+        
+        if not "yawKi" in setVariables:
+            self.yawKi=0.0
+        
+        if not "yawiMin" in setVariables:
+            self.yawiMin=-1.57
+        
+        if not "yawiMax" in setVariables:
+            self.yawiMax=-1.57
+        
+        if not "yawKd" in setVariables:
+            self.yawKd=0.25
+        
+        if not "depthKp" in setVariables:
+            self.depthKp=0.3
+        
+        if not "depthKi" in setVariables:
+            self.depthKi=0.0
+        
+        if not "depthiMin" in setVariables:
+            self.depthiMin=-1.57
+        
+        if not "depthiMax" in setVariables:
+            self.depthiMax=1.57
+        
+        if not "depthKd" in setVariables:
+            self.depthKd=0.0
+            
+        # Arbitrator epsilons
+        if not "arbitratorDepthEpsilon" in setVariables:
+            self.arbitratorDepthEpsilon = 10
+        
+        if not "arbitratorYawEpsilonDegrees" in setVariables:
+            self.arbitratorYawEpsilonDegrees = 2.5
+        
+        # Qualifying run script
+        if not "QR_runDepth" in setVariables:
+            self.QR_runDepth = 5400
+        
+        if not "QR_forwardSpeed" in setVariables:
+            self.QR_forwardSpeed = 0.8
+        
+        if not "QR_startDelayTime" in setVariables:
+            self.QR_startDelayTime = 0.5*60.0
+        
+        if not "QR_moveForwardTime" in setVariables:
+            self.QR_moveForwardTime = 2.0*60.0
+        
+        if not "QR_headingToGateDegrees" in setVariables:
+            self.QR_headingToGateDegrees = 262.0
+    
+        if not "QR_useImageCapture" in setVariables:
+            self.QR_useImageCapture = False
+        
         
         

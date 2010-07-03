@@ -54,7 +54,7 @@ static inline F32 READ_F32( U8* buffer )
 //------------------------------------------------------------------------------
 const U32 CompassDriver::DEFAULT_BUFFER_SIZE = 10000;
 const S32 CompassDriver::COMPASS_COMMAND_ID_PACKET_IDX = 2;
-const F32 CompassDriver::COMPASS_WAIT_TIME = 30.0f;
+const F32 CompassDriver::COMPASS_WAIT_TIME = 5.0f;
 
 //------------------------------------------------------------------------------
 // Constructor.  Retrieve options from the configuration file and do any

@@ -4,10 +4,15 @@
 
 import math
 import time
+import sys
 
 from Controllers import PitchControl
 from Controllers import YawControl
 from Controllers import DepthControl
+
+# Add common packages directory to path
+sys.path.append( "../" )
+import Maths
 
 #-------------------------------------------------------------------------------
 class Arbitrator:
@@ -31,6 +36,9 @@ class Arbitrator:
         self.frontMotorUncontrolled = False
         self.backMotorUncontrolled = False
         
+        self.depthEpsilon = 10
+        self.yawEpsilon = Maths.degToRad( 2.5 )
+        
         self.lastTime = time.time()
 
     #---------------------------------------------------------------------------
@@ -40,6 +48,11 @@ class Arbitrator:
         self.pitchController.setPitchGains( pitchKp, pitchKi, pitchiMin, pitchiMax, pitchKd )
         self.yawController.setYawGains( yawKp, yawKi, yawiMin, yawiMax, yawKd  )
         self.depthController.setDepthGains( depthKp, depthKi, depthiMin, depthiMax, depthKd  )
+
+    #---------------------------------------------------------------------------
+    def setEpsilons( self, depthEpsilon, yawEpsilon ):
+        self.depthEpsilon = depthEpsilon
+        self.yawEpsilon = yawEpsilon
 
     #---------------------------------------------------------------------------
     def setDesiredState( self, pitchAngle, yawAngle, depth ):        
@@ -54,7 +67,11 @@ class Arbitrator:
     #---------------------------------------------------------------------------
     def setDesiredDepth( self, depth ):
         self.depthController.setDesiredDepth( depth )
-        
+   
+    #---------------------------------------------------------------------------
+    def setDesiredPitch( self, pitch ):
+        self.pitchController.setDesiredPitchAngle( pitch )
+   
     #---------------------------------------------------------------------------
     def setUncontrolledMotors( self, 
         leftMotorUncontrolled, rightMotorUncontrolled,
@@ -76,14 +93,14 @@ class Arbitrator:
         while yawAngleError < -math.pi:
             yawAngleError += 2*math.pi
             
-        return ( abs( yawAngleError ) < 5.0*math.pi/180.0 )
+        return ( abs( yawAngleError ) < abs( self.yawEpsilon ) )
         
     #---------------------------------------------------------------------------
     def atDesiredDepth( self ):
         
         depthError = self.depthController.desiredDepth - self.playerDepthSensor.pos
         
-        return ( abs( depthError ) < 0.1 )
+        return ( abs( depthError ) < abs( self.depthEpsilon ) )
 
     #---------------------------------------------------------------------------
     # Updates the control loop and sends commands down to the position3D

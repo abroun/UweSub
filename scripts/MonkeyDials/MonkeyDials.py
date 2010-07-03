@@ -145,7 +145,7 @@ class MainWindow:
         self.spinDepthKi.set_value( 0.0 )
         self.spinDepthiMin.set_value( -1.57 )
         self.spinDepthiMax.set_value( 1.57 )
-        self.spinDepthKd.set_value( 0.5 )        
+        self.spinDepthKd.set_value( 0.0 )   # AB: Should be 0.5. Change back after qualifying run        
         
     	self.RANGE = 100
         self.DEAD_ZONE = self.RANGE*0.01
