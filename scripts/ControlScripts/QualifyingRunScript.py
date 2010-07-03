@@ -37,7 +37,7 @@ class QualifyingRunScript( ControlScript ):
         self.RUN_DEPTH = self.config.QR_runDepth
         self.FORWARD_SPEED = self.config.QR_forwardSpeed
         self.START_DELAY_TIME = self.config.QR_startDelayTime
-        self.END_DELAY_TIME = 2.0
+        self.END_DELAY_TIME = 40.0
         self.MOVE_FORWARD_TIME = self.config.QR_moveForwardTime  # Will probably be caught by the net
         self.HEADING_TO_GATE_DEGREES = self.config.QR_headingToGateDegrees
     
