@@ -116,11 +116,11 @@ class QualifyingRunScript( ControlScript ):
                 self.setState( self.STATE_SURFACING )
             
         elif self.state == self.STATE_SURFACING:
+
             # Wait for a bit and then exit the program
             timeDiff = curTime - self.delayTimer    
             if timeDiff >= self.END_DELAY_TIME:
                 sys.exit( 0 )   # Quit
-            
         else:
             self.logger.logError( "Unrecognised state - ({0}) - surfacing".format( self.state ) )
             self.linearSpeed = 0.0
@@ -132,4 +132,3 @@ class QualifyingRunScript( ControlScript ):
             self.motorKiller.update()
         else:
             self.arbitrator.update( self.linearSpeed )
-        
