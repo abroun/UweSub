@@ -15,20 +15,6 @@ from sshConnection import sshConnection
 FILE_TRANSFER_LIST = [
     # UweSub Libraries
     ( "${HOME}/dev/install/lib/uwesubplugin.so", "/home/uwesub/dev/install/lib/uwesubplugin.so" ),
-    # Player Libraries
-   # ( "${HOME}/dev/install/lib/liblodo.so.3.0.1", "/home/uwesub/dev/install/lib/liblodo.so.3.0.1" ),
-    #( "${HOME}/dev/install/lib/liblododriver.so.3.0.1", "/home/uwesub/dev/install/lib/liblododriver.so.3.0.1" ),
-    ( "${HOME}/dev/install/lib/libplayerc.so.3.0.1", "/home/uwesub/dev/install/lib/libplayerc.so.3.0.1" ),
-    ( "${HOME}/dev/install/lib/libplayerc++.so.3.0.1", "/home/uwesub/dev/install/lib/libplayerc++.so.3.0.1" ),
-    ( "${HOME}/dev/install/lib/libplayercommon.so.3.0.1", "/home/uwesub/dev/install/lib/libplayercommon.so.3.0.1" ),
-    ( "${HOME}/dev/install/lib/libplayercore.so.3.0.1", "/home/uwesub/dev/install/lib/libplayercore.so.3.0.1" ),
-    ( "${HOME}/dev/install/lib/libplayerdrivers.so.3.0.1", "/home/uwesub/dev/install/lib/libplayerdrivers.so.3.0.1" ),
-    ( "${HOME}/dev/install/lib/libplayerinterface.so.3.0.1", "/home/uwesub/dev/install/lib/libplayerinterface.so.3.0.1" ),
-    ( "${HOME}/dev/install/lib/libplayerjpeg.so.3.0.1", "/home/uwesub/dev/install/lib/libplayerjpeg.so.3.0.1" ),
-    ( "${HOME}/dev/install/lib/libplayertcp.so.3.0.1", "/home/uwesub/dev/install/lib/libplayertcp.so.3.0.1" ),
-    ( "${HOME}/dev/install/lib/libplayerudp.so.3.0.1", "/home/uwesub/dev/install/lib/libplayerudp.so.3.0.1" ),
-   # ( "${HOME}/dev/install/lib/libpmap.so.3.0.1", "/home/uwesub/dev/install/lib/libpmap.so.3.0.1" ),
-    ( "${HOME}/dev/install/lib/libwavefront_standalone.so.3.0.1", "/home/uwesub/dev/install/lib/libwavefront_standalone.so.3.0.1" ),
     # Player Config files
     ( "${HOME}/dev/uwe/UweSub/data/PlayerConfigs/CompassTest.cfg", 
         "/home/uwesub/dev/uwe/UweSub/data/PlayerConfigs/CompassTest.cfg" ),
@@ -43,6 +29,29 @@ FILE_TRANSFER_LIST = [
     # SubController Config files
     ( "${HOME}/dev/uwe/UweSub/data/SubControllerConfigs/RealWorld.cfg", 
         "/home/uwesub/dev/uwe/UweSub/data/SubControllerConfigs/RealWorld.cfg" ),
+    ( "${HOME}/dev/uwe/UweSub/data/SubControllerConfigs/SmallPool.cfg", 
+        "/home/uwesub/dev/uwe/UweSub/data/SubControllerConfigs/SmallPool.cfg" ),
+        
+    # Python support files
+    ( "${HOME}/dev/install/lib/python2.6/site-packages/RoBoardControl.so", 
+        "/home/uwesub/dev/install/lib/python2.6/site-packages/RoBoardControl.so" ),
+]
+
+PLAYER_TRANSFER_LIST = [
+    # Player Libraries
+   # ( "${HOME}/dev/install/lib/liblodo.so.3.0.1", "/home/uwesub/dev/install/lib/liblodo.so.3.0.1" ),
+    #( "${HOME}/dev/install/lib/liblododriver.so.3.0.1", "/home/uwesub/dev/install/lib/liblododriver.so.3.0.1" ),
+    ( "${HOME}/dev/install/lib/libplayerc.so.3.0.1", "/home/uwesub/dev/install/lib/libplayerc.so.3.0.1" ),
+    ( "${HOME}/dev/install/lib/libplayerc++.so.3.0.1", "/home/uwesub/dev/install/lib/libplayerc++.so.3.0.1" ),
+    ( "${HOME}/dev/install/lib/libplayercommon.so.3.0.1", "/home/uwesub/dev/install/lib/libplayercommon.so.3.0.1" ),
+    ( "${HOME}/dev/install/lib/libplayercore.so.3.0.1", "/home/uwesub/dev/install/lib/libplayercore.so.3.0.1" ),
+    ( "${HOME}/dev/install/lib/libplayerdrivers.so.3.0.1", "/home/uwesub/dev/install/lib/libplayerdrivers.so.3.0.1" ),
+    ( "${HOME}/dev/install/lib/libplayerinterface.so.3.0.1", "/home/uwesub/dev/install/lib/libplayerinterface.so.3.0.1" ),
+    ( "${HOME}/dev/install/lib/libplayerjpeg.so.3.0.1", "/home/uwesub/dev/install/lib/libplayerjpeg.so.3.0.1" ),
+    ( "${HOME}/dev/install/lib/libplayertcp.so.3.0.1", "/home/uwesub/dev/install/lib/libplayertcp.so.3.0.1" ),
+    ( "${HOME}/dev/install/lib/libplayerudp.so.3.0.1", "/home/uwesub/dev/install/lib/libplayerudp.so.3.0.1" ),
+   # ( "${HOME}/dev/install/lib/libpmap.so.3.0.1", "/home/uwesub/dev/install/lib/libpmap.so.3.0.1" ),
+    ( "${HOME}/dev/install/lib/libwavefront_standalone.so.3.0.1", "/home/uwesub/dev/install/lib/libwavefront_standalone.so.3.0.1" ),
 ]
 
 # Class for defining a directory transfer from a folder somewhere 
@@ -61,17 +70,20 @@ SRC_HOME_DIR = string.Template( "${HOME}" ).safe_substitute( os.environ )
 DST_HOME_DIR = "/home/uwesub"
 
 # Substitute in environment variables
-for i in range( len( FILE_TRANSFER_LIST ) ):
-    srcTemplate = FILE_TRANSFER_LIST[ i ][ 0 ]
-    FILE_TRANSFER_LIST[ i ] = \
-        ( string.Template( FILE_TRANSFER_LIST[ i ][ 0 ] ).safe_substitute( os.environ ),
-        FILE_TRANSFER_LIST[ i ][ 1 ] )
+for fileList in [ FILE_TRANSFER_LIST, PLAYER_TRANSFER_LIST ]:
+    for i in range( len( fileList ) ):
+        srcTemplate = fileList[ i ][ 0 ]
+        fileList[ i ] = \
+            ( string.Template( fileList[ i ][ 0 ] ).safe_substitute( os.environ ),
+            fileList[ i ][ 1 ] )
 
-hostName = "192.168.8.11"
+hostName = "192.168.8.12"
 
 # Read in options from the command line
 optionParser = OptionParser()
 optionParser.add_option( "-d", "--hostname", dest="hostName", help="Hostname of remote machine" )
+optionParser.add_option( "-p", "--withPlayer", dest="withPlayer", action="store_true", help="Don't install Player files" )
+
 
 (options, args) = optionParser.parse_args()
 
@@ -105,6 +117,12 @@ for ( src, dst ) in FILE_TRANSFER_LIST:
     print src
     sftpClient.put( src, dst )
     
+if options.withPlayer == True:
+    for ( src, dst ) in PLAYER_TRANSFER_LIST:
+        print src
+        sftpClient.put( src, dst )
+    
+    
 for directoryTransfer in DIRECTORY_TRANSFER_LIST:
     srcDir = SRC_HOME_DIR + "/" + directoryTransfer.relativeDir
     patterns = [ re.compile( p ) for p in directoryTransfer.filePatternList ]
@@ -120,9 +138,10 @@ for directoryTransfer in DIRECTORY_TRANSFER_LIST:
                     break
             
             if matchFound:
-                dstFile = dstRoot + "/" + srcFile
-                print srcFile
-                sftpClient.put( srcFile, dstFile )
+                fullSrcFile = root + "/" + srcFile
+                fullDstFile = dstRoot + "/" + srcFile
+                print fullSrcFile
+                sftpClient.put( fullSrcFile, fullDstFile )
 
 print "Restarting UweSubPlayer"
 rootConnection.runCommand( "initctl start UweSubPlayer" )
