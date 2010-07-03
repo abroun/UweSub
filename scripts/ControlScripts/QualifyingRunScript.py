@@ -97,7 +97,7 @@ class QualifyingRunScript( ControlScript ):
                 self.setState( self.STATE_SURFACING )
             
         elif self.state == self.STATE_SURFACING:
-            # Nothig to do
+            # Nothing to do
             pass
         else:
             self.logger.logError( "Unrecognised state - surfacing" )
@@ -105,4 +105,3 @@ class QualifyingRunScript( ControlScript ):
             self.setState( self.STATE_SURFACING )
         
         self.arbitrator.update( self.linearSpeed )
-        

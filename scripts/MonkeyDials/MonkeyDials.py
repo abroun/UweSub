@@ -125,9 +125,9 @@ class MainWindow:
         self.chkControlBackMotor = builder.get_object( "chkControlBackMotor" )
         
         self.spinMaxLinearSpeed.set_value( 1.0 )
-        self.spinDesiredPitchAngle.set_value( 0.0 )
+        self.spinDesiredPitchAngle.set_value( -5.0 )
         self.spinDesiredYawAngle.set_value( 180.0 )
-        self.spinDesiredDepth.set_value( 7436)
+        self.spinDesiredDepth.set_value( 7456)
 
         self.spinPitchKp.set_value( 3.0 )
         self.spinPitchKi.set_value( 0.0 )
