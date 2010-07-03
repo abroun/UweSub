@@ -31,11 +31,20 @@ class Logger:
     #---------------------------------------------------------------------------
     def addOutputToStdOut( self ):
         self.addOutputFile( sys.stdout )
-            
+           
+    #---------------------------------------------------------------------------
+    def logAction( self, x, y, z, action ):
+        
+        message = "{0},{1},{2},{3},\"{4}\"".format(
+            self.getTimestamp(), x, y, z, action )
+        
+        for outputFile in self.outputFiles:
+            print( message, file=outputFile )
+           
     #---------------------------------------------------------------------------
     def logMsg( self, message ):
         
-        timestampedMessage = str( datetime.now() ) + " - " + message
+        timestampedMessage = self.getTimestamp() + "," + message + ",UWE"
         for outputFile in self.outputFiles:
             print( timestampedMessage, file=outputFile )
         
@@ -43,3 +52,8 @@ class Logger:
     def logError( self, errorMessage ):
         
         self.logMsg( "ERROR - " + errorMessage )
+        
+    #---------------------------------------------------------------------------
+    def getTimestamp( self ):
+        time = datetime.now()
+        return "{0}:{1:02}:{2:02}".format( time.hour, time.minute, time.second )

@@ -2,6 +2,13 @@
 # Base class to use for writing control scripts for the submarine.
 #-------------------------------------------------------------------------------
 
+import sys
+
+# Add common packages directory to path
+sys.path.append( "../" )
+from SonarLocator import SonarLocator
+import Maths
+
 #-------------------------------------------------------------------------------
 class ControlScript:
     
@@ -23,15 +30,41 @@ class ControlScript:
         self.config = config
         
         self.state = self.STATE_INVALID
+        self.sonarLocator = SonarLocator( logger, 
+            playerCompass, playerSonar, config=config )
+        self.sonarLocator.setActive( False )    # Turn off by default
+    
+    #---------------------------------------------------------------------------
+    def setSonarLocatorActive( self, active ):
+        self.sonarLocator.setActive( active )
     
     #---------------------------------------------------------------------------
     def setState( self, state ):
         
-        self.logger.logMsg( "Entering state - " + state )
+        action = "Entering state - " + state
+        
+        self.logger.logMsg( action )
+        self.logAction( action )
         self.state = state
         
     #---------------------------------------------------------------------------
-    # Override this routine with the functrionality of the control script
+    def logAction( self, action ):
+        
+        pos = self.sonarLocator.cornerPos
+        if pos == None:
+            x = -1.0
+            y = -1.0
+        else:
+            x = pos.x
+            y = pos.y
+        
+        z = self.playerDepthSensor.pos
+        
+        self.logger.logAction( x, y, z, action )
+        
+    #---------------------------------------------------------------------------
+    # Override and then call this function in the control script
     def update():
-        pass
+        self.sonarLocator.update()
+        
         

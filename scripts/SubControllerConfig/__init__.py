@@ -185,8 +185,60 @@ class SubControllerConfig( yaml.YAMLObject ):
         if not "QR_headingToGateDegrees" in setVariables:
             self.QR_headingToGateDegrees = 262.0
     
-        if not "QR_useImageCapture" in setVariables:
-            self.QR_useImageCapture = False
+        if not "useImageCapture" in setVariables:
+            self.useImageCapture = False
+            
+        # Bounce script
+        if not "B_downDepth" in setVariables:
+            self.B_downDepth = 5000
+            
+        if not "B_upDepth" in setVariables:
+            self.B_upDepth = False
         
+        if not "B_startDelayTime" in setVariables:
+            self.B_startDelayTime = 6.0
+        
+        # Hail Mary script
+        if not "HM_normalDepth" in setVariables:
+            self.HM_normalDepth = 0
+            
+        if not "HM_pipeSurveyDepth" in setVariables:
+            self.HM_pipeSurveyDepth = 0
+            
+        if not "HM_forwardSpeed" in setVariables:
+            self.HM_forwardSpeed = -0.7
+            
+        if not "HM_startDelayTime" in setVariables:
+            self.HM_startDelayTime = 20.0
+            
+        if not "HM_endDelayTime" in setVariables:
+            self.HM_endDelayTime = 40.0
+        
+        if not "HM_drivingThroughGate_1_Time" in setVariables:
+            self.HM_drivingThroughGate_1_Time = 45.0
+        
+        if not "HM_surveyingPipeTime" in setVariables:
+            self.HM_surveyingPipeTime = 90.0
+        
+        if not "HM_approachingWallTime" in setVariables:
+            self.HM_approachingWallTime = 80.0
+        
+        if not "HM_surveyingWallTime" in setVariables:
+            self.HM_surveyingWallTime = 180.0
+        
+        if not "HM_maxHuntingBuoyTime" in setVariables:
+            self.HM_maxHuntingBuoyTime = 600.0
+        
+        if not "HM_northHeadingDegrees" in setVariables:
+            self.HM_northHeadingDegrees = 232.0
+        
+        if not "HM_eastHeadingDegrees" in setVariables:
+            self.HM_eastHeadingDegrees = 322.0
+        
+        if not "HM_southHeadingDegrees" in setVariables:
+            self.HM_southHeadingDegrees = 52.0
+        
+        if not "HM_westHeadingDegrees" in setVariables:
+            self.HM_westHeadingDegrees = 142.0
         
         

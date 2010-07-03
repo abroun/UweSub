@@ -20,6 +20,7 @@ from ControlScripts import TimeBasedGatesScript
 from ControlScripts import ImageCaptureScript
 from ControlScripts import QualifyingRunScript
 from ControlScripts import DataLoggerScript
+from ControlScripts import HailMaryScript
 
 #-------------------------------------------------------------------------------
 class ScriptedSubController:
@@ -114,11 +115,14 @@ class ScriptedSubController:
         
         #self.script = TimeBasedGatesScript.TimeBasedGatesScript( self.config, self.logger,
         #    self.playerPos3d, self.playerCompass, self.playerDepthSensor, self.playerSonar )
-        self.script = ImageCaptureScript.ImageCaptureScript( self.config, self.logger,
-            self.playerPos3d, self.playerDepthSensor, self.playerSonar, self.playerFrontCamera )
+        #self.script = ImageCaptureScript.ImageCaptureScript( self.config, self.logger,
+        #    self.playerPos3d, self.playerDepthSensor, self.playerSonar, self.playerFrontCamera )
         #self.script = QualifyingRunScript.QualifyingRunScript( self.config, self.logger,
         #    self.playerPos3d, self.playerCompass, self.playerDepthSensor, 
         #    self.playerSonar, self.playerFrontCamera )
+        self.script = HailMaryScript.HailMaryScript( self.config, self.logger,
+            self.playerPos3d, self.playerCompass, self.playerDepthSensor, 
+            self.playerSonar, self.playerFrontCamera )
 
     #---------------------------------------------------------------------------
     def update( self ):

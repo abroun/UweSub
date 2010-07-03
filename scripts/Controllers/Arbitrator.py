@@ -18,12 +18,13 @@ import Maths
 class Arbitrator:
     
     #---------------------------------------------------------------------------
-    def __init__( self, playerPos3D, playerCompass, playerDepthSensor, playerSimPos3D = None ):
+    def __init__( self, playerPos3D, playerCompass, playerDepthSensor, playerSimPos3D = None, logger = None ):
         
         self.playerPos3D = playerPos3D
         self.playerCompass = playerCompass
         self.playerDepthSensor = playerDepthSensor
         self.playerSimPos3D = playerSimPos3D
+        self.logger = logger
         
         self.pitchController = PitchControl( self.playerPos3D,
             self.playerCompass, self.playerSimPos3D )
@@ -40,6 +41,9 @@ class Arbitrator:
         self.yawEpsilon = Maths.degToRad( 2.5 )
         
         self.lastTime = time.time()
+        self.lastDepth = -1.0
+        self.depthControlDisabled = False
+        self.numIdenticalDepthReadings = 0
 
     #---------------------------------------------------------------------------
     def setControlGains( self,  pitchKp, pitchKi, pitchiMin, pitchiMax, pitchKd,
@@ -98,6 +102,12 @@ class Arbitrator:
     #---------------------------------------------------------------------------
     def atDesiredDepth( self ):
         
+        if self.depthControlDisabled:
+            depth = self.playerDepthSensor.pos
+            self.logger.logAction( -1.0, -1.0, depth, 
+                "Using open loop depth control. Assuming depth reached..." )
+            return True
+ 
         depthError = self.depthController.desiredDepth - self.playerDepthSensor.pos
         
         return ( abs( depthError ) < abs( self.depthEpsilon ) )
@@ -126,6 +136,24 @@ class Arbitrator:
                 | (self.rightMotorUncontrolled << 2) \
                 | (self.frontMotorUncontrolled << 1) \
                 | self.backMotorUncontrolled
+
+            # Add in some protection for the depth sensor crashing
+            depth = self.playerDepthSensor.pos
+            if depth == self.lastDepth:
+                self.numIdenticalDepthReadings += 1
+            else:
+                self.numIdenticalDepthReadings = 0
+                self.lastDepth = depth
+                self.depthControlDisabled = False
+                
+            if not self.depthControlDisabled:
+                if self.numIdenticalDepthReadings >= 20:
+                    self.logger.logAction( -1.0, -1.0, depth, 
+                    "The depth sensor seems to have failed. Attempting open loop" )
+                    self.depthControlDisabled = True
+
+            if self.depthControlDisabled:
+                dSpeed = -0.3
 
             #------------ Send the new speeds to player ----------#
             

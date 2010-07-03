@@ -15,6 +15,7 @@ sys.path.append( "../" )
 from SubControllerConfig import SubControllerConfig
 from SonarScanner import SonarScanner
 import Maths
+from Maths import Vector2D
 
 #-------------------------------------------------------------------------------
 class SonarLocator:
@@ -40,6 +41,7 @@ class SonarLocator:
         self.playerCompass = playerCompass
         self.playerSonar = playerSonar
         self.lastSonarFrameTime = 0
+        self.active = True
         
         self.sonarScanner = SonarScanner( logger, playerSonar, 
             playerDepthSensor, config )
@@ -49,6 +51,13 @@ class SonarLocator:
         self.thresholdedSonarImage = None 
         self.cornerPos = None
         self.sonarImage = None
+
+    #---------------------------------------------------------------------------
+    def setActive( self, active ):
+        self.active = active
+        
+        if not self.active:
+            self.cornerPos = None
 
     #---------------------------------------------------------------------------
     def isNewSonarFrameAvailable( self ):
@@ -79,11 +88,16 @@ class SonarLocator:
     #---------------------------------------------------------------------------
     def update( self ):
 
+        if not self.active:
+            return
+
         if self.playerCompass.info.datatime != 0:
             self.compassStartTime = self.playerCompass.info.datatime
         else:
             # Don't start until we have compass data
             return
+            
+        self.sonarScanner.update()
 
         if not self.sonarScanner.active: 
             self.configureSonar()

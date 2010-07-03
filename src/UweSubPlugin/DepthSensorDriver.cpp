@@ -200,6 +200,14 @@ void DepthSensorDriver::ProcessData()
             
             if ( DATA_PACKET_ID == packetID )
             {
+                if ( mBuffer.GetNumBytesInBuffer() > MAX_PACKET_LENGTH )
+                {
+                    // Something has gone wrong. There no way a valid
+                    // packet should be this big
+                    fprintf( stderr, "Error: Massive packet found\n" );
+                    mBuffer.Clear();
+                }
+                
                 if ( mBuffer.GetNumBytesInBuffer() >= numBytesInPacket )
                 {
                     assert( numBytesInPacket <= MAX_PACKET_LENGTH && "MAX_PACKET_LENGTH needs to be increased" );
