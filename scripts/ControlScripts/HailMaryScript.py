@@ -14,6 +14,7 @@ sys.path.append( "../" )
 from Controllers import Arbitrator
 from Controllers import KillMotors
 from ImageCaptureScript import ImageCaptureScript
+from OrangeBallScript import OrangeBallScript
 import Maths
 import Profiling
 
@@ -76,6 +77,8 @@ class HailMaryScript( ControlScript ):
             self.playerPos3d, self.playerDepthSensor, self.playerSonar, self.playerFrontCamera )
         
         self.motorKiller = KillMotors( self.playerPos3d )
+        self.ballChopper = OrangeBallScript( config, logger, 
+            playerPos3d, playerCompass, playerDepthSensor )
         
         # Setup the arbitrator
         self.arbitrator = Arbitrator( playerPos3d, playerCompass, playerDepthSensor, logger=logger )
@@ -178,6 +181,7 @@ class HailMaryScript( ControlScript ):
         elif newState == self.STATE_HUNTING_BUOY:
     
             # Go, go, go!
+            self.ballChopper.initYawAngle = self.playerCompass.pose.pyaw
             self.stateTimer = time.time()
             
         elif newState == self.STATE_RETURNING_TO_CENTRE:
@@ -336,6 +340,9 @@ class HailMaryScript( ControlScript ):
         if self.state == self.STATE_SURFACING:
             # Kill motors to come up and end mission
             self.motorKiller.update()
+        elif self.state == self.STATE_HUNTING_BUOY:
+            self.ballChopper.setImage( self.imageCaptureScript.bgrImage )
+            self.ballChopper.update()
         else:
             self.arbitrator.update( self.linearSpeed )
         

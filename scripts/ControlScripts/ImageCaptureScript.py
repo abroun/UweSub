@@ -52,6 +52,8 @@ class ImageCaptureScript( ControlScript ):
         self.sonarScanner.setScanAngleRange( 
             Maths.degToRad( self.config.IC_Script_sonarScanStartAngleDegrees ), 
             Maths.degToRad( self.config.IC_Script_sonarScanEndAngleDegrees ) )
+            
+        self.bgrImage = None
     
     #---------------------------------------------------------------------------
     def isNewSonarFrameAvailable( self ):
@@ -119,8 +121,8 @@ class ImageCaptureScript( ControlScript ):
                         rgbImage = scaledImage
             
                     # Image must be converted to bgr for saving with OpenCV
-                    bgrImage = cv.CreateImage( ( rgbImage.width, rgbImage.height ), cv.IPL_DEPTH_8U, 3 )
-                    cv.CvtColor( rgbImage, bgrImage, cv.CV_RGB2BGR )
-                    cv.SaveImage( cameraImageFilename, bgrImage )
+                    self.bgrImage = cv.CreateImage( ( rgbImage.width, rgbImage.height ), cv.IPL_DEPTH_8U, 3 )
+                    cv.CvtColor( rgbImage, self.bgrImage, cv.CV_RGB2BGR )
+                    cv.SaveImage( cameraImageFilename, self.bgrImage )
 
         

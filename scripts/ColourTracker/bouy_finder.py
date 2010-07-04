@@ -5,9 +5,9 @@ import cv
 class BouyFinder:
 
     def __init__(self):
-        self.capture = cv.CaptureFromCAM(0)
-        cv.SetCaptureProperty(self.capture, cv.CV_CAP_PROP_FRAME_WIDTH, 120)    # massively drop image size for roboard ( less processing)
-        cv.SetCaptureProperty(self.capture, cv.CV_CAP_PROP_FRAME_HEIGHT, 180)   # again
+        #self.capture = cv.CaptureFromCAM(0)
+        #cv.SetCaptureProperty(self.capture, cv.CV_CAP_PROP_FRAME_WIDTH, 120)    # massively drop image size for roboard ( less processing)
+        #cv.SetCaptureProperty(self.capture, cv.CV_CAP_PROP_FRAME_HEIGHT, 180)   # again
         #cv.NamedWindow( "CamShiftDemo", 1 )
         #cv.NamedWindow( "GreyTimes" , 1)    # create a window for displaying the image
         #cv.NamedWindow( "FunkyThresh", 1)   # create a window for displaying the image

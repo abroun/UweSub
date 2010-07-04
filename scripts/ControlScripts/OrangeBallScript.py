@@ -23,16 +23,19 @@ class OrangeBallScript ( ControlScript ):
         playerDepthSensor, playerSonar = None ):
         
         self.arbitrator = Arbitrator( playerPos3D, playerCompass, playerDepthSensor )
-        self.ballFinder = bouy_finder()
+        self.ballFinder = bouy_finder.BouyFinder()
 
         self.pitchAngle = -5.0                       # temporary value - zero pitch
         self.initYawAngle = Maths.degToRad( 85.0 )   # temporary value - heading towards the wall
-        self.initDepth = 7450.0                      # temporary value - 0.5 metres beneath the surface
-        self.cuttingDepth = 7470.0
+        self.initDepth = 7460.0                      # temporary value - 0.5 metres beneath the surface
+        self.cuttingDepth = 7480.0
         self.noLinearSpeed = 0.0
         self.movingLinearSpeed = 1.0
-        self.arbitrator.setDesiredState( pitchAngle, initYawAngle, initDepth )
-        self.arbitrator.update( self.noLinearSpeed )
+        self.arbitrator.setDesiredState( self.pitchAngle, self.initYawAngle, self.initDepth )
+        
+        # AB: Disabled for now as this script will be running inside another script
+        #self.arbitrator.update( self.noLinearSpeed )
+        
         self.oneMetresArea = 2700                    # rough estimate        
         
         self.forwardTimer = time.time()
@@ -40,7 +43,11 @@ class OrangeBallScript ( ControlScript ):
         self.detectOrangeFlag = 0.0
         self.ballArea = 0.0
         self.lastBallArea = 0.0
+        self.image = None
         
+    #---------------------------------------------------------------------------
+    def setImage( self, image ):
+        self.image = image
 
     #---------------------------------------------------------------------------
     def update( self ):
