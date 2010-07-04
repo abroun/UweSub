@@ -30,7 +30,7 @@ class ScriptedSubController:
 
         self.config = config
         self.logger = Logger( self.config )
-        #self.logger.addOutputToStdOut()
+        self.logger.addOutputToStdOut()
         
         self.connectToPlayer()
         self.setupControlScript()

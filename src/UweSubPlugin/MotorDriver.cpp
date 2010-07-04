@@ -46,8 +46,8 @@ const U32 MotorDriver::ZERO_DUTY_CYCLE_US = (MIN_DUTY_CYCLE_US + MAX_DUTY_CYCLE_
 
 const U32 MotorDriver::RIGHT_MOTOR_CHANNEL = 3;    // 01
 const U32 MotorDriver::LEFT_MOTOR_CHANNEL = 5;     // 10
-const U32 MotorDriver::FRONT_MOTOR_CHANNEL = 2;
-const U32 MotorDriver::BACK_MOTOR_CHANNEL = 4;
+const U32 MotorDriver::FRONT_MOTOR_CHANNEL = 4;     // Was 4
+const U32 MotorDriver::BACK_MOTOR_CHANNEL = 2;      // Was 2
 const U32 MotorDriver::TEST_CHANNEL = 16;
 
 const F32 MotorDriver::MAX_ABS_2D_DIST = 1.0f;
@@ -57,8 +57,8 @@ const F32 MotorDriver::MAX_ABS_ANG_SPEED = M_PI/6;
 const F32 MOTOR_PER = 0.8;
 const S32 LEFT_PWM_OFFSET = 0;
 const S32 RIGHT_PWM_OFFSET = -20;
-const S32 FRONT_PWM_OFFSET = -20;
-const S32 BACK_PWM_OFFSET = 0;
+const S32 FRONT_PWM_OFFSET = 0;   // Was -20
+const S32 BACK_PWM_OFFSET = -20;      // Was 0
 
 //------------------------------------------------------------------------------
 // Constructor.  Retrieve options from the configuration file and do any
@@ -216,7 +216,8 @@ int MotorDriver::ProcessMessage( QueuePointer& respQueue,
         S32 frontDuty = MIN_DUTY_CYCLE_US 
             + (U32)((MAX_DUTY_CYCLE_US-MIN_DUTY_CYCLE_US)*normalisedFrontPWM);
         
-        F32 pitchSpeed = MOTOR_PER*MAX( -1.0f, MIN( (F32)pCmd->vel.ppitch, 1.0f ) );
+        F32 PITCH_MOTER_PER = 0.5;
+        F32 pitchSpeed = PITCH_MOTER_PER*MAX( -1.0f, MIN( (F32)pCmd->vel.ppitch, 1.0f ) );
         F32 normalisedBackPWM = (pitchSpeed + 1.0f)/2.0f;
         S32 backDuty = MIN_DUTY_CYCLE_US 
             + (U32)((MAX_DUTY_CYCLE_US-MIN_DUTY_CYCLE_US)*normalisedBackPWM);

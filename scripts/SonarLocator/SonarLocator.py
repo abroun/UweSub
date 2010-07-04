@@ -25,7 +25,7 @@ class SonarLocator:
     
     SCAN_RANGE = 70
     NUM_BINS = 300
-    GAIN = 0.3
+    GAIN = 0.4
     
     # All angles here are like compass bearings so 0 degrees is north
     # and angles increase in a clock-wise direction

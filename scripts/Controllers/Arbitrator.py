@@ -160,7 +160,7 @@ class Arbitrator:
 
             if self.depthControlDisabled:
                 dSpeed = -0.8
-
+            
             #------------ Send the new speeds to player ----------#
             
             self.playerPos3D.set_velocity( linearSpeed, 0.0, dSpeed, # x, y, z

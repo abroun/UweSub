@@ -191,6 +191,7 @@ class HailMaryScript( ControlScript ):
             heading = ( self.WEST_HEADING_DEGREES + 45.0 )
             self.arbitrator.setDesiredYaw( 
                 Maths.degToRad( heading ) )
+            self.stateTimer = time.time()
     
         elif newState == self.STATE_SURFACING:
             
@@ -245,7 +246,7 @@ class HailMaryScript( ControlScript ):
             self.logger.logError( "Exit State - Unrecognised state - ({0})".format( self.state ) )
         
     #---------------------------------------------------------------------------
-    @Profiling.printTiming
+    #@Profiling.printTiming
     def update( self ):
         
         curTime = time.time()
@@ -265,9 +266,8 @@ class HailMaryScript( ControlScript ):
             
         elif self.state == self.STATE_DIVING:
 
-            #if self.arbitrator.atDesiredDepth():
-            #    self.setState( self.STATE_TURNING_TO_GATE_1 )
-            pass
+            if self.arbitrator.atDesiredDepth():
+                self.setState( self.STATE_TURNING_TO_GATE_1 )
             
         elif self.state == self.STATE_TURNING_TO_GATE_1:
             
@@ -317,7 +317,7 @@ class HailMaryScript( ControlScript ):
         elif self.state == self.STATE_TURNING_TO_HUNT_BUOY:
             
             if self.arbitrator.atDesiredYaw():
-                self.setState( self.STATE_HUNTING_BUOY )
+                self.setState( self.STATE_RETURNING_TO_CENTRE )
         
         elif self.state == self.STATE_HUNTING_BUOY:
             
