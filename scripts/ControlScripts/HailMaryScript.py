@@ -69,7 +69,7 @@ class HailMaryScript( ControlScript ):
         imageCaptureConfig.IC_Script_sonarNumBins = 300
         imageCaptureConfig.IC_Script_sonarScanStartAngleDegrees = 0.0
         imageCaptureConfig.IC_Script_sonarScanEndAngleDegrees = 350.0
-        imageCaptureConfig.IC_Script_numImagesSavedPerSecond = 10.0
+        imageCaptureConfig.IC_Script_numImagesSavedPerSecond = 1.0
         imageCaptureConfig.IC_Script_enableCamera = True
         imageCaptureConfig.IC_Script_enableSonar = False
         
@@ -129,7 +129,7 @@ class HailMaryScript( ControlScript ):
         elif newState == self.STATE_DRIVING_THROUGH_GATE_1:
             
             self.linearSpeed = self.FORWARD_SPEED
-            self.driveTimer = time.time()
+            self.staterTimer = time.time()
     
         elif newState == self.STATE_DESCENDING_TO_PIPE:
             
@@ -146,7 +146,7 @@ class HailMaryScript( ControlScript ):
         elif newState == self.STATE_SURVEYING_PIPE:
             
             self.linearSpeed = self.FORWARD_SPEED
-            self.driveTimer = time.time()
+            self.staterTimer = time.time()
             
         elif newState == self.STATE_RETURNING_TO_NORMAL_DEPTH:
             
@@ -163,7 +163,7 @@ class HailMaryScript( ControlScript ):
         elif newState == self.STATE_APPROACHING_WALL:
             
             self.linearSpeed = self.FORWARD_SPEED
-            self.driveTimer = time.time()
+            self.staterTimer = time.time()
             
         elif newState == self.STATE_SURVEYING_WALL:
             
@@ -265,8 +265,9 @@ class HailMaryScript( ControlScript ):
             
         elif self.state == self.STATE_DIVING:
 
-            if self.arbitrator.atDesiredDepth():
-                self.setState( self.STATE_TURNING_TO_GATE_1 )
+            #if self.arbitrator.atDesiredDepth():
+            #    self.setState( self.STATE_TURNING_TO_GATE_1 )
+            pass
             
         elif self.state == self.STATE_TURNING_TO_GATE_1:
             
@@ -275,7 +276,7 @@ class HailMaryScript( ControlScript ):
                         
         elif self.state == self.STATE_DRIVING_THROUGH_GATE_1:
             
-            if curTime - self.driveTimer >= self.DRIVING_THROUGH_GATE_1_TIME:
+            if curTime - self.staterTimer >= self.DRIVING_THROUGH_GATE_1_TIME:
                 self.setState( self.STATE_DESCENDING_TO_PIPE )
                 
         elif self.state == self.STATE_DESCENDING_TO_PIPE:
@@ -290,7 +291,7 @@ class HailMaryScript( ControlScript ):
         
         elif self.state == self.STATE_SURVEYING_PIPE:
         
-            if curTime - self.driveTimer >= self.SURVEYING_PIPE_TIME:
+            if curTime - self.staterTimer >= self.SURVEYING_PIPE_TIME:
                 self.setState( self.STATE_RETURNING_TO_NORMAL_DEPTH )
                 
         elif self.state == self.STATE_RETURNING_TO_NORMAL_DEPTH:
@@ -305,7 +306,7 @@ class HailMaryScript( ControlScript ):
         
         elif self.state == self.STATE_APPROACHING_WALL:
             
-            if curTime - self.driveTimer >= self.APPROACHING_WALL_TIME:
+            if curTime - self.staterTimer >= self.APPROACHING_WALL_TIME:
                 self.setState( self.STATE_SURVEYING_WALL )
                 
         elif self.state == self.STATE_SURVEYING_WALL:

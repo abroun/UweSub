@@ -89,13 +89,13 @@ class SonarScanner:
         if self.waitingForScan:
             
             if curTime - self.lastScanTime > self.config.sonarMaxTimeBetweenScans:
-                logger.logMsg( "SonarScanner: Timed out waiting for scan, requesting new one" )
+                self.logger.logMsg( "SonarScanner: Timed out waiting for scan, requesting new one" )
                 self.numFailedScans += 1
                 
                 if self.numFailedScans <= self.config.sonarNumFailedScansBetweenReboots:
                     self.startScan()
                 else:
-                    logger.logMsg( "SonarScanner: Trying to reboot sonar" )
+                    self.logger.logMsg( "SonarScanner: Trying to reboot sonar" )
                     self.playerSonar.say( "REBOOT" )
                     time.sleep( 6.0 )
                     self.numFailedScans = 0

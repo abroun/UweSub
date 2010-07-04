@@ -104,8 +104,11 @@ class Arbitrator:
         
         if self.depthControlDisabled:
             depth = self.playerDepthSensor.pos
-            self.logger.logAction( -1.0, -1.0, depth, 
-                "Using open loop depth control. Assuming depth reached..." )
+            
+            if self.logger != None:
+                #self.logger.logAction( -1.0, -1.0, depth, 
+                #    "Using open loop depth control. Assuming depth reached..." )
+                self.logger.logMsg( "Using open loop depth control. Assuming depth reached..." )
             return True
  
         depthError = self.depthController.desiredDepth - self.playerDepthSensor.pos
@@ -147,13 +150,16 @@ class Arbitrator:
                 self.depthControlDisabled = False
                 
             if not self.depthControlDisabled:
-                if self.numIdenticalDepthReadings >= 20:
-                    self.logger.logAction( -1.0, -1.0, depth, 
-                    "The depth sensor seems to have failed. Attempting open loop" )
+                if self.numIdenticalDepthReadings >= 40:
+                    
+                    if self.logger != None:
+                        #self.logger.logAction( -1.0, -1.0, depth, 
+                        #    "The depth sensor seems to have failed. Attempting open loop" )
+                        self.logger.logMsg( "The depth sensor seems to have failed. Attempting open loop" )
                     self.depthControlDisabled = True
 
             if self.depthControlDisabled:
-                dSpeed = -0.3
+                dSpeed = -0.8
 
             #------------ Send the new speeds to player ----------#
             
