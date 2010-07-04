@@ -7,6 +7,9 @@ import sys
 import time
 import math
 import cv
+import string
+import os
+from datetime import datetime
 
 from CornerFinder import findCorner as CF_FindCorner
 
@@ -20,17 +23,18 @@ from Maths import Vector2D
 #-------------------------------------------------------------------------------
 class SonarLocator:
     
-    SCAN_RANGE = 4
+    SCAN_RANGE = 70
     NUM_BINS = 300
     GAIN = 0.3
     
     # All angles here are like compass bearings so 0 degrees is north
     # and angles increase in a clock-wise direction
     
-    #SONAR_HEADING_OFFSET = Maths.degToRad( 0.0 )    # Offset from sub heading to sonar
-    POOL_HEADING = Maths.degToRad( 306.0 )    # Heading of the pool in degrees converted to radians
-    IDEAL_SCAN_START_ANGLE = Maths.degToRad( 350.0 )
-    IDEAL_SCAN_END_ANGLE = Maths.degToRad( 100.0 )
+    SAVE_IMAGES = True
+    SONAR_HEADING_OFFSET = Maths.degToRad( 180.0 )    # Offset from sub heading to sonar
+    POOL_HEADING = Maths.degToRad( 0.0 )    # Heading of the pool in degrees converted to radians
+    IDEAL_SCAN_START_ANGLE = Maths.degToRad( 170.0 )
+    IDEAL_SCAN_END_ANGLE = Maths.degToRad( 280.0 )
     
     #---------------------------------------------------------------------------
     def __init__( self, logger, playerCompass, playerSonar, 
@@ -51,6 +55,7 @@ class SonarLocator:
         self.thresholdedSonarImage = None 
         self.cornerPos = None
         self.sonarImage = None
+        self.sonarImagesDir = string.Template( config.sonarImagesDir ).safe_substitute( os.environ )
 
     #---------------------------------------------------------------------------
     def setActive( self, active ):
@@ -64,17 +69,17 @@ class SonarLocator:
         if self.playerSonar == None:
             return False
         else:
-            return self.lastSonarFrameTime != self.playerSonar.info.datatime
+            return self.lastSonarFrameTime != self.sonarScanner.lastSonarFrameTime
     
     #---------------------------------------------------------------------------
-    def configureSonar():
+    def configureSonar( self ):
         
         subHeading = self.playerCompass.pose.pyaw
         angleOffset = subHeading - self.POOL_HEADING    # Diff from pool to sub heading
         
         # Scan when the sub is aligned with the pool to find the bottom right corner
-        scanStartAngle = self.IDEAL_SCAN_START_ANGLE - angleOffset
-        scanEndAngle = self.IDEAL_SCAN_END_ANGLE - angleOffset
+        scanStartAngle = self.SONAR_HEADING_OFFSET + self.IDEAL_SCAN_START_ANGLE - angleOffset
+        scanEndAngle = self.SONAR_HEADING_OFFSET + self.IDEAL_SCAN_END_ANGLE - angleOffset
     
         scanStartAngle = Maths.normaliseAngle( scanStartAngle, 0.0 )
         scanEndAngle = Maths.normaliseAngle( scanEndAngle, 0.0 )
@@ -105,9 +110,15 @@ class SonarLocator:
         else:
             if self.isNewSonarFrameAvailable():
                 self.configureSonar()   # Prepare for next sonar scan
-                self.lastSonarFrameTime = self.playerSonar.info.datatime
+                self.lastSonarFrameTime = self.sonarScanner.lastSonarFrameTime
                 
                 self.sonarImage = self.sonarScanner.sonarImage
+                
+                # Save the sonar image
+                if self.SAVE_IMAGES:
+                    sonarImageFilename = "{0}/corner_{1}.png".format( 
+                        self.sonarImagesDir, str( datetime.now() ) )
+                    cv.SaveImage( sonarImageFilename, self.sonarImage )
                     
                 # Run the corner finder on the image
                 #self.detectedLines, self.thresholdedSonarImage, self.cornerPos = \

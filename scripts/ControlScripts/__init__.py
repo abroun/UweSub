@@ -64,7 +64,7 @@ class ControlScript:
         
     #---------------------------------------------------------------------------
     # Override and then call this function in the control script
-    def update():
+    def update( self ):
         self.sonarLocator.update()
         
         

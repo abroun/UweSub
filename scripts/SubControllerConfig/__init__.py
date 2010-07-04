@@ -228,6 +228,9 @@ class SubControllerConfig( yaml.YAMLObject ):
         
         if not "HM_maxHuntingBuoyTime" in setVariables:
             self.HM_maxHuntingBuoyTime = 600.0
+            
+        if not "HM_returningToCentreTime" in setVariables:
+            self.HM_returningToCentreTime = 60.0
         
         if not "HM_northHeadingDegrees" in setVariables:
             self.HM_northHeadingDegrees = 232.0

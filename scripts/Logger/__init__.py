@@ -56,4 +56,4 @@ class Logger:
     #---------------------------------------------------------------------------
     def getTimestamp( self ):
         time = datetime.now()
-        return "{0}:{1:02}:{2:02}".format( time.hour, time.minute, time.second )
+        return "{0:02}:{1:02}:{2:02}".format( time.hour, time.minute, time.second )

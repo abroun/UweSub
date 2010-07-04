@@ -58,7 +58,7 @@ class ImageCaptureScript( ControlScript ):
         if self.playerSonar == None:
             return False
         else:
-            return self.lastSonarFrameTime != self.playerSonar.info.datatime
+            return self.lastSonarFrameTime != self.sonarScanner.lastSonarFrameTime
             
     #---------------------------------------------------------------------------
     def isNewCameraFrameAvailable( self ):
@@ -77,7 +77,7 @@ class ImageCaptureScript( ControlScript ):
             if self.config.IC_Script_enableSonar:
                 self.sonarScanner.update()
                 if self.isNewSonarFrameAvailable():
-                    self.lastSonarFrameTime = self.playerSonar.info.datatime
+                    self.lastSonarFrameTime = self.sonarScanner.lastSonarFrameTime
                     
                     # Save the sonar image
                     sonarImageFilename = "{0}/{1}.png".format( 

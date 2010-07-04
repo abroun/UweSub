@@ -15,6 +15,7 @@ from Controllers import Arbitrator
 from Controllers import KillMotors
 from ImageCaptureScript import ImageCaptureScript
 import Maths
+import Profiling
 
 #-------------------------------------------------------------------------------
 class HailMaryScript( ControlScript ):
@@ -30,7 +31,9 @@ class HailMaryScript( ControlScript ):
     STATE_TURNING_TO_WALL = "TurningToWall"
     STATE_APPROACHING_WALL = "ApproachingWall"
     STATE_SURVEYING_WALL = "SurveyingWall"
+    STATE_TURNING_TO_HUNT_BUOY = "TurningToHuntBuoy"
     STATE_HUNTING_BUOY = "HuntingBuoy"
+    STATE_RETURNING_TO_CENTRE = "ReturningToCentre"
     STATE_SURFACING = "Surfacing"
     
     #---------------------------------------------------------------------------
@@ -52,6 +55,7 @@ class HailMaryScript( ControlScript ):
         self.APPROACHING_WALL_TIME = self.config.HM_approachingWallTime
         self.SURVEYING_WALL_TIME = self.config.HM_surveyingWallTime
         self.MAX_HUNTING_BUOY_TIME = self.config.HM_maxHuntingBuoyTime
+        self.RETURNING_TO_CENTRE_TIME = self.config.HM_returningToCentreTime
         self.NORTH_HEADING_DEGREES = self.config.HM_northHeadingDegrees
         self.EAST_HEADING_DEGREES = self.config.HM_eastHeadingDegrees
         self.SOUTH_HEADING_DEGREES = self.config.HM_southHeadingDegrees
@@ -117,6 +121,7 @@ class HailMaryScript( ControlScript ):
             self.linearSpeed = 0.0
             self.arbitrator.setDesiredYaw( 
                 Maths.degToRad( self.NORTH_HEADING_DEGREES ) )
+            self.setSonarLocatorActive( True )
                         
         elif newState == self.STATE_DRIVING_THROUGH_GATE_1:
             
@@ -161,12 +166,27 @@ class HailMaryScript( ControlScript ):
             
             self.linearSpeed = 0.0
             self.stateTimer = time.time()
-            self.imageCaptureScript.IC_Script_enableSonar = True
+            self.setSonarLocatorActive( False )
+            self.imageCaptureScript.config.IC_Script_enableSonar = True
+            
+        elif newState == self.STATE_TURNING_TO_HUNT_BUOY:
+            
+            self.linearSpeed = 0.0
+            self.arbitrator.setDesiredYaw( 
+                Maths.degToRad( self.WEST_HEADING_DEGREES ) )
             
         elif newState == self.STATE_HUNTING_BUOY:
     
             # Go, go, go!
             self.stateTimer = time.time()
+            
+        elif newState == self.STATE_RETURNING_TO_CENTRE:
+    
+            # Blast forward in hopeful direction
+            self.linearSpeed = self.FORWARD_SPEED
+            heading = ( self.WEST_HEADING_DEGREES + 45.0 )
+            self.arbitrator.setDesiredYaw( 
+                Maths.degToRad( heading ) )
     
         elif newState == self.STATE_SURFACING:
             
@@ -206,9 +226,14 @@ class HailMaryScript( ControlScript ):
             pass
         elif self.state == self.STATE_SURVEYING_WALL:
             
-            self.imageCaptureScript.IC_Script_enableSonar = False
-            
+            self.imageCaptureScript.config.IC_Script_enableSonar = False
+            self.setSonarLocatorActive( True )
+        
+        elif self.state == self.STATE_TURNING_TO_HUNT_BUOY:
+            pass
         elif self.state == self.STATE_HUNTING_BUOY:
+            pass
+        elif self.state == self.STATE_RETURNING_TO_CENTRE:
             pass
         elif self.state == self.STATE_SURFACING:
             pass
@@ -216,9 +241,12 @@ class HailMaryScript( ControlScript ):
             self.logger.logError( "Exit State - Unrecognised state - ({0})".format( self.state ) )
         
     #---------------------------------------------------------------------------
+    @Profiling.printTiming
     def update( self ):
         
         curTime = time.time()
+        
+        ControlScript.update( self )
         
         if self.state != self.STATE_WAITING_TO_START:
             self.imageCaptureScript.update()
@@ -279,11 +307,21 @@ class HailMaryScript( ControlScript ):
         elif self.state == self.STATE_SURVEYING_WALL:
             
             if curTime - self.stateTimer >= self.SURVEYING_WALL_TIME:
+                self.setState( self.STATE_TURNING_TO_HUNT_BUOY )
+        
+        elif self.state == self.STATE_TURNING_TO_HUNT_BUOY:
+            
+            if self.arbitrator.atDesiredYaw():
                 self.setState( self.STATE_HUNTING_BUOY )
         
         elif self.state == self.STATE_HUNTING_BUOY:
             
             if curTime - self.stateTimer >= self.MAX_HUNTING_BUOY_TIME:
+                self.setState( self.STATE_RETURNING_TO_CENTRE )
+                
+        elif self.state == self.STATE_RETURNING_TO_CENTRE:
+            
+            if curTime - self.stateTimer >= self.RETURNING_TO_CENTRE_TIME:
                 self.setState( self.STATE_SURFACING )
         
         elif self.state == self.STATE_SURFACING:
